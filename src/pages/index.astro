@@ -4,9 +4,23 @@ import directus from '../lib/directus';
 import { readItems } from '@directus/sdk';
 
 // Récupération des produits depuis Directus
-let produits = [];
+// Adapte le nom de la collection et des champs à ta config Directus
+type Produit = {
+  nom?: string;
+  Nom_du_produit?: string;
+  description?: string;
+  Descriptions_principale?: string;
+  prix?: number;
+  image?: string;
+};
+
+let produits: Produit[] = [];
 try {
-  produits = await directus.request(readItems('Produits'));
+  produits = await directus.request(
+    readItems('produits', {
+      fields: ['Nom_du_produit', 'Descriptions_principale', 'image', 'nom', 'description', 'prix'],
+    })
+  );
 } catch (error) {
   console.error("Erreur lors de la récupération des produits:", error);
 }
@@ -35,10 +49,10 @@ const title = "Expert Exosquelettes | La Performance Augmentée";
 						<div class="product-card">
 							<div class="badge">Innovation 2026</div>
 							<div class="product-info">
-								<h3>{produit.nom}</h3>
-								<p class="description">{produit.description || "Système d'assistance motorisé haute précision."}</p>
+								<h3>{produit.nom ?? produit.Nom_du_produit ?? 'Produit'}</h3>
+								<p class="description">{produit.description ?? produit.Descriptions_principale ?? "Système d'assistance motorisé haute précision."}</p>
 								<div class="product-footer">
-									<span class="price">{produit.prix} €</span>
+									<span class="price">{produit.prix != null ? `${produit.prix} €` : '—'}</span>
 									<button class="btn-small">Détails</button>
 								</div>
 							</div>

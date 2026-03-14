@@ -7,6 +7,16 @@
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro Basics</title>
+		<!-- Privacy-friendly analytics by Plausible -->
+		<script async src="https://plausible.io/js/pa-70jG5NZHgnzZsaaygg9M5.js" />
+		<script is:inline define:vars={{}}>
+			(function() {
+				const w = window;
+				w.plausible = w.plausible || function() { (w.plausible.q = w.plausible.q || []).push(arguments); };
+				w.plausible.init = w.plausible.init || function(opts) { w.plausible.o = opts || {}; };
+				w.plausible.init();
+			})();
+		</script>
 	</head>
 	<body>
 		<slot />
