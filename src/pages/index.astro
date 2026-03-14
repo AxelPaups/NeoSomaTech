@@ -1,11 +1,51 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import directus from '../lib/directus';
+import { readItems } from '@directus/sdk';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+let produits = [];
+try {
+  // On utilise 'Produits' avec un P majuscule
+  const response = await directus.request(readItems('Produits', {
+    fields: ['Nom_du_produit', 'Descriptions_principale', 'image']
+  }));
+  produits = response;
+} catch (e) {
+  console.error("Erreur Directus :", e);
+}
+
+const ASSETS_URL = "https://spirited-squid.pikapod.net/assets/";
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <title>Comparatif Exosquelettes</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; background: #0f172a; color: #f8fafc; padding: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #1e293b; border-radius: 15px; overflow: hidden; border: 1px solid #334155; transition: 0.3s; }
+        .card:hover { transform: translateY(-10px); border-color: #38bdf8; }
+        .content { padding: 20px; }
+        img { width: 100%; height: 200px; object-fit: cover; background: #334155; }
+        h2 { color: #38bdf8; margin-top: 0; font-size: 1.4rem; }
+        p { font-size: 0.9rem; color: #94a3b8; line-height: 1.5; white-space: pre-wrap; }
+        .badge { background: #38bdf8; color: #0f172a; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center; margin-bottom: 50px; font-size: 2.5rem;">🦾 Expert Exosquelettes</h1>
+    
+    <div class="grid">
+        {produits.map((p) => (
+            <div class="card">
+                {p.image && <img src={`${ASSETS_URL}${p.image}`} alt={p.Nom_du_produit} />}
+                <div class="content">
+                    <span class="badge">Nouveauté</span>
+                    <h2>{p.Nom_du_produit}</h2>
+                    <p>{p.Descriptions_principale.substring(0, 200)}...</p>
+                </div>
+            </div>
+        ))}
+    </div>
+</body>
+</html>
