@@ -1,0 +1,94 @@
+---
+---
+<header class="header">
+    <nav class="nav container">
+      <a href="/" class="logo">
+        <span class="logo-icon">🦾</span>
+        <span class="logo-text">EXPERT<span class="highlight">EXO</span></span>
+      </a>
+  
+      <ul class="nav-links">
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/boutique">Boutique</a></li>
+        <li><a href="/blog">Le Mag</a></li>
+        <li><a href="/a-propos">À Propos</a></li>
+      </ul>
+  
+      <div class="nav-actions">
+        <a href="/contact" class="btn-contact">Contact</a>
+      </div>
+    </nav>
+  </header>
+  
+  <style>
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.8); /* Fond sombre transparent */
+      backdrop-filter: blur(12px); /* Effet de flou futuriste */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 80px;
+      padding: 0 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: white;
+      letter-spacing: -1px;
+    }
+  
+    .highlight {
+      color: #4f46e5; /* Violet électrique */
+    }
+  
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+  
+    .nav-links a {
+      text-decoration: none;
+      color: #94a3b8;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+  
+    .nav-links a:hover {
+      color: white;
+    }
+  
+    .btn-contact {
+      background: linear-gradient(45deg, #4f46e5, #06b6d4);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: transform 0.2s;
+    }
+  
+    .btn-contact:hover {
+      transform: translateY(-2px);
+    }
+  
+    /* Version Mobile simplifiée pour l'instant */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+    }
+  </style>
