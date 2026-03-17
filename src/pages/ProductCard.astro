@@ -1,0 +1,126 @@
+---
+// On simule les données que tu as dans Directus
+const { 
+  image, 
+  Nom_du_produit, 
+  prix, 
+  description_simple, 
+  description_principale, 
+  Bouton_acheter 
+} = Astro.props;
+---
+
+<article class="product-container">
+  <div class="grid">
+    <div class="image-box">
+      <img src={image} alt={Nom_du_produit} />
+    </div>
+
+    <div class="content">
+      <h1 class="title">{Nom_du_produit}</h1>
+      <p class="tagline">{description_simple}</p>
+      
+      <div class="price-tag">{prix} €</div>
+      
+      <div class="divider"></div>
+      
+      <div class="main-description">
+        <h3>À propos de cet équipement</h3>
+        <p>{description_principale}</p>
+      </div>
+
+      <a href={Bouton_acheter} class="buy-button">
+        Vérifier la disponibilité
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .product-container {
+    background: #0f172a; /* Bleu très sombre */
+    color: white;
+    padding: 3rem;
+    border-radius: 20px;
+    border: 1px solid #1e293b;
+    max-width: 1000px;
+    margin: 2rem auto;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .image-box img {
+    width: 100%;
+    border-radius: 12px;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.2));
+  }
+
+  .title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .tagline {
+    color: #8B5CF6; /* Ton violet */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+  }
+
+  .price-tag {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #06B6D4; /* Cyan pour le prix */
+    margin-bottom: 2rem;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, #8B5CF6, transparent);
+    margin: 2rem 0;
+  }
+
+  .main-description h3 {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .main-description p {
+    line-height: 1.6;
+    color: #cbd5e1;
+  }
+
+  .buy-button {
+    display: inline-block;
+    margin-top: 2rem;
+    background: #8B5CF6;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+  }
+
+  .buy-button:hover {
+    transform: translateY(-3px);
+    background: #7c3aed;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+  }
+
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; gap: 2rem; }
+  }
+</style>
