@@ -1,98 +1,142 @@
 ---
+// src/components/Header.astro
+// Composant réutilisable : <Header /> dans n'importe quelle page
+
+const navLinks = [
+    { href: "/", label: "Accueil" },
+    { href: "/boutique", label: "Boutique" },
+    { href: "/a-propos", label: "À propos" },
+    { href: "/contact", label: "Contact" },
+];
+
+const currentPath = Astro.url.pathname;
 ---
+
 <header class="header">
-    <nav class="nav container">
-      <a href="/" class="logo">
-        <span class="logo-icon">🦾</span>
-        <span class="logo-text">EXPERT<span class="highlight">EXO</span></span>
-      </a>
-  
-      <ul class="nav-links">
-        <li><a href="/">Accueil</a></li>
-        <li><a href="/boutique">Boutique</a></li>
-        <li><a href="/blog">Le Mag</a></li>
-        <li><a href="/a-propos">À Propos</a></li>
-      </ul>
-  
-      <div class="nav-actions">
-        <a href="/contact" class="btn-contact">Contact</a>
-      </div>
+    <div class="header-inner">
+        <a href="/" class="logo">
+            <span class="logo-icon">⚡</span>
+            NeoSomaTech
+        </a>
+        <nav class="nav">
+            {navLinks.map(link => (
+                <a
+                    href={link.href}
+                    class:list={["nav-link", { active: currentPath === link.href || (link.href !== "/" && currentPath.startsWith(link.href)) }]}
+                >
+                    {link.label}
+                </a>
+            ))}
+        </nav>
+        <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <nav class="mobile-nav" id="mobileNav">
+        {navLinks.map(link => (
+            <a href={link.href} class="mobile-nav-link">{link.label}</a>
+        ))}
     </nav>
-  </header>
-  
-  <style>
+</header>
+
+<style>
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(15, 23, 42, 0.8); /* Fond sombre transparent */
-      backdrop-filter: blur(12px); /* Effet de flou futuriste */
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(15, 15, 30, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.2);
     }
-  
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 80px;
-      padding: 0 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
+    .header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
     }
-  
     .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      font-weight: 800;
-      font-size: 1.5rem;
-      color: white;
-      letter-spacing: -1px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #fff;
+        text-decoration: none;
+        letter-spacing: -0.5px;
+        transition: opacity 0.2s;
     }
-  
-    /* Dans ton <style> de Header.astro */
-    .highlight {
-      color: #8B5CF6; /* Ton nouveau Violet */
-      text-shadow: 0 0 15px rgba(139, 92, 246, 0.5); /* Effet néon discret */
+    .logo:hover { opacity: 0.85; }
+    .logo-icon { font-size: 1.2rem; }
+    .nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
-    
-  
-    .nav-links {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
+    .nav-link {
+        color: #a5b4fc;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        padding: 0.5rem 0.85rem;
+        border-radius: 8px;
+        transition: background 0.2s, color 0.2s;
     }
-  
-    .nav-links a {
-      text-decoration: none;
-      color: #94a3b8;
-      font-weight: 500;
-      transition: color 0.3s;
+    .nav-link:hover, .nav-link.active {
+        background: rgba(99, 102, 241, 0.15);
+        color: #fff;
     }
-  
-    .nav-links a:hover {
-      color: white;
+    .nav-link.active {
+        color: #818cf8;
     }
-  
-    .btn-contact {
-      background: linear-gradient(135deg, #8B5CF6 0%, #d946ef 100%);
-      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
-      color: white;
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 0.9rem;
-      transition: transform 0.2s;
+    /* Menu burger mobile */
+    .menu-toggle {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
     }
-  
-    .btn-contact:hover {
-      transform: translateY(-2px);
+    .menu-toggle span {
+        display: block;
+        width: 24px;
+        height: 2px;
+        background: #a5b4fc;
+        border-radius: 2px;
+        transition: transform 0.2s;
     }
-  
-    /* Version Mobile simplifiée pour l'instant */
-    @media (max-width: 768px) {
-      .nav-links { display: none; }
+    .mobile-nav {
+        display: none;
+        flex-direction: column;
+        padding: 0.75rem 1.5rem 1rem;
+        border-top: 1px solid rgba(99, 102, 241, 0.15);
     }
-  </style>
+    .mobile-nav.open { display: flex; }
+    .mobile-nav-link {
+        color: #a5b4fc;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        font-size: 1rem;
+        transition: color 0.2s;
+    }
+    .mobile-nav-link:last-child { border-bottom: none; }
+    .mobile-nav-link:hover { color: #fff; }
+
+    @media (max-width: 700px) {
+        .nav { display: none; }
+        .menu-toggle { display: flex; }
+    }
+</style>
+
+<script>
+    const toggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('mobileNav');
+    toggle?.addEventListener('click', () => nav?.classList.toggle('open'));
+</script>

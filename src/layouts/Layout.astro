@@ -1,50 +1,51 @@
 ---
+import Header from '../components/Header.astro';
+
 interface Props {
 	title: string;
+	description?: string;
 }
 
-const { title } = Astro.props;
+const { title, description = 'NeoSomaTech - Boutique en ligne' } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="fr">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Astro + Directus" />
+		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 		<generator>{Astro.generator}</generator>
 		<title>{title}</title>
 	</head>
 	<body>
-        <header class="header">
-            <div class="container">
-                <a href="/" class="logo">NeoSomaTech</a>
-                <nav>
-                    <a href="/">Accueil</a>
-                </nav>
-            </div>
-        </header>
-        <main class="container">
-		    <slot />
-        </main>
-        <footer class="footer">
-            <div class="container">
-                <p>&copy; {new Date().getFullYear()} NeoSomaTech. Tous droits réservés.</p>
-            </div>
-        </footer>
+		<Header />
+		<main>
+			<slot />
+		</main>
+		<footer class="footer">
+			<div class="container">
+				<p>&copy; {new Date().getFullYear()} NeoSomaTech. Tous droits réservés.</p>
+			</div>
+		</footer>
 	</body>
 </html>
 
 <style is:global>
 	:root {
-		--primary: #4f46e5;
-		--primary-hover: #4338ca;
-		--background: #f9fafb;
-		--text: #1f2937;
-		--text-light: #6b7280;
-        --border: #e5e7eb;
-        --card-bg: #ffffff;
+		--primary: #6366f1;
+		--primary-hover: #4f46e5;
+		--background: #0f0f1e;
+		--surface: #1a1a2e;
+		--surface-2: #16213e;
+		--text: #e2e8f0;
+		--text-light: #94a3b8;
+		--border: rgba(99, 102, 241, 0.2);
+		--gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
 	}
 	* {
 		box-sizing: border-box;
@@ -52,82 +53,59 @@ const { title } = Astro.props;
 		padding: 0;
 	}
 	html {
-		font-family: system-ui, sans-serif;
+		font-family: 'Inter', system-ui, sans-serif;
 		background: var(--background);
 		color: var(--text);
+		scroll-behavior: smooth;
 	}
-    body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 1rem;
-        width: 100%;
-    }
-    .header {
-        background: var(--card-bg);
-        border-bottom: 1px solid var(--border);
-        padding: 1.5rem 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .header .container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .logo {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--primary);
-        text-decoration: none;
-        letter-spacing: -0.5px;
-    }
-    nav a {
-        color: var(--text);
-        text-decoration: none;
-        font-weight: 500;
-        margin-left: 1.5rem;
-        transition: color 0.2s;
-    }
-    nav a:hover {
-        color: var(--primary);
-    }
-    main {
-        flex: 1;
-        padding: 3rem 1rem;
-    }
-    .footer {
-        background: var(--card-bg);
-        border-top: 1px solid var(--border);
-        padding: 2rem 0;
-        text-align: center;
-        color: var(--text-light);
-        margin-top: auto;
-    }
-
-    /* Utilitaires CSS Globaux pour les boutons */
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--primary);
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: background 0.2s, transform 0.1s;
-    }
-    .btn:hover {
-        background: var(--primary-hover);
-        transform: translateY(-1px);
-    }
-    .btn:active {
-        transform: translateY(0);
-    }
+	body {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+	main {
+		flex: 1;
+	}
+	.container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+		width: 100%;
+	}
+	.footer {
+		border-top: 1px solid var(--border);
+		padding: 2rem 0;
+		text-align: center;
+		color: var(--text-light);
+		font-size: 0.9rem;
+	}
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		background: var(--gradient);
+		color: white;
+		padding: 0.75rem 1.5rem;
+		border-radius: 10px;
+		text-decoration: none;
+		font-weight: 600;
+		border: none;
+		cursor: pointer;
+		transition: opacity 0.2s, transform 0.15s;
+		font-size: 1rem;
+	}
+	.btn:hover {
+		opacity: 0.9;
+		transform: translateY(-2px);
+	}
+	.btn-outline {
+		background: transparent;
+		border: 1.5px solid var(--primary);
+		color: #a5b4fc;
+	}
+	.btn-outline:hover {
+		background: rgba(99, 102, 241, 0.1);
+		opacity: 1;
+	}
 </style>
