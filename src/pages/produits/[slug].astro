@@ -1,0 +1,253 @@
+---
+// page : /produits/[slug]
+// Page produit avec image, SEO JSON-LD et design premium
+import Layout from '../../layouts/Layout.astro';
+import { fetchDirectus } from '../../lib/directus';
+
+const { slug } = Astro.params;
+const directusUrl = "https://spirited-squid.pikapod.net";
+
+let produit: any = null;
+let errorMessage: string | null = null;
+
+try {
+    const data = await fetchDirectus(
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug&limit=1`
+    );
+    produit = Array.isArray(data) ? data[0] : data;
+} catch (error: any) {
+    console.error(`Erreur produit ${slug}:`, error);
+    errorMessage = error.message;
+}
+
+if (!produit && !errorMessage) {
+    return Astro.redirect('/404');
+}
+
+const imageUrl = produit?.image
+    ? `${directusUrl}/assets/${produit.image}`
+    : null;
+
+// JSON-LD SEO Produit
+const jsonLd = produit ? JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": produit.Nom_du_produit,
+    "description": produit.descripton_simple,
+    "image": imageUrl,
+    "offers": {
+        "@type": "Offer",
+        "priceCurrency": "EUR",
+        "price": produit.prix || "0",
+        "availability": "https://schema.org/InStock",
+        "url": produit.Bouton_acheter || Astro.url.href
+    }
+}) : null;
+---
+
+<Layout
+    title={produit ? `${produit.Nom_du_produit} | NeoSomaTech` : 'Produit introuvable'}
+    description={produit?.descripton_simple || 'Exosquelette NeoSomaTech'}
+>
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
+
+    {errorMessage ? (
+        <div class="container" style="padding: 4rem 1.5rem;">
+            <div class="error-box">⚠️ {errorMessage}</div>
+        </div>
+    ) : produit && (
+        <div class="product-wrapper">
+
+            <!-- HERO IMAGE -->
+            {imageUrl && (
+                <div class="product-hero">
+                    <img src={imageUrl} alt={produit.Nom_du_produit} />
+                    <div class="hero-overlay"></div>
+                    <div class="hero-badge container">
+                        <span class="badge">Exosquelette</span>
+                    </div>
+                </div>
+            )}
+
+            <div class="container product-layout">
+
+                <!-- COLONNE GAUCHE : INFO -->
+                <div class="product-info">
+                    <nav class="breadcrumb">
+                        <a href="/">Accueil</a> /
+                        <a href="/boutique">Boutique</a> /
+                        <span>{produit.Nom_du_produit}</span>
+                    </nav>
+
+                    <h1>{produit.Nom_du_produit}</h1>
+
+                    {produit.descripton_simple && (
+                        <p class="product-lead">{produit.descripton_simple}</p>
+                    )}
+
+                    <!-- PRIX + CTA -->
+                    <div class="product-cta">
+                        <div class="price-block">
+                            {produit.prix ? (
+                                <>
+                                    <span class="price-label">Prix</span>
+                                    <span class="price">{produit.prix} €</span>
+                                </>
+                            ) : (
+                                <span class="price">Nous contacter</span>
+                            )}
+                        </div>
+                        {produit.Bouton_acheter ? (
+                            <a href={produit.Bouton_acheter} class="btn btn-buy" target="_blank" rel="noopener noreferrer">
+                                🛒 Acheter maintenant
+                            </a>
+                        ) : (
+                            <a href="/contact" class="btn btn-buy">📩 Demander un devis</a>
+                        )}
+                        <a href="/boutique" class="btn btn-outline">&larr; Retour boutique</a>
+                    </div>
+                </div>
+
+                <!-- COLONNE DROITE (si pas d'image) : spacer -->
+            </div>
+
+            <!-- DESCRIPTION PRINCIPALE -->
+            {produit.description_principale && (
+                <div class="container description-section">
+                    <div class="description-inner">
+                        <h2>Description complète</h2>
+                        <div class="rich-content" set:html={produit.description_principale} />
+                    </div>
+                </div>
+            )}
+
+        </div>
+    )}
+</Layout>
+
+<style>
+    /* HERO */
+    .product-hero {
+        position: relative;
+        width: 100%;
+        max-height: 520px;
+        overflow: hidden;
+    }
+    .product-hero img {
+        width: 100%; height: 520px;
+        object-fit: cover;
+        object-position: center;
+    }
+    .hero-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to bottom, rgba(15,15,30,0.2) 0%, var(--background) 100%);
+    }
+    .hero-badge {
+        position: absolute; bottom: 1.5rem; left: 0; right: 0;
+    }
+    .badge {
+        display: inline-block;
+        background: rgba(99,102,241,0.2);
+        border: 1px solid rgba(99,102,241,0.5);
+        color: #a5b4fc;
+        font-size: 0.78rem; font-weight: 600;
+        padding: 0.3rem 0.85rem; border-radius: 99px;
+        letter-spacing: 1px; text-transform: uppercase;
+    }
+
+    /* LAYOUT PRODUIT */
+    .product-layout {
+        padding-top: 2.5rem;
+        padding-bottom: 2rem;
+    }
+    .product-info {
+        max-width: 700px;
+    }
+    .breadcrumb {
+        font-size: 0.82rem; color: var(--text-light);
+        margin-bottom: 1.5rem;
+        display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    }
+    .breadcrumb a { color: #818cf8; text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: #a5b4fc; }
+    .breadcrumb span { color: var(--text-light); overflow: hidden; text-overflow: ellipsis; }
+
+    h1 {
+        font-size: clamp(1.8rem, 4vw, 3rem);
+        font-weight: 900; color: #fff;
+        line-height: 1.15; letter-spacing: -1px;
+        margin-bottom: 1.25rem;
+    }
+    .product-lead {
+        font-size: 1.1rem; color: #a5b4fc;
+        line-height: 1.7; font-style: italic;
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* CTA */
+    .product-cta {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .price-block {
+        display: flex; align-items: baseline; gap: 0.75rem;
+    }
+    .price-label {
+        font-size: 0.85rem; color: var(--text-light); font-weight: 500;
+    }
+    .price {
+        font-size: 2.5rem; font-weight: 900;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .btn-buy {
+        font-size: 1.1rem;
+        padding: 1rem 2.5rem;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    /* DESCRIPTION */
+    .description-section {
+        padding: 3rem 1.5rem 5rem;
+        max-width: 900px;
+    }
+    .description-inner {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 2.5rem;
+    }
+    .description-inner h2 {
+        font-size: 1.5rem; font-weight: 800; color: #fff;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .rich-content {
+        color: var(--text); line-height: 1.85; font-size: 1.05rem;
+    }
+    .rich-content h2 { font-size: 1.4rem; font-weight: 800; color: #fff; margin: 2rem 0 0.75rem; }
+    .rich-content h3 { font-size: 1.2rem; font-weight: 700; color: #e2e8f0; margin: 1.5rem 0 0.5rem; }
+    .rich-content p { margin-bottom: 1.25rem; }
+    .rich-content ul, .rich-content ol { margin: 1rem 0 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .rich-content li::marker { color: #6366f1; }
+    .rich-content strong { color: #e2e8f0; }
+    .rich-content a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
+    .rich-content blockquote {
+        border-left: 3px solid #6366f1;
+        padding: 1rem 1.5rem; margin: 1.5rem 0;
+        background: rgba(99,102,241,0.08); border-radius: 0 8px 8px 0;
+        color: #a5b4fc; font-style: italic;
+    }
+    .rich-content img { max-width: 100%; border-radius: 12px; margin: 1.5rem 0; }
+
+    .error-box {
+        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+        color: #fca5a5; padding: 1.5rem; border-radius: 12px; text-align: center;
+    }
+</style>

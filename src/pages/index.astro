@@ -8,7 +8,7 @@ let errorMessage: string | null = null;
 
 try {
     [produits, articles] = await Promise.all([
-        fetchDirectus('/items/Produits?limit=6&fields=id,Nom_du_produit,prix,descripton_simple'),
+        fetchDirectus('/items/Produits?limit=6&fields=id,Nom_du_produit,prix,descripton_simple,slug'),
         fetchDirectus('/items/Articles?limit=3&sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale')
     ]);
 } catch (error: any) {
@@ -59,7 +59,7 @@ const formatDate = (date: string) => date
 						<p class="product-desc">{produit.descripton_simple}</p>
 						<div class="product-footer">
 							<span class="price">{produit.prix ? `${produit.prix} €` : 'Nous contacter'}</span>
-							<a href={`/produits/${produit.id}`} class="btn">Voir &rarr;</a>
+							<a href={`/produits/${produit.slug || produit.id}`} class="btn">Voir &rarr;</a>
 						</div>
 					</article>
 				))}

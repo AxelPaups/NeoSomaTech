@@ -6,7 +6,7 @@ let produits: any[] = [];
 let errorMessage: string | null = null;
 
 try {
-    produits = await fetchDirectus('/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple');
+    produits = await fetchDirectus('/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug');
 } catch (error: any) {
     errorMessage = error.message;
 }
@@ -33,7 +33,7 @@ try {
                         <p class="card-desc">{p.descripton_simple}</p>
                         <div class="card-footer">
                             <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
-                            <a href={`/produits/${p.id}`} class="btn">Voir &rarr;</a>
+                            <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
                         </div>
                     </article>
                 ))}
