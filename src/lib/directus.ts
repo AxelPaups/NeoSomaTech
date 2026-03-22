@@ -1,19 +1,24 @@
-import { createDirectus, rest, staticToken } from '@directus/sdk';
+// URL et Jeton écrits en dur pour garantir le fonctionnement serveur Cloudflare
+const directusUrl = "https://spirited-squid.pikapod.net";
+const directusToken = "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ";
 
-// Nous transformons l'export statique en une fonction qui prend l'environnement de Cloudflare.
-// En local, env sera vide et il retombera sur import.meta.env
-export const getDirectusClient = (platformEnv: any) => {
-    // Fallback sécurisé en dur pour éviter tout crash lié à l'environnement Cloudflare Worker
-    const directusUrl = platformEnv?.PUBLIC_URL_DIRECT ?? "https://spirited-squid.pikapod.net";
-    const directusToken = platformEnv?.PUBLIC_JETON_STATIQUE_DIRECT ?? "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ";
+/**
+ * Requête Fetch basique et universelle pour Cloudflare Workers/Pages
+ * (Remplace le SDK lourd de Directus qui faisait crasher l'environnement Node.js de Cloudflare)
+ */
+export async function fetchDirectus(path: string) {
+    const url = `${directusUrl}${path}`;
+    const response = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${directusToken}`,
+            'Content-Type': 'application/json'
+        }
+    });
 
-    if (!directusUrl) {
-        throw new Error('La variable PUBLIC_URL_DIRECT est manquante.');
+    if (!response.ok) {
+        throw new Error(`Directus renvoie Erreur ${response.status}: ${response.statusText} sur ${url}`);
     }
 
-    if (directusToken) {
-        return createDirectus(directusUrl).with(staticToken(directusToken)).with(rest());
-    } else {
-        return createDirectus(directusUrl).with(rest());
-    }
-};
+    const json = await response.json();
+    return json.data;
+}

@@ -1,20 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getDirectusClient } from '../lib/directus';
-import { readItems } from '@directus/sdk';
+import { fetchDirectus } from '../lib/directus';
 
-const env = Astro.locals.runtime?.env;
-let produits = [];
-let errorMessage = null;
+let produits: any[] = [];
+let errorMessage: string | null = null;
 
 try {
-    const directus = getDirectusClient(env);
-    produits = await directus.request(
-        readItems('Produits', {
-            limit: 10,
-            fields: ['id', 'Nom_du_produit', 'prix', 'descripton_simple']
-        })
-    );
+    produits = await fetchDirectus('/items/Produits?limit=10&fields=id,Nom_du_produit,prix,descripton_simple');
 } catch (error: any) {
     console.error("Erreur Directus:", error);
     errorMessage = error.message;
