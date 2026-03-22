@@ -2,11 +2,13 @@
 import Layout from '../layouts/Layout.astro';
 import { fetchDirectus } from '../lib/directus';
 
+const directusUrl = "https://spirited-squid.pikapod.net";
+
 let produits: any[] = [];
 let errorMessage: string | null = null;
 
 try {
-    produits = await fetchDirectus('/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug');
+    produits = await fetchDirectus('/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image');
 } catch (error: any) {
     errorMessage = error.message;
 }
@@ -28,12 +30,27 @@ try {
             <div class="grid">
                 {produits.map((p) => (
                     <article class="card">
-                        <div class="card-tag">Exosquelette</div>
-                        <h3>{p.Nom_du_produit}</h3>
-                        <p class="card-desc">{p.descripton_simple}</p>
-                        <div class="card-footer">
-                            <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
-                            <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
+                        <a href={`/produits/${p.slug || p.id}`} class="card-img-link">
+                            {p.image ? (
+                                <img
+                                    src={`${directusUrl}/assets/${p.image}`}
+                                    alt={p.Nom_du_produit}
+                                    loading="lazy"
+                                />
+                            ) : (
+                                <div class="img-placeholder">🦾</div>
+                            )}
+                        </a>
+                        <div class="card-body">
+                            <div class="card-tag">Exosquelette</div>
+                            <h3>
+                                <a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit}</a>
+                            </h3>
+                            <p class="card-desc">{p.descripton_simple}</p>
+                            <div class="card-footer">
+                                <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
+                                <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
+                            </div>
                         </div>
                     </article>
                 ))}
@@ -52,14 +69,69 @@ try {
         background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s, border-color 0.2s; }
-    .card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 0 30px rgba(99,102,241,0.15); }
+
+    /* GRILLE */
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.75rem;
+    }
+
+    /* CARTE */
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+        box-shadow: 0 0 30px rgba(99,102,241,0.15);
+    }
+
+    /* IMAGE */
+    .card-img-link {
+        display: block;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background: var(--surface-2);
+    }
+    .card-img-link img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s;
+    }
+    .card:hover .card-img-link img { transform: scale(1.05); }
+    .img-placeholder {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 4rem;
+        background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));
+    }
+
+    /* CORPS */
+    .card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        flex: 1;
+    }
     .card-tag { font-size: 0.72rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 1px; }
-    .card h3 { font-size: 1.2rem; font-weight: 700; color: #fff; }
-    .card-desc { color: var(--text-light); font-size: 0.9rem; line-height: 1.6; flex: 1; }
-    .card-footer { display: flex; align-items: center; justify-content: space-between; }
-    .price { font-size: 1.4rem; font-weight: 800; color: #818cf8; }
+    .card-body h3 { font-size: 1.15rem; font-weight: 700; color: #fff; line-height: 1.3; }
+    .card-body h3 a { color: inherit; text-decoration: none; transition: color 0.2s; }
+    .card-body h3 a:hover { color: #a5b4fc; }
+    .card-desc {
+        color: var(--text-light); font-size: 0.88rem; line-height: 1.6; flex: 1;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.25rem; }
+    .price { font-size: 1.35rem; font-weight: 800; color: #818cf8; }
+
     .error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 1.5rem; border-radius: 12px; text-align: center; }
     .empty-box { background: var(--surface); border: 1px dashed var(--border); padding: 3rem; border-radius: 12px; text-align: center; color: var(--text-light); }
 </style>
