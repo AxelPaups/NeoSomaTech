@@ -1,0 +1,17 @@
+{
+	"compatibility_date": "2026-03-12",
+	"compatibility_flags": ["global_fetch_strictly_public"],
+	"name": "neosomatech",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"assets": {
+		"directory": "./dist/client",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"PUBLIC_URL_DIRECT": "https://spirited-squid.pikapod.net",
+		"PUBLIC_JETON_STATIQUE_DIRECT": "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ"
+	}
+}
