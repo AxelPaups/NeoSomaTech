@@ -1,9 +1,82 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Contact | Expert Exosquelettes">
-  <main class="container">
-    <h1>Contactez l'Expert</h1>
-    <p>Partenariats, demandes de devis ou questions techniques.</p>
-  </main>
+
+<Layout title="Contact | NeoSomaTech" description="Contactez l'équipe NeoSomaTech pour toute question sur nos exosquelettes.">
+    <div class="page container">
+        <div class="breadcrumb"><a href="/">Accueil</a> / Contact</div>
+        <h1>Nous <span class="gradient-text">Contacter</span></h1>
+        <p class="intro">Une question sur un produit, un conseil d'achat ou un partenariat ? Écrivez-nous, nous répondons sous 24h.</p>
+
+        <div class="contact-grid">
+            <div class="contact-info">
+                <div class="info-block">
+                    <span class="icon">📧</span>
+                    <div>
+                        <strong>Email</strong>
+                        <p>contact@neosomatech.com</p>
+                    </div>
+                </div>
+                <div class="info-block">
+                    <span class="icon">⏰</span>
+                    <div>
+                        <strong>Horaires</strong>
+                        <p>Lundi – Vendredi, 9h – 18h</p>
+                    </div>
+                </div>
+            </div>
+
+            <form class="contact-form" action="mailto:contact@neosomatech.com" method="get">
+                <div class="form-group">
+                    <label for="name">Votre nom</label>
+                    <input id="name" name="name" type="text" placeholder="Jean Dupont" required />
+                </div>
+                <div class="form-group">
+                    <label for="email">Votre email</label>
+                    <input id="email" name="email" type="email" placeholder="jean@exemple.com" required />
+                </div>
+                <div class="form-group">
+                    <label for="message">Votre message</label>
+                    <textarea id="message" name="body" rows="5" placeholder="Décrivez votre demande..." required></textarea>
+                </div>
+                <button type="submit" class="btn">Envoyer le message &rarr;</button>
+            </form>
+        </div>
+    </div>
 </Layout>
+
+<style>
+    .page { max-width: 900px; padding: 4rem 1.5rem 6rem; }
+    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #fff; letter-spacing: -1.5px; margin-bottom: 0.75rem; }
+    .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .intro { color: var(--text-light); margin-bottom: 3rem; font-size: 1.05rem; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; }
+    .contact-info { display: flex; flex-direction: column; gap: 1.5rem; }
+    .info-block { display: flex; align-items: flex-start; gap: 1rem; }
+    .icon { font-size: 1.5rem; }
+    .info-block strong { color: #fff; display: block; margin-bottom: 0.25rem; }
+    .info-block p { color: var(--text-light); font-size: 0.9rem; }
+    .contact-form { display: flex; flex-direction: column; gap: 1.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.88rem; font-weight: 500; color: #a5b4fc; }
+    .form-group input, .form-group textarea {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        transition: border-color 0.2s;
+        outline: none;
+        resize: vertical;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
+    .form-group input::placeholder, .form-group textarea::placeholder { color: #4a5568; }
+    @media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
+</style>

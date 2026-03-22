@@ -1,9 +1,65 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { fetchDirectus } from '../lib/directus';
+
+let produits: any[] = [];
+let errorMessage: string | null = null;
+
+try {
+    produits = await fetchDirectus('/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple');
+} catch (error: any) {
+    errorMessage = error.message;
+}
 ---
-<Layout title="Boutique | Expert Exosquelettes">
-  <main class="container">
-    <h1>Catalogue Complet</h1>
-    <p>Explorez les dernières innovations technologiques.</p>
-    </main>
+
+<Layout title="Boutique Exosquelettes | NeoSomaTech" description="Découvrez notre sélection complète d'exosquelettes pour le ski, le travail et la rééducation.">
+    <header class="page-header container">
+        <div class="breadcrumb"><a href="/">Accueil</a> / Boutique</div>
+        <h1>Notre <span class="gradient-text">Boutique</span></h1>
+        <p>Tous nos exosquelettes, sélectionnés pour leur qualité et leur innovation.</p>
+    </header>
+
+    <div class="container" style="padding-bottom: 5rem;">
+        {errorMessage ? (
+            <div class="error-box"><strong>⚠️</strong> {errorMessage}</div>
+        ) : produits.length === 0 ? (
+            <div class="empty-box"><p>Aucun produit disponible pour le moment.</p></div>
+        ) : (
+            <div class="grid">
+                {produits.map((p) => (
+                    <article class="card">
+                        <div class="card-tag">Exosquelette</div>
+                        <h3>{p.Nom_du_produit}</h3>
+                        <p class="card-desc">{p.descripton_simple}</p>
+                        <div class="card-footer">
+                            <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
+                            <a href={`/produits/${p.id}`} class="btn">Voir &rarr;</a>
+                        </div>
+                    </article>
+                ))}
+            </div>
+        )}
+    </div>
 </Layout>
+
+<style>
+    .page-header { padding: 4rem 1.5rem 2.5rem; text-align: center; }
+    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 1rem; }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; color: #fff; letter-spacing: -1.5px; margin-bottom: 0.75rem; }
+    .page-header p { color: var(--text-light); }
+    .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem; transition: transform 0.2s, border-color 0.2s; }
+    .card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 0 30px rgba(99,102,241,0.15); }
+    .card-tag { font-size: 0.72rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 1px; }
+    .card h3 { font-size: 1.2rem; font-weight: 700; color: #fff; }
+    .card-desc { color: var(--text-light); font-size: 0.9rem; line-height: 1.6; flex: 1; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .price { font-size: 1.4rem; font-weight: 800; color: #818cf8; }
+    .error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 1.5rem; border-radius: 12px; text-align: center; }
+    .empty-box { background: var(--surface); border: 1px dashed var(--border); padding: 3rem; border-radius: 12px; text-align: center; color: var(--text-light); }
+</style>

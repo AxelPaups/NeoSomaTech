@@ -1,0 +1,261 @@
+---
+// page : /articles/[slug]
+// Page article avec SEO maximum : meta, og:, json-ld
+import Layout from '../../layouts/Layout.astro';
+import { fetchDirectus } from '../../lib/directus';
+
+const { slug } = Astro.params;
+
+let article: any = null;
+let errorMessage: string | null = null;
+
+try {
+    const data = await fetchDirectus(
+        `/items/Articles?filter[slug][_eq]=${slug}&fields=id,titre,slug,description_seo,contenu,date_publication,auteur,image_principale&limit=1`
+    );
+    article = Array.isArray(data) ? data[0] : data;
+} catch (error: any) {
+    console.error(`Erreur article ${slug}:`, error);
+    errorMessage = error.message;
+}
+
+if (!article && !errorMessage) {
+    return Astro.redirect('/404');
+}
+
+const directusUrl = "https://spirited-squid.pikapod.net";
+const imageUrl = article?.image_principale
+    ? `${directusUrl}/assets/${article.image_principale}`
+    : null;
+
+const formatDate = (date: string) => {
+    if (!date) return '';
+    return new Intl.DateTimeFormat('fr-FR', { year:'numeric', month:'long', day:'numeric' }).format(new Date(date));
+};
+
+// JSON-LD pour Google
+const jsonLd = article ? JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": article.titre,
+    "description": article.description_seo,
+    "datePublished": article.date_publication,
+    "author": { "@type": "Person", "name": article.auteur || "NeoSomaTech" },
+    "image": imageUrl,
+    "publisher": {
+        "@type": "Organization",
+        "name": "NeoSomaTech",
+        "logo": { "@type": "ImageObject", "url": `${Astro.url.origin}/favicon.svg` }
+    }
+}) : null;
+---
+
+<Layout
+    title={article ? `${article.titre} | NeoSomaTech` : 'Article non trouvé'}
+    description={article?.description_seo || 'Article sur les exosquelettes.'}
+>
+    <!-- JSON-LD SEO -->
+    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
+
+    <!-- Open Graph & Twitter Card -->
+    {article && (
+        <>
+            <meta slot="head" property="og:title" content={article.titre} />
+            <meta slot="head" property="og:description" content={article.description_seo} />
+            {imageUrl && <meta slot="head" property="og:image" content={imageUrl} />}
+            <meta slot="head" property="og:type" content="article" />
+            <meta slot="head" name="twitter:card" content="summary_large_image" />
+        </>
+    )}
+
+    {errorMessage ? (
+        <div class="container error-box">
+            <strong>⚠️ Erreur :</strong> {errorMessage}
+        </div>
+    ) : article && (
+        <article class="article-wrapper">
+            <!-- HERO IMAGE -->
+            {imageUrl && (
+                <div class="article-hero">
+                    <img src={imageUrl} alt={article.titre} />
+                    <div class="article-hero-overlay"></div>
+                </div>
+            )}
+
+            <div class="article-body container">
+                <!-- BREADCRUMB -->
+                <nav class="breadcrumb">
+                    <a href="/">Accueil</a> /
+                    <a href="/articles">Articles</a> /
+                    <span>{article.titre}</span>
+                </nav>
+
+                <!-- META -->
+                <div class="article-meta">
+                    {article.date_publication && (
+                        <time datetime={article.date_publication}>
+                            📅 {formatDate(article.date_publication)}
+                        </time>
+                    )}
+                    {article.auteur && <span>✍️ {article.auteur}</span>}
+                </div>
+
+                <!-- TITRE -->
+                <h1>{article.titre}</h1>
+
+                <!-- RÉSUMÉ SEO -->
+                {article.description_seo && (
+                    <p class="article-lead">{article.description_seo}</p>
+                )}
+
+                <!-- CONTENU HTML -->
+                {article.contenu && (
+                    <div class="article-content" set:html={article.contenu} />
+                )}
+
+                <!-- FOOTER ARTICLE -->
+                <div class="article-footer">
+                    <a href="/articles" class="btn btn-outline">&larr; Retour aux articles</a>
+                </div>
+            </div>
+        </article>
+    )}
+</Layout>
+
+<style>
+    /* HERO IMAGE */
+    .article-hero {
+        position: relative;
+        width: 100%;
+        max-height: 480px;
+        overflow: hidden;
+    }
+    .article-hero img {
+        width: 100%;
+        height: 480px;
+        object-fit: cover;
+    }
+    .article-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 40%, var(--background) 100%);
+    }
+
+    /* CORPS DE L'ARTICLE */
+    .article-body {
+        max-width: 780px;
+        padding-top: 2.5rem;
+        padding-bottom: 5rem;
+    }
+    .breadcrumb {
+        font-size: 0.82rem;
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 300px;
+    }
+    .article-meta {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        font-size: 0.88rem;
+        color: var(--text-light);
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+    }
+    h1 {
+        font-size: clamp(1.8rem, 4vw, 2.8rem);
+        font-weight: 900;
+        color: #fff;
+        line-height: 1.2;
+        letter-spacing: -1px;
+        margin-bottom: 1.5rem;
+    }
+    .article-lead {
+        font-size: 1.15rem;
+        color: #a5b4fc;
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+        font-style: italic;
+    }
+
+    /* CONTENU RICHE (WYSIWYG de Directus) */
+    .article-content {
+        color: var(--text);
+        line-height: 1.85;
+        font-size: 1.05rem;
+    }
+    .article-content h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 2.5rem 0 1rem;
+        letter-spacing: -0.5px;
+    }
+    .article-content h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #e2e8f0;
+        margin: 2rem 0 0.75rem;
+    }
+    .article-content p { margin-bottom: 1.25rem; }
+    .article-content strong { color: #e2e8f0; }
+    .article-content a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
+    .article-content a:hover { color: #a5b4fc; }
+    .article-content ul, .article-content ol {
+        margin: 1rem 0 1.5rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .article-content li::marker { color: #6366f1; }
+    .article-content blockquote {
+        border-left: 3px solid #6366f1;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        background: rgba(99,102,241,0.08);
+        border-radius: 0 8px 8px 0;
+        color: #a5b4fc;
+        font-style: italic;
+    }
+    .article-content img {
+        max-width: 100%;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+    }
+    .article-content pre, .article-content code {
+        background: var(--surface);
+        border-radius: 6px;
+        font-family: monospace;
+    }
+    .article-content pre { padding: 1rem; overflow-x: auto; }
+    .article-content code { padding: 0.15rem 0.4rem; font-size: 0.9rem; }
+
+    .article-footer {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+    }
+    .error-box {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
+        padding: 2rem;
+        border-radius: 12px;
+        margin: 3rem auto;
+        max-width: 600px;
+        text-align: center;
+    }
+</style>

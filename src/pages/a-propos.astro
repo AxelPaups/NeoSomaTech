@@ -1,9 +1,35 @@
 ---
 import Layout from '../layouts/Layout.astro';
 ---
-<Layout title="Notre Vision | Expert Exosquelettes">
-  <main class="container">
-    <h1>Redéfinir les limites du possible</h1>
-    <p>Expert Exosquelettes est né d'une passion pour l'augmentation humaine...</p>
-  </main>
+
+<Layout title="À propos | NeoSomaTech" description="NeoSomaTech, votre référence en exosquelettes. Découvrez notre mission et notre équipe.">
+    <div class="page container">
+        <div class="breadcrumb"><a href="/">Accueil</a> / À propos</div>
+        <h1>À propos de <span class="gradient-text">NeoSomaTech</span></h1>
+        
+        <div class="content">
+            <p class="lead">NeoSomaTech est né d'une conviction simple : les exosquelettes vont transformer notre façon de bouger, de travailler et de nous soigner.</p>
+            
+            <h2>Notre mission</h2>
+            <p>Nous sélectionnons et distribuons des exosquelettes de haute qualité pour les professionnels, les sportifs et toutes les personnes souhaitant bénéficier des dernières innovations en matière de mobilité assistée.</p>
+
+            <h2>Pourquoi les exosquelettes ?</h2>
+            <p>Le marché des exosquelettes est en pleine expansion. De la prévention des troubles musculo-squelettiques en entreprise jusqu'à la rééducation médicale, en passant par les sports de glisse — les applications sont infinies. Nous souhaitons rendre ces technologies accessibles au plus grand nombre.</p>
+        </div>
+    </div>
 </Layout>
+
+<style>
+    .page { max-width: 780px; padding: 4rem 1.5rem 6rem; }
+    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #fff; letter-spacing: -1.5px; margin-bottom: 2rem; }
+    .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .content { display: flex; flex-direction: column; gap: 1.25rem; }
+    .lead { font-size: 1.2rem; color: #a5b4fc; line-height: 1.7; font-style: italic; }
+    .content h2 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-top: 1rem; }
+    .content p { color: var(--text-light); line-height: 1.8; }
+</style>
