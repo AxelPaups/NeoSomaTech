@@ -1,6 +1,6 @@
 ---
 // page : /produits/[slug]
-// Page produit avec image, SEO JSON-LD et design premium
+// Layout e-commerce standard : image gauche / infos droite + description + FAQ + avis
 import Layout from '../../layouts/Layout.astro';
 import { fetchDirectus } from '../../lib/directus';
 
@@ -28,7 +28,6 @@ const imageUrl = produit?.image
     ? `${directusUrl}/assets/${produit.image}`
     : null;
 
-// JSON-LD SEO Produit
 const jsonLd = produit ? JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Product",
@@ -51,203 +50,281 @@ const jsonLd = produit ? JSON.stringify({
 >
     {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
 
-    {errorMessage ? (
-        <div class="container" style="padding: 4rem 1.5rem;">
+    <div class="page-wrapper container">
+
+        {errorMessage ? (
             <div class="error-box">⚠️ {errorMessage}</div>
-        </div>
-    ) : produit && (
-        <div class="product-wrapper">
+        ) : produit && (
+            <>
+                <!-- BREADCRUMB -->
+                <nav class="breadcrumb">
+                    <a href="/">Accueil</a>
+                    <span class="sep">/</span>
+                    <a href="/boutique">Boutique</a>
+                    <span class="sep">/</span>
+                    <span>{produit.Nom_du_produit}</span>
+                </nav>
 
-            <!-- HERO IMAGE -->
-            {imageUrl && (
-                <div class="product-hero">
-                    <img src={imageUrl} alt={produit.Nom_du_produit} />
-                    <div class="hero-overlay"></div>
-                    <div class="hero-badge container">
-                        <span class="badge">Exosquelette</span>
+                <!-- ===== BLOC PRINCIPAL (image gauche / infos droite) ===== -->
+                <section class="product-top">
+                    <!-- IMAGE GAUCHE -->
+                    <div class="product-gallery">
+                        {imageUrl ? (
+                            <div class="main-image">
+                                <img src={imageUrl} alt={produit.Nom_du_produit} />
+                            </div>
+                        ) : (
+                            <div class="image-placeholder">
+                                <span>🦾</span>
+                                <p>Image à venir</p>
+                            </div>
+                        )}
                     </div>
-                </div>
-            )}
 
-            <div class="container product-layout">
+                    <!-- INFOS DROITE -->
+                    <div class="product-details">
+                        <div class="product-tag">Exosquelette</div>
+                        <h1>{produit.Nom_du_produit}</h1>
 
-                <!-- COLONNE GAUCHE : INFO -->
-                <div class="product-info">
-                    <nav class="breadcrumb">
-                        <a href="/">Accueil</a> /
-                        <a href="/boutique">Boutique</a> /
-                        <span>{produit.Nom_du_produit}</span>
-                    </nav>
+                        <!-- PRIX -->
+                        <div class="price-block">
+                            <span class="price">
+                                {produit.prix ? `${produit.prix} €` : 'Nous contacter'}
+                            </span>
+                            {produit.prix && <span class="price-note">TTC · Livraison incluse</span>}
+                        </div>
 
-                    <h1>{produit.Nom_du_produit}</h1>
+                        <!-- DESCRIPTION COURTE -->
+                        {produit.descripton_simple && (
+                            <p class="short-desc">{produit.descripton_simple}</p>
+                        )}
 
-                    {produit.descripton_simple && (
-                        <p class="product-lead">{produit.descripton_simple}</p>
+                        <hr class="divider" />
+
+                        <!-- CTA -->
+                        <div class="cta-group">
+                            {produit.Bouton_acheter ? (
+                                <a href={produit.Bouton_acheter} class="btn btn-buy" target="_blank" rel="noopener noreferrer">
+                                    🛒 Acheter maintenant
+                                </a>
+                            ) : (
+                                <a href="/contact" class="btn btn-buy">📩 Demander un devis</a>
+                            )}
+                            <a href="/boutique" class="btn btn-outline">&larr; Retour boutique</a>
+                        </div>
+
+                        <!-- GARANTIES -->
+                        <div class="trust-badges">
+                            <div class="badge"><span>🛡️</span> Garantie 2 ans</div>
+                            <div class="badge"><span>🚚</span> Livraison rapide</div>
+                            <div class="badge"><span>↩️</span> Retour 30 jours</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== BAS DE PAGE : Description + FAQ + Avis ===== -->
+                <section class="product-bottom">
+
+                    <!-- DESCRIPTION LONGUE -->
+                    {produit.description_principale && (
+                        <div class="tab-section">
+                            <h2 class="section-title">Description complète</h2>
+                            <div class="rich-content" set:html={produit.description_principale} />
+                        </div>
                     )}
 
-                    <!-- PRIX + CTA -->
-                    <div class="product-cta">
-                        <div class="price-block">
-                            {produit.prix ? (
-                                <>
-                                    <span class="price-label">Prix</span>
-                                    <span class="price">{produit.prix} €</span>
-                                </>
-                            ) : (
-                                <span class="price">Nous contacter</span>
-                            )}
+                    <!-- FAQ (placeholder pour plus tard) -->
+                    <div class="tab-section faq-section">
+                        <h2 class="section-title">Questions fréquentes</h2>
+                        <div class="faq-placeholder">
+                            <p>🔧 Les questions fréquentes seront disponibles prochainement.</p>
+                            <p>Pour toute question, <a href="/contact">contactez-nous &rarr;</a></p>
                         </div>
-                        {produit.Bouton_acheter ? (
-                            <a href={produit.Bouton_acheter} class="btn btn-buy" target="_blank" rel="noopener noreferrer">
-                                🛒 Acheter maintenant
-                            </a>
-                        ) : (
-                            <a href="/contact" class="btn btn-buy">📩 Demander un devis</a>
-                        )}
-                        <a href="/boutique" class="btn btn-outline">&larr; Retour boutique</a>
                     </div>
-                </div>
 
-                <!-- COLONNE DROITE (si pas d'image) : spacer -->
-            </div>
-
-            <!-- DESCRIPTION PRINCIPALE -->
-            {produit.description_principale && (
-                <div class="container description-section">
-                    <div class="description-inner">
-                        <h2>Description complète</h2>
-                        <div class="rich-content" set:html={produit.description_principale} />
+                    <!-- AVIS (placeholder pour plus tard) -->
+                    <div class="tab-section">
+                        <h2 class="section-title">Avis clients</h2>
+                        <div class="reviews-placeholder">
+                            <p class="stars">★★★★★</p>
+                            <p>Les avis clients seront affichés ici prochainement.</p>
+                        </div>
                     </div>
-                </div>
-            )}
 
-        </div>
-    )}
+                </section>
+            </>
+        )}
+    </div>
 </Layout>
 
 <style>
-    /* HERO */
-    .product-hero {
-        position: relative;
-        width: 100%;
-        max-height: 520px;
-        overflow: hidden;
-    }
-    .product-hero img {
-        width: 100%; height: 520px;
-        object-fit: cover;
-        object-position: center;
-    }
-    .hero-overlay {
-        position: absolute; inset: 0;
-        background: linear-gradient(to bottom, rgba(15,15,30,0.2) 0%, var(--background) 100%);
-    }
-    .hero-badge {
-        position: absolute; bottom: 1.5rem; left: 0; right: 0;
-    }
-    .badge {
-        display: inline-block;
-        background: rgba(99,102,241,0.2);
-        border: 1px solid rgba(99,102,241,0.5);
-        color: #a5b4fc;
-        font-size: 0.78rem; font-weight: 600;
-        padding: 0.3rem 0.85rem; border-radius: 99px;
-        letter-spacing: 1px; text-transform: uppercase;
+    .page-wrapper {
+        padding-top: 2rem;
+        padding-bottom: 5rem;
     }
 
-    /* LAYOUT PRODUIT */
-    .product-layout {
-        padding-top: 2.5rem;
-        padding-bottom: 2rem;
-    }
-    .product-info {
-        max-width: 700px;
-    }
+    /* BREADCRUMB */
     .breadcrumb {
+        display: flex; align-items: center; gap: 0.5rem;
         font-size: 0.82rem; color: var(--text-light);
-        margin-bottom: 1.5rem;
-        display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+        margin-bottom: 2rem; flex-wrap: wrap;
     }
     .breadcrumb a { color: #818cf8; text-decoration: none; transition: color 0.2s; }
     .breadcrumb a:hover { color: #a5b4fc; }
-    .breadcrumb span { color: var(--text-light); overflow: hidden; text-overflow: ellipsis; }
+    .sep { color: #4a5568; }
 
-    h1 {
-        font-size: clamp(1.8rem, 4vw, 3rem);
-        font-weight: 900; color: #fff;
-        line-height: 1.15; letter-spacing: -1px;
-        margin-bottom: 1.25rem;
-    }
-    .product-lead {
-        font-size: 1.1rem; color: #a5b4fc;
-        line-height: 1.7; font-style: italic;
-        margin-bottom: 2rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid var(--border);
+    /* ===== BLOC PRINCIPAL ===== */
+    .product-top {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: flex-start;
+        margin-bottom: 3rem;
     }
 
-    /* CTA */
-    .product-cta {
+    /* GALERIE */
+    .product-gallery { position: sticky; top: 6rem; }
+    .main-image {
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--surface);
+    }
+    .main-image img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s;
+    }
+    .main-image:hover img { transform: scale(1.03); }
+    .image-placeholder {
+        border-radius: 20px;
+        border: 1px dashed var(--border);
+        background: var(--surface);
+        aspect-ratio: 1 / 1;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        gap: 1rem; color: var(--text-light);
+    }
+    .image-placeholder span { font-size: 4rem; }
+
+    /* INFOS DROITE */
+    .product-details {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
+        gap: 1.25rem;
+    }
+    .product-tag {
+        font-size: 0.72rem; font-weight: 600;
+        color: #818cf8; text-transform: uppercase; letter-spacing: 1.5px;
+    }
+    h1 {
+        font-size: clamp(1.6rem, 3vw, 2.4rem);
+        font-weight: 900; color: #fff;
+        line-height: 1.2; letter-spacing: -0.5px;
     }
     .price-block {
-        display: flex; align-items: baseline; gap: 0.75rem;
-    }
-    .price-label {
-        font-size: 0.85rem; color: var(--text-light); font-weight: 500;
+        display: flex; align-items: baseline; gap: 1rem;
+        flex-wrap: wrap;
     }
     .price {
-        font-size: 2.5rem; font-weight: 900;
+        font-size: 2.4rem; font-weight: 900;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
+    .price-note {
+        font-size: 0.82rem; color: var(--text-light);
+    }
+    .short-desc {
+        font-size: 1rem; color: var(--text-light);
+        line-height: 1.7;
+    }
+    .divider {
+        border: none; border-top: 1px solid var(--border); margin: 0;
+    }
+    .cta-group {
+        display: flex; flex-direction: column; gap: 0.75rem;
+    }
     .btn-buy {
-        font-size: 1.1rem;
-        padding: 1rem 2.5rem;
+        font-size: 1.05rem;
+        padding: 0.9rem 2rem;
         border-radius: 12px;
-        letter-spacing: 0.3px;
+        text-align: center;
     }
 
-    /* DESCRIPTION */
-    .description-section {
-        padding: 3rem 1.5rem 5rem;
-        max-width: 900px;
+    /* GARANTIES */
+    .trust-badges {
+        display: flex; gap: 0.75rem; flex-wrap: wrap;
+        margin-top: 0.25rem;
     }
-    .description-inner {
+    .badge {
+        display: flex; align-items: center; gap: 0.4rem;
+        font-size: 0.8rem; color: var(--text-light);
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 2.5rem;
+        border-radius: 8px; padding: 0.4rem 0.75rem;
     }
-    .description-inner h2 {
-        font-size: 1.5rem; font-weight: 800; color: #fff;
-        margin-bottom: 2rem;
+    .badge span { font-size: 1rem; }
+
+    /* ===== BAS DE PAGE ===== */
+    .product-bottom {
+        border-top: 1px solid var(--border);
+        padding-top: 3rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+    }
+    .tab-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem 2.5rem;
+    }
+    .section-title {
+        font-size: 1.35rem; font-weight: 800; color: #fff;
+        margin-bottom: 1.5rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid var(--border);
     }
-    .rich-content {
-        color: var(--text); line-height: 1.85; font-size: 1.05rem;
-    }
-    .rich-content h2 { font-size: 1.4rem; font-weight: 800; color: #fff; margin: 2rem 0 0.75rem; }
-    .rich-content h3 { font-size: 1.2rem; font-weight: 700; color: #e2e8f0; margin: 1.5rem 0 0.5rem; }
-    .rich-content p { margin-bottom: 1.25rem; }
-    .rich-content ul, .rich-content ol { margin: 1rem 0 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+
+    /* WYSIWYG */
+    .rich-content { color: var(--text); line-height: 1.85; font-size: 1rem; }
+    .rich-content h2 { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.6rem; }
+    .rich-content h3 { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 1.25rem 0 0.5rem; }
+    .rich-content p { margin-bottom: 1rem; }
+    .rich-content ul, .rich-content ol { margin: 0.75rem 0 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
     .rich-content li::marker { color: #6366f1; }
     .rich-content strong { color: #e2e8f0; }
     .rich-content a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
     .rich-content blockquote {
         border-left: 3px solid #6366f1;
-        padding: 1rem 1.5rem; margin: 1.5rem 0;
+        padding: 0.75rem 1.25rem; margin: 1rem 0;
         background: rgba(99,102,241,0.08); border-radius: 0 8px 8px 0;
         color: #a5b4fc; font-style: italic;
     }
-    .rich-content img { max-width: 100%; border-radius: 12px; margin: 1.5rem 0; }
+    .rich-content img { max-width: 100%; border-radius: 10px; margin: 1rem 0; }
+
+    /* FAQ PLACEHOLDER */
+    .faq-placeholder, .reviews-placeholder {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+    .faq-placeholder a { color: #818cf8; text-decoration: underline; }
+    .stars { font-size: 2rem; color: #f59e0b; margin-bottom: 0.5rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .product-top { grid-template-columns: 1fr; gap: 2rem; }
+        .product-gallery { position: static; }
+        .tab-section { padding: 1.5rem; }
+    }
 
     .error-box {
         background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-        color: #fca5a5; padding: 1.5rem; border-radius: 12px; text-align: center;
+        color: #fca5a5; padding: 2rem; border-radius: 12px; text-align: center;
     }
 </style>
