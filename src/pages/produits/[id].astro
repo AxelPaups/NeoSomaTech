@@ -1,9 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { directus } from '../../lib/directus';
+import { getDirectusClient } from '../../lib/directus';
 import { readItem } from '@directus/sdk';
 
 const { id } = Astro.params;
+
+const env = Astro.locals.runtime?.env;
+const directus = getDirectusClient(env);
 
 let produit = null;
 try {

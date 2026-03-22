@@ -1,7 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { directus } from '../lib/directus';
+import { getDirectusClient } from '../lib/directus';
 import { readItems } from '@directus/sdk';
+
+const env = Astro.locals.runtime?.env;
+const directus = getDirectusClient(env);
 
 let produits = [];
 try {
