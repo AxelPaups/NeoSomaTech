@@ -1,9 +1,9 @@
-// @ts-check
 import { defineConfig } from 'astro/config';
+import node from '@astrojs/node'; // On ajoute le support pour le serveur
 
-import cloudflare from '@astrojs/cloudflare';
-
-// https://astro.build/config
 export default defineConfig({
-  adapter: cloudflare()
+  output: 'server', // <-- C'est CETTE ligne qui dit à Astro de ne plus demander getStaticPaths
+  adapter: node({
+    mode: 'standalone',
+  }),
 });

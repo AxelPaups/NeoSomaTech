@@ -1,155 +1,128 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import directus from '../lib/directus';
+import { directus } from '../lib/directus';
 import { readItems } from '@directus/sdk';
 
-// Récupération des produits depuis Directus
-// Adapte le nom de la collection et des champs à ta config Directus
-type Produit = {
-  nom?: string;
-  Nom_du_produit?: string;
-  description?: string;
-  Descriptions_principale?: string;
-  prix?: number;
-  image?: string;
-};
-
-let produits: Produit[] = [];
+let produits = [];
 try {
-  produits = await directus.request(
-    readItems('produits', {
-      fields: ['Nom_du_produit', 'Descriptions_principale', 'image', 'nom', 'description', 'prix'],
-    })
-  );
+    produits = await directus.request(
+        readItems('Produits', {
+            limit: 10,
+            fields: ['id', 'Nom_du_produit', 'prix', 'descripton_simple']
+        })
+    );
 } catch (error) {
-  console.error("Erreur lors de la récupération des produits:", error);
+    console.error("Erreur lors de la récupération des produits Directus:", error);
 }
-
-const title = "Expert Exosquelettes | La Performance Augmentée";
 ---
 
-<Layout title={title}>
-	<main>
-		<section class="hero">
-			<div class="hero-content">
-				<h1>L'Avenir du <span class="text-gradient">Mouvement</span></h1>
-				<p>Solutions d'assistance physique haute performance pour l'industrie et la rééducation.</p>
-				<div class="actions">
-					<a href="#produits" class="btn-primary">Découvrir la gamme</a>
-				</div>
-			</div>
-		</section>
+<Layout title="Accueil - NeoSomaTech">
+	<section class="hero">
+        <h1>Découvrez nos Produits</h1>
+        <p>Une sélection de produits récupérés en temps réel depuis Directus.</p>
+    </section>
 
-		<section id="produits" class="products-section">
-			<h2>Nos Systèmes <span class="text-gradient">Disponibles</span></h2>
-			
-			<div class="product-grid">
-				{produits.length > 0 ? (
-					produits.map((produit) => (
-						<div class="product-card">
-							<div class="badge">Innovation 2026</div>
-							<div class="product-info">
-								<h3>{produit.nom ?? produit.Nom_du_produit ?? 'Produit'}</h3>
-								<p class="description">{produit.description ?? produit.Descriptions_principale ?? "Système d'assistance motorisé haute précision."}</p>
-								<div class="product-footer">
-									<span class="price">{produit.prix != null ? `${produit.prix} €` : '—'}</span>
-									<button class="btn-small">Détails</button>
-								</div>
-							</div>
-						</div>
-					))
-				) : (
-					<p class="empty">Aucun produit trouvé. Vérifiez votre connexion Directus.</p>
-				)}
-			</div>
-		</section>
-	</main>
+    <section class="products">
+        {produits.length === 0 ? (
+            <div class="empty-state">
+                <p>Aucun produit trouvé ou erreur de connexion à Directus.</p>
+                <small>Assurez-vous que la collection "Produits" existe et contient des éléments publics ou que votre token est valide.</small>
+            </div>
+        ) : (
+            <div class="grid">
+                {produits.map((produit) => (
+                    <div class="card">
+                        <div class="card-content">
+                            <h3>{produit.Nom_du_produit}</h3>
+                            <p class="desc">{produit.descripton_simple}</p>
+                            <p class="price">{produit.prix ? `${produit.prix} €` : 'Prix sur demande'}</p>
+                        </div>
+                        <a href={`/produits/${produit.id}`} class="btn">Voir les détails</a>
+                    </div>
+                ))}
+            </div>
+        )}
+    </section>
 </Layout>
 
 <style>
-	main {
-		color: white;
-		line-height: 1.6;
-	}
-	.hero {
-		padding: 8rem 2rem;
-		text-align: center;
-		background: radial-gradient(circle at center, #1a1a2e 0%, #0f172a 100%);
-	}
-	h1 {
-		font-size: 4rem;
-		font-weight: 800;
-		margin-bottom: 1rem;
-	}
-	.text-gradient {
-		background-image: linear-gradient(45deg, #4f46e5, #06b6d4);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-	}
-	p.description {
-		font-size: 0.9rem;
-		color: #94a3b8;
-		margin-bottom: 1.5rem;
-	}
-	.product-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 2rem;
-		padding: 2rem;
-		max-width: 1200px;
-		margin: 0 auto;
-	}
-	.product-card {
-		background: #1e293b;
-		border: 1px solid #334155;
-		border-radius: 12px;
-		padding: 1.5rem;
-		position: relative;
-		transition: transform 0.2s;
-	}
-	.product-card:hover {
-		transform: translateY(-5px);
-		border-color: #4f46e5;
-	}
-	.badge {
-		position: absolute;
-		top: 1rem;
-		right: 1rem;
-		background: #4f46e5;
-		font-size: 0.7rem;
-		padding: 0.2rem 0.6rem;
-		border-radius: 20px;
-	}
-	.price {
-		font-size: 1.25rem;
-		font-weight: bold;
-		color: #22d3ee;
-	}
-	.product-footer {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-top: auto;
-	}
-	.btn-primary {
-		background: #4f46e5;
-		color: white;
-		padding: 0.8rem 1.5rem;
-		border-radius: 8px;
-		text-decoration: none;
-		font-weight: bold;
-	}
-	.btn-small {
-		background: transparent;
-		border: 1px solid #4f46e5;
-		color: white;
-		padding: 0.4rem 0.8rem;
-		border-radius: 6px;
-		cursor: pointer;
-	}
-	h2 {
-		text-align: center;
-		font-size: 2.5rem;
-		margin-top: 4rem;
-	}
+    .hero {
+        text-align: center;
+        padding: 4rem 1rem;
+        background: var(--card-bg);
+        border-radius: 16px;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary);
+        font-weight: 800;
+        letter-spacing: -1px;
+    }
+    .hero p {
+        font-size: 1.25rem;
+        color: var(--text-light);
+    }
+    .products h2 {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-weight: 700;
+    }
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+    .card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid var(--border);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        border-color: var(--primary-hover);
+    }
+    .card-content {
+        flex: 1;
+    }
+    .card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+    }
+    .desc {
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+    .price {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+    }
+    .btn {
+        width: 100%;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 12px;
+    }
+    .empty-state small {
+        display: block;
+        margin-top: 1rem;
+        color: #7f1d1d;
+    }
 </style>

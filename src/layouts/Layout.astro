@@ -1,37 +1,133 @@
 ---
-import Header from '../components/Header.astro';
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
 ---
+
 <!doctype html>
 <html lang="fr">
 	<head>
 		<meta charset="UTF-8" />
+		<meta name="description" content="Astro + Directus" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-		<!-- Privacy-friendly analytics by Plausible -->
-		<script async src="https://plausible.io/js/pa-70jG5NZHgnzZsaaygg9M5.js" />
-		<script is:inline define:vars={{}}>
-			(function() {
-				const w = window;
-				w.plausible = w.plausible || function() { (w.plausible.q = w.plausible.q || []).push(arguments); };
-				w.plausible.init = w.plausible.init || function(opts) { w.plausible.o = opts || {}; };
-				w.plausible.init();
-			})();
-		</script>
+		<generator>{Astro.generator}</generator>
+		<title>{title}</title>
 	</head>
 	<body>
-		<Header />
-		<slot />
+        <header class="header">
+            <div class="container">
+                <a href="/" class="logo">NeoSomaTech</a>
+                <nav>
+                    <a href="/">Accueil</a>
+                </nav>
+            </div>
+        </header>
+        <main class="container">
+		    <slot />
+        </main>
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; {new Date().getFullYear()} NeoSomaTech. Tous droits réservés.</p>
+            </div>
+        </footer>
 	</body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
+<style is:global>
+	:root {
+		--primary: #4f46e5;
+		--primary-hover: #4338ca;
+		--background: #f9fafb;
+		--text: #1f2937;
+		--text-light: #6b7280;
+        --border: #e5e7eb;
+        --card-bg: #ffffff;
 	}
+	* {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+	html {
+		font-family: system-ui, sans-serif;
+		background: var(--background);
+		color: var(--text);
+	}
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        width: 100%;
+    }
+    .header {
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        text-decoration: none;
+        letter-spacing: -0.5px;
+    }
+    nav a {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 500;
+        margin-left: 1.5rem;
+        transition: color 0.2s;
+    }
+    nav a:hover {
+        color: var(--primary);
+    }
+    main {
+        flex: 1;
+        padding: 3rem 1rem;
+    }
+    .footer {
+        background: var(--card-bg);
+        border-top: 1px solid var(--border);
+        padding: 2rem 0;
+        text-align: center;
+        color: var(--text-light);
+        margin-top: auto;
+    }
+
+    /* Utilitaires CSS Globaux pour les boutons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+    .btn:active {
+        transform: translateY(0);
+    }
 </style>
