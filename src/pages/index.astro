@@ -4,17 +4,22 @@ import { getDirectusClient } from '../lib/directus';
 import { readItems } from '@directus/sdk';
 
 const env = Astro.locals.runtime?.env;
-const directus = getDirectusClient(env);
-
 let produits = [];
+let errorMessage = null;
+
 try {
+    const directus = getDirectusClient(env);
     produits = await directus.request(
         readItems('Produits', {
             limit: 10,
             fields: ['id', 'Nom_du_produit', 'prix', 'descripton_simple']
         })
     );
-} catch (error) {
+} catch (error: any) {
+    console.error("Erreur Directus:", error);
+    errorMessage = error.message;
+}
+---
     console.error("Erreur lors de la récupération des produits Directus:", error);
 }
 ---
@@ -26,7 +31,13 @@ try {
     </section>
 
     <section class="products">
-        {produits.length === 0 ? (
+        {errorMessage ? (
+            <div class="empty-state">
+                <h3>Une erreur est survenue !</h3>
+                <p><strong>Erreur : </strong> {errorMessage}</p>
+                <small>Assurez-vous d'avoir bien défini PUBLIC_URL_DIRECT et PUBLIC_JETON_STATIQUE_DIRECT dans les variables d'environnement de votre projet Cloudflare !</small>
+            </div>
+        ) : produits.length === 0 ? (
             <div class="empty-state">
                 <p>Aucun produit trouvé ou erreur de connexion à Directus.</p>
                 <small>Assurez-vous que la collection "Produits" existe et contient des éléments publics ou que votre token est valide.</small>

@@ -4,35 +4,41 @@ import { getDirectusClient } from '../../lib/directus';
 import { readItem } from '@directus/sdk';
 
 const { id } = Astro.params;
-
 const env = Astro.locals.runtime?.env;
-const directus = getDirectusClient(env);
 
 let produit = null;
+let errorMessage = null;
+
 try {
+    const directus = getDirectusClient(env);
     produit = await directus.request(
         readItem('Produits', id, {
             fields: ['id', 'Nom_du_produit', 'prix', 'descripton_simple', 'description_principale', 'Bouton_acheter']
         })
     );
-} catch (error) {
+} catch (error: any) {
     console.error(`Erreur Directus lors de la récupération du produit ${id}:`, error);
-    // Si on ne trouve pas le produit, Astro renverra une erreur 404 (si on le gère)
-    return Astro.redirect('/404');
+    errorMessage = error.message;
 }
 
-if (!produit) {
+if (!produit && !errorMessage) {
     return Astro.redirect('/404');
 }
 ---
 
-<Layout title={`${produit.Nom_du_produit} - NeoSomaTech`}>
+<Layout title={produit ? `${produit.Nom_du_produit} - NeoSomaTech` : 'Erreur'}>
     <div class="product-page">
         <div class="back-link">
             <a href="/">&larr; Retour à l'accueil</a>
         </div>
 
-        <article class="product-detail">
+        {errorMessage ? (
+            <div class="empty-state" style="background:#fee2e2; padding:2rem; border-radius:12px; color:#991b1b;">
+                <h3>Une erreur est survenue !</h3>
+                <p><strong>Erreur : </strong> {errorMessage}</p>
+            </div>
+        ) : produit && (
+            <article class="product-detail">
             <div class="product-header">
                 <h1>{produit.Nom_du_produit}</h1>
                 <div class="price-tag">{produit.prix ? `${produit.prix} €` : 'Prix sur demande'}</div>
@@ -60,6 +66,7 @@ if (!produit) {
                 )}
             </div>
         </article>
+        )}
     </div>
 </Layout>
 
