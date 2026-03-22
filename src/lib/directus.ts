@@ -11,7 +11,9 @@ export const getDirectusClient = (platformEnv: any) => {
         throw new Error('La variable PUBLIC_URL_DIRECT est manquante.');
     }
 
-    return createDirectus(directusUrl)
-        .with(directusToken ? staticToken(directusToken) : rest())
-        .with(rest());
+    if (directusToken) {
+        return createDirectus(directusUrl).with(staticToken(directusToken)).with(rest());
+    } else {
+        return createDirectus(directusUrl).with(rest());
+    }
 };
