@@ -288,22 +288,31 @@ const jsonLd = produit ? JSON.stringify({
         border-bottom: 1px solid var(--border);
     }
 
-    /* WYSIWYG */
-    .rich-content { color: var(--text); line-height: 1.85; font-size: 1rem; }
-    .rich-content h2 { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.6rem; }
-    .rich-content h3 { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 1.25rem 0 0.5rem; }
-    .rich-content p { margin-bottom: 1rem; }
-    .rich-content ul, .rich-content ol { margin: 0.75rem 0 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
-    .rich-content li::marker { color: #6366f1; }
-    .rich-content strong { color: #e2e8f0; }
-    .rich-content a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
-    .rich-content blockquote {
+    /* WYSIWYG — :global() requis car set:html échappe au scope Astro */
+    :global(.rich-content) { color: var(--text); line-height: 1.85; font-size: 1rem; }
+    :global(.rich-content h2) { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.6rem; }
+    :global(.rich-content h3) { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 1.25rem 0 0.5rem; }
+    :global(.rich-content h4) { font-size: 1rem; font-weight: 600; color: #cbd5e1; margin: 1rem 0 0.4rem; }
+    :global(.rich-content p) { margin-bottom: 1.1rem; }
+    :global(.rich-content br) { display: block; margin-bottom: 0.5rem; }
+    :global(.rich-content ul) { list-style: disc; margin: 0.75rem 0 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    :global(.rich-content ol) { list-style: decimal; margin: 0.75rem 0 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    :global(.rich-content li::marker) { color: #6366f1; }
+    :global(.rich-content strong) { color: #e2e8f0; font-weight: 700; }
+    :global(.rich-content em) { font-style: italic; color: #a5b4fc; }
+    :global(.rich-content a) { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
+    :global(.rich-content a:hover) { color: #a5b4fc; }
+    :global(.rich-content blockquote) {
         border-left: 3px solid #6366f1;
-        padding: 0.75rem 1.25rem; margin: 1rem 0;
+        padding: 0.75rem 1.25rem; margin: 1.25rem 0;
         background: rgba(99,102,241,0.08); border-radius: 0 8px 8px 0;
         color: #a5b4fc; font-style: italic;
     }
-    .rich-content img { max-width: 100%; border-radius: 10px; margin: 1rem 0; }
+    :global(.rich-content img) { max-width: 100%; border-radius: 10px; margin: 1.25rem 0; display: block; }
+    :global(.rich-content hr) { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+    :global(.rich-content table) { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    :global(.rich-content th) { background: rgba(99,102,241,0.1); color: #a5b4fc; padding: 0.75rem 1rem; text-align: left; font-weight: 600; border: 1px solid var(--border); }
+    :global(.rich-content td) { padding: 0.65rem 1rem; border: 1px solid var(--border); color: var(--text); }
 
     /* FAQ PLACEHOLDER */
     .faq-placeholder, .reviews-placeholder {
