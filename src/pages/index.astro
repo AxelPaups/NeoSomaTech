@@ -38,6 +38,42 @@ const formatDate = (date: string) => date
 		</div>
 	</section>
 
+	<!-- ===== MISSION ===== -->
+	<section class="mission-section">
+		<div class="container mission-inner">
+			<div class="mission-text">
+				<span class="section-label">Notre mission</span>
+				<h2>L'exosquelette accessible à tous</h2>
+				<p>
+					NeoSomaTech est la référence francophone dédiée aux <strong>exosquelettes médicaux, industriels et militaires</strong>.
+					Notre équipe d'experts analyse, compare et sélectionne les meilleures solutions pour augmenter les capacités humaines —
+					que vous soyez professionnel de santé, industriel ou particulier en quête de mobilité retrouvée.
+				</p>
+				<p>
+					Chaque produit référencé sur notre boutique est soigneusement évalué selon des critères de <strong>performance, sécurité et ergonomie</strong>.
+					Nos guides et comparatifs approfondis vous permettent de choisir en toute confiance.
+				</p>
+			</div>
+			<div class="mission-pillars">
+				<div class="pillar">
+					<div class="pillar-icon">🔬</div>
+					<h3>Expertise technique</h3>
+					<p>Des analyses détaillées rédigées par des spécialistes en robotique et biomécanique.</p>
+				</div>
+				<div class="pillar">
+					<div class="pillar-icon">⚡</div>
+					<h3>Innovation continue</h3>
+					<p>Nous suivons les dernières avancées pour vous présenter les technologies les plus récentes du marché.</p>
+				</div>
+				<div class="pillar">
+					<div class="pillar-icon">🤝</div>
+					<h3>Accompagnement personnalisé</h3>
+					<p>Notre équipe répond à vos questions pour trouver l'exosquelette adapté à votre situation.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<!-- ===== PRODUITS ===== -->
 	<section class="section container">
 		<div class="section-header">
@@ -156,6 +192,81 @@ const formatDate = (date: string) => date
 		max-width: 560px; line-height: 1.65;
 	}
 	.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+	/* MISSION */
+	.mission-section {
+		padding: 6rem 0;
+		background: linear-gradient(to bottom, transparent, var(--surface-2) 50%, transparent);
+	}
+	.mission-inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4rem;
+		align-items: center;
+	}
+	.section-label {
+		display: inline-block;
+		color: var(--primary);
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		font-size: 0.8rem;
+		margin-bottom: 1rem;
+	}
+	.mission-text h2 {
+		font-size: 2.5rem;
+		font-weight: 800;
+		color: #fff;
+		line-height: 1.2;
+		margin-bottom: 1.5rem;
+	}
+	.mission-text p {
+		color: var(--text-light);
+		font-size: 1.1rem;
+		line-height: 1.7;
+		margin-bottom: 1.2rem;
+	}
+	.mission-pillars {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+	.pillar {
+		display: flex;
+		gap: 1.5rem;
+		align-items: flex-start;
+	}
+	.pillar-icon {
+		font-size: 2rem;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		width: 60px;
+		height: 60px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 12px;
+		flex-shrink: 0;
+	}
+	.pillar h3 {
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: #fff;
+		margin-bottom: 0.4rem;
+	}
+	.pillar p {
+		color: var(--text-light);
+		font-size: 0.95rem;
+		line-height: 1.5;
+	}
+
+	@media (max-width: 992px) {
+		.mission-inner {
+			grid-template-columns: 1fr;
+			gap: 3rem;
+		}
+		.mission-text { text-align: center; }
+	}
 
 	/* SECTIONS */
 	.section { padding: 4rem 0; }
