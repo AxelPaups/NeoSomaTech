@@ -128,10 +128,9 @@ const formatDate = (date: string) =>
 	<!-- ===== PRODUITS ===== -->
 	<section class="section container">
 		<div class="section-header">
+			<span class="section-label">Sélection Exclusive</span>
 			<h2>Nos Exosquelettes</h2>
-			<p>Sélectionnés pour leur performance et leur fiabilité.</p>
-			<a href="/boutique" class="see-all">Voir tous les produits &rarr;</a
-			>
+			<p>L'alliance parfaite de la technologie et du mouvement.</p>
 		</div>
 
 		{
@@ -147,29 +146,50 @@ const formatDate = (date: string) =>
 				<div class="products-grid">
 					{produits.map((produit) => (
 						<article class="product-card">
-							<div class="product-tag">Exosquelette</div>
-							<h3>{produit.Nom_du_produit}</h3>
-							<p class="product-desc">
-								{produit.descripton_simple}
-							</p>
-							<div class="product-footer">
-								<span class="price">
-									{produit.prix
-										? `${produit.prix} €`
-										: "Nous contacter"}
-								</span>
-								<a
-									href={`/produits/${produit.slug || produit.id}`}
-									class="btn"
-								>
-									Voir &rarr;
-								</a>
+							<div class="product-img-wrapper">
+								{produit.image ? (
+									<img
+										src={`${directusUrl}/assets/${produit.image}?width=400&height=400&fit=cover`}
+										alt={produit.Nom_du_produit}
+										loading="lazy"
+									/>
+								) : (
+									<div class="img-placeholder">🦾</div>
+								)}
+								<div class="product-badge">Top Product</div>
+							</div>
+							<div class="product-info">
+								<div class="product-tag">Exosquelette</div>
+								<h3>{produit.Nom_du_produit}</h3>
+								<p class="product-desc">
+									{produit.descripton_simple}
+								</p>
+								<div class="product-footer">
+									<div class="price-container">
+										<span class="price-label">À partir de</span>
+										<span class="price">
+											{produit.prix
+												? `${produit.prix} €`
+												: "Sur devis"}
+										</span>
+									</div>
+									<a
+										href={`/produits/${produit.slug || produit.id}`}
+										class="btn-icon"
+										aria-label={`Voir ${produit.Nom_du_produit}`}
+									>
+										&rarr;
+									</a>
+								</div>
 							</div>
 						</article>
 					))}
 				</div>
 			)
 		}
+		<div class="section-footer">
+			<a href="/boutique" class="btn btn-outline">Découvrir toute la boutique &rarr;</a>
+		</div>
 	</section>
 
 	<!-- ===== ARTICLES ===== -->
@@ -440,57 +460,141 @@ const formatDate = (date: string) =>
 	/* PRODUCTS */
 	.products-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 2rem;
+		margin-bottom: 3rem;
 	}
 	.product-card {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 16px;
-		padding: 1.75rem;
+		background: rgba(26, 26, 46, 0.6);
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(99, 102, 241, 0.2);
+		border-radius: 24px;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		transition:
-			transform 0.2s,
-			border-color 0.2s,
-			box-shadow 0.2s;
+		transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 	}
 	.product-card:hover {
-		transform: translateY(-5px);
-		border-color: var(--primary);
-		box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+		transform: translateY(-12px) scale(1.02);
+		border-color: rgba(99, 102, 241, 0.6);
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
 	}
-	.product-tag {
-		font-size: 0.72rem;
-		font-weight: 600;
-		color: #818cf8;
+	.product-img-wrapper {
+		position: relative;
+		aspect-ratio: 1/1;
+		overflow: hidden;
+		background: #000;
+	}
+	.product-img-wrapper img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.6s ease;
+	}
+	.product-card:hover .product-img-wrapper img {
+		transform: scale(1.1);
+	}
+	.img-placeholder {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 4rem;
+		background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+		color: rgba(99, 102, 241, 0.3);
+	}
+	.product-badge {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		background: var(--gradient);
+		color: #fff;
+		font-size: 0.7rem;
+		font-weight: 700;
+		padding: 0.4rem 0.8rem;
+		border-radius: 99px;
+		box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 		text-transform: uppercase;
 		letter-spacing: 1px;
 	}
-	.product-card h3 {
-		font-size: 1.2rem;
+	.product-info {
+		padding: 1.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+		flex: 1;
+	}
+	.product-tag {
+		font-size: 0.7rem;
 		font-weight: 700;
+		color: #818cf8;
+		text-transform: uppercase;
+		letter-spacing: 1.5px;
+	}
+	.product-card h3 {
+		font-size: 1.4rem;
+		font-weight: 800;
 		color: #fff;
-		line-height: 1.3;
+		line-height: 1.25;
 	}
 	.product-desc {
 		color: var(--text-light);
-		font-size: 0.9rem;
+		font-size: 0.95rem;
 		line-height: 1.6;
 		flex: 1;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
 	.product-footer {
 		display: flex;
-		align-items: center;
+		align-items: flex-end;
 		justify-content: space-between;
-		gap: 1rem;
-		margin-top: 0.25rem;
+		margin-top: 1rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
+	}
+	.price-container {
+		display: flex;
+		flex-direction: column;
+	}
+	.price-label {
+		font-size: 0.75rem;
+		color: var(--text-light);
+		font-weight: 500;
 	}
 	.price {
-		font-size: 1.4rem;
-		font-weight: 800;
-		color: #818cf8;
+		font-size: 1.6rem;
+		font-weight: 900;
+		color: #fff;
+		background: var(--gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	.btn-icon {
+		width: 48px;
+		height: 48px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(99, 102, 241, 0.1);
+		color: #fff;
+		border-radius: 12px;
+		text-decoration: none;
+		font-size: 1.5rem;
+		transition: all 0.3s ease;
+		border: 1px solid rgba(99, 102, 241, 0.2);
+	}
+	.product-card:hover .btn-icon {
+		background: var(--gradient);
+		transform: rotate(-45deg);
+		box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+	}
+	.section-footer {
+		text-align: center;
+		margin-top: 1rem;
 	}
 
 	/* ARTICLES */
