@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://neosomatech.com/sitemap-index.xml

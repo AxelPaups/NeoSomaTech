@@ -4,23 +4,49 @@ import Header from '../components/Header.astro';
 interface Props {
 	title: string;
 	description?: string;
+	image?: string;
+	type?: 'website' | 'article';
 }
 
-const { title, description = 'NeoSomaTech - Boutique en ligne' } = Astro.props;
+const { 
+	title, 
+	description = 'NeoSomaTech - Boutique et Blog dédiés aux Exosquelettes',
+	image = '/favicon.png', // Idéalement une image 1200x630
+	type = 'website'
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
 <html lang="fr">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/png" href="/favicon.png" sizes="512x512" />
 		<link rel="shortcut icon" href="/favicon.png" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+		
+		<!-- SEO Primordial -->
 		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalURL} />
+
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content={type} />
+		<meta property="og:url" content={Astro.url} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={new URL(image, Astro.url)} />
+
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={Astro.url} />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={new URL(image, Astro.url)} />
 	</head>
 	<body>
 		<Header />

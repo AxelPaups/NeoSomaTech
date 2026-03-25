@@ -1,39 +1,75 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { fetchDirectus } from '../lib/directus';
+import Layout from "../layouts/Layout.astro";
+import { fetchDirectus } from "../lib/directus";
 
 let produits: any[] = [];
 let articles: any[] = [];
 let errorMessage: string | null = null;
 
 try {
-    [produits, articles] = await Promise.all([
-        fetchDirectus('/items/Produits?limit=6&fields=id,Nom_du_produit,prix,descripton_simple,slug'),
-        fetchDirectus('/items/Articles?limit=3&sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale')
-    ]);
+	[produits, articles] = await Promise.all([
+		fetchDirectus(
+			"/items/Produits?limit=6&fields=id,Nom_du_produit,prix,descripton_simple,slug",
+		),
+		fetchDirectus(
+			"/items/Articles?limit=3&sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale",
+		),
+	]);
 } catch (error: any) {
-    console.error("Erreur Directus:", error);
-    errorMessage = error.message;
+	console.error("Erreur Directus:", error);
+	errorMessage = error.message;
 }
 
 const directusUrl = "https://spirited-squid.pikapod.net";
-const formatDate = (date: string) => date
-    ? new Intl.DateTimeFormat('fr-FR', { year:'numeric', month:'long', day:'numeric' }).format(new Date(date))
-    : '';
+const formatDate = (date: string) =>
+	date
+		? new Intl.DateTimeFormat("fr-FR", {
+				year: "numeric",
+				month: "long",
+				day: "numeric",
+			}).format(new Date(date))
+		: "";
 ---
 
-<Layout title="NeoSomaTech - Exosquelettes & Innovations" description="NeoSomaTech : boutique et blog dédiés aux exosquelettes. Comparatifs, guides d'achat et dernières innovations.">
-
+<Layout
+	title="NeoSomaTech - Exosquelettes & Innovations"
+	description="NeoSomaTech : boutique et blog dédiés aux exosquelettes. Comparatifs, guides d'achat et dernières innovations."
+>
+	<script type="application/ld+json" is:inline>
+		{
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			"name": "NeoSomaTech",
+			"url": "https://neosomatech.com",
+			"description": "NeoSomaTech : boutique et blog dédiés aux exosquelettes. Comparatifs, guides d'achat et dernières innovations.",
+			"publisher": {
+				"@type": "Organization",
+				"name": "NeoSomaTech",
+				"logo": {
+					"@type": "ImageObject",
+					"url": "https://neosomatech.com/favicon.png"
+				}
+			}
+		}
+	</script>
 	<!-- ===== HERO ===== -->
 	<section class="hero">
 		<div class="hero-bg"></div>
 		<div class="container hero-content">
 			<div class="hero-badge">✦ Spécialiste Exosquelettes</div>
-			<h1>L'avenir du corps<br/><span class="gradient-text">commence ici</span></h1>
-			<p class="hero-sub">Découvrez une sélection d'exosquelettes de pointe et lisez nos analyses approfondies pour faire le meilleur choix.</p>
+			<h1>
+				L'avenir du corps<br /><span class="gradient-text"
+					>commence ici</span
+				>
+			</h1>
+			<p class="hero-sub">
+				Découvrez une sélection d'exosquelettes de pointe et lisez nos
+				analyses approfondies pour faire le meilleur choix.
+			</p>
 			<div class="hero-actions">
 				<a href="/boutique" class="btn">Voir les produits &rarr;</a>
-				<a href="/articles" class="btn btn-outline">Lire nos articles</a>
+				<a href="/articles" class="btn btn-outline">Lire nos articles</a
+				>
 			</div>
 		</div>
 	</section>
@@ -45,30 +81,45 @@ const formatDate = (date: string) => date
 				<span class="section-label">Notre mission</span>
 				<h2>L'exosquelette accessible à tous</h2>
 				<p>
-					NeoSomaTech est la référence francophone dédiée aux <strong>exosquelettes médicaux, industriels et militaires</strong>.
-					Notre équipe d'experts analyse, compare et sélectionne les meilleures solutions pour augmenter les capacités humaines —
-					que vous soyez professionnel de santé, industriel ou particulier en quête de mobilité retrouvée.
+					NeoSomaTech est la référence francophone dédiée aux <strong
+						>exosquelettes médicaux, industriels et sportifs</strong
+					>. Notre équipe d'experts analyse, compare et sélectionne
+					les meilleures solutions pour augmenter les capacités
+					humaines — que vous soyez professionnel de santé, industriel
+					ou sportif en quête de mobilité retrouvée.
 				</p>
 				<p>
-					Chaque produit référencé sur notre boutique est soigneusement évalué selon des critères de <strong>performance, sécurité et ergonomie</strong>.
-					Nos guides et comparatifs approfondis vous permettent de choisir en toute confiance.
+					Chaque produit référencé sur notre boutique est
+					soigneusement évalué selon des critères de <strong
+						>performance, sécurité et ergonomie</strong
+					>. Nos guides et comparatifs approfondis vous permettent de
+					choisir en toute confiance.
 				</p>
 			</div>
 			<div class="mission-pillars">
 				<div class="pillar">
 					<div class="pillar-icon">🔬</div>
 					<h3>Expertise technique</h3>
-					<p>Des analyses détaillées rédigées par des spécialistes en robotique et biomécanique.</p>
+					<p>
+						Des analyses détaillées rédigées par des spécialistes en
+						robotique et biomécanique.
+					</p>
 				</div>
 				<div class="pillar">
 					<div class="pillar-icon">⚡</div>
 					<h3>Innovation continue</h3>
-					<p>Nous suivons les dernières avancées pour vous présenter les technologies les plus récentes du marché.</p>
+					<p>
+						Nous suivons les dernières avancées pour vous présenter
+						les technologies les plus récentes du marché.
+					</p>
 				</div>
 				<div class="pillar">
 					<div class="pillar-icon">🤝</div>
 					<h3>Accompagnement personnalisé</h3>
-					<p>Notre équipe répond à vos questions pour trouver l'exosquelette adapté à votre situation.</p>
+					<p>
+						Notre équipe répond à vos questions pour trouver
+						l'exosquelette adapté à votre situation.
+					</p>
 				</div>
 			</div>
 		</div>
@@ -79,76 +130,127 @@ const formatDate = (date: string) => date
 		<div class="section-header">
 			<h2>Nos Exosquelettes</h2>
 			<p>Sélectionnés pour leur performance et leur fiabilité.</p>
-			<a href="/boutique" class="see-all">Voir tous les produits &rarr;</a>
+			<a href="/boutique" class="see-all">Voir tous les produits &rarr;</a
+			>
 		</div>
 
-		{errorMessage ? (
-			<div class="error-box"><strong>⚠️</strong> {errorMessage}</div>
-		) : produits.length === 0 ? (
-			<div class="empty-box"><p>Aucun produit pour le moment.</p></div>
-		) : (
-			<div class="products-grid">
-				{produits.map((produit) => (
-					<article class="product-card">
-						<div class="product-tag">Exosquelette</div>
-						<h3>{produit.Nom_du_produit}</h3>
-						<p class="product-desc">{produit.descripton_simple}</p>
-						<div class="product-footer">
-							<span class="price">{produit.prix ? `${produit.prix} €` : 'Nous contacter'}</span>
-							<a href={`/produits/${produit.slug || produit.id}`} class="btn">Voir &rarr;</a>
-						</div>
-					</article>
-				))}
-			</div>
-		)}
-	</section>
-
-	<!-- ===== ARTICLES ===== -->
-	{articles.length > 0 && (
-		<section class="section articles-section">
-			<div class="container">
-				<div class="section-header">
-					<h2>Derniers Articles</h2>
-					<p>Guides, comparatifs et actualités sur les exosquelettes.</p>
-					<a href="/articles" class="see-all">Voir tous les articles &rarr;</a>
+		{
+			errorMessage ? (
+				<div class="error-box">
+					<strong>⚠️</strong> {errorMessage}
 				</div>
-				<div class="articles-grid">
-					{articles.map((article) => (
-						<article class="article-card">
-							{article.image_principale && (
-								<a href={`/articles/${article.slug}`} class="article-img">
-									<img
-										src={`${directusUrl}/assets/${article.image_principale}`}
-										alt={article.titre}
-										loading="lazy"
-									/>
+			) : produits.length === 0 ? (
+				<div class="empty-box">
+					<p>Aucun produit pour le moment.</p>
+				</div>
+			) : (
+				<div class="products-grid">
+					{produits.map((produit) => (
+						<article class="product-card">
+							<div class="product-tag">Exosquelette</div>
+							<h3>{produit.Nom_du_produit}</h3>
+							<p class="product-desc">
+								{produit.descripton_simple}
+							</p>
+							<div class="product-footer">
+								<span class="price">
+									{produit.prix
+										? `${produit.prix} €`
+										: "Nous contacter"}
+								</span>
+								<a
+									href={`/produits/${produit.slug || produit.id}`}
+									class="btn"
+								>
+									Voir &rarr;
 								</a>
-							)}
-							<div class="article-body">
-								<div class="article-meta">
-									{article.date_publication && <time>{formatDate(article.date_publication)}</time>}
-									{article.auteur && <span>· {article.auteur}</span>}
-								</div>
-								<h3><a href={`/articles/${article.slug}`}>{article.titre}</a></h3>
-								{article.description_seo && <p class="article-excerpt">{article.description_seo}</p>}
-								<a href={`/articles/${article.slug}`} class="read-link">Lire la suite &rarr;</a>
 							</div>
 						</article>
 					))}
 				</div>
-			</div>
-		</section>
-	)}
+			)
+		}
+	</section>
+
+	<!-- ===== ARTICLES ===== -->
+	{
+		articles.length > 0 && (
+			<section class="section articles-section">
+				<div class="container">
+					<div class="section-header">
+						<h2>Derniers Articles</h2>
+						<p>
+							Guides, comparatifs et actualités sur les
+							exosquelettes.
+						</p>
+						<a href="/articles" class="see-all">
+							Voir tous les articles &rarr;
+						</a>
+					</div>
+					<div class="articles-grid">
+						{articles.map((article) => (
+							<article class="article-card">
+								{article.image_principale && (
+									<a
+										href={`/articles/${article.slug}`}
+										class="article-img"
+									>
+										<img
+											src={`${directusUrl}/assets/${article.image_principale}`}
+											alt={article.titre}
+											loading="lazy"
+										/>
+									</a>
+								)}
+								<div class="article-body">
+									<div class="article-meta">
+										{article.date_publication && (
+											<time>
+												{formatDate(
+													article.date_publication,
+												)}
+											</time>
+										)}
+										{article.auteur && (
+											<span>· {article.auteur}</span>
+										)}
+									</div>
+									<h3>
+										<a href={`/articles/${article.slug}`}>
+											{article.titre}
+										</a>
+									</h3>
+									{article.description_seo && (
+										<p class="article-excerpt">
+											{article.description_seo}
+										</p>
+									)}
+									<a
+										href={`/articles/${article.slug}`}
+										class="read-link"
+									>
+										Lire la suite &rarr;
+									</a>
+								</div>
+							</article>
+						))}
+					</div>
+				</div>
+			</section>
+		)
+	}
 
 	<!-- ===== CTA FINAL ===== -->
 	<section class="cta-section container">
 		<div class="cta-box">
 			<h2>Une question sur les exosquelettes ?</h2>
-			<p>Notre équipe est disponible pour vous conseiller dans votre choix.</p>
+			<p>
+				Notre équipe est disponible pour vous conseiller dans votre
+				choix.
+			</p>
 			<a href="/contact" class="btn">Nous contacter &rarr;</a>
 		</div>
 	</section>
-
 </Layout>
 
 <style>
@@ -162,41 +264,73 @@ const formatDate = (date: string) => date
 	.hero-bg {
 		position: absolute;
 		inset: 0;
-		background: radial-gradient(ellipse 100% 70% at 50% 0%, rgba(99,102,241,0.22) 0%, transparent 70%);
+		background: radial-gradient(
+			ellipse 100% 70% at 50% 0%,
+			rgba(99, 102, 241, 0.22) 0%,
+			transparent 70%
+		);
 		pointer-events: none;
 	}
 	.hero-content {
-		position: relative; z-index: 1;
-		display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.5rem;
 	}
 	.hero-badge {
 		display: inline-block;
-		background: rgba(99,102,241,0.15);
-		border: 1px solid rgba(99,102,241,0.4);
+		background: rgba(99, 102, 241, 0.15);
+		border: 1px solid rgba(99, 102, 241, 0.4);
 		color: #a5b4fc;
-		font-size: 0.78rem; font-weight: 600;
-		padding: 0.3rem 0.9rem; border-radius: 99px;
-		letter-spacing: 1px; text-transform: uppercase;
+		font-size: 0.78rem;
+		font-weight: 600;
+		padding: 0.3rem 0.9rem;
+		border-radius: 99px;
+		letter-spacing: 1px;
+		text-transform: uppercase;
 	}
 	.hero h1 {
 		font-size: clamp(2.5rem, 6vw, 4.5rem);
-		font-weight: 900; color: #fff;
-		line-height: 1.1; letter-spacing: -2px;
+		font-weight: 900;
+		color: #fff;
+		line-height: 1.1;
+		letter-spacing: -2px;
 	}
 	.gradient-text {
-		background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-		-webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+		background: linear-gradient(
+			135deg,
+			#6366f1 0%,
+			#8b5cf6 50%,
+			#ec4899 100%
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
 	}
 	.hero-sub {
-		font-size: 1.15rem; color: var(--text-light);
-		max-width: 560px; line-height: 1.65;
+		font-size: 1.15rem;
+		color: var(--text-light);
+		max-width: 560px;
+		line-height: 1.65;
 	}
-	.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+	.hero-actions {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
 
 	/* MISSION */
 	.mission-section {
 		padding: 6rem 0;
-		background: linear-gradient(to bottom, transparent, var(--surface-2) 50%, transparent);
+		background: linear-gradient(
+			to bottom,
+			transparent,
+			var(--surface-2) 50%,
+			transparent
+		);
 	}
 	.mission-inner {
 		display: grid;
@@ -265,20 +399,43 @@ const formatDate = (date: string) => date
 			grid-template-columns: 1fr;
 			gap: 3rem;
 		}
-		.mission-text { text-align: center; }
+		.mission-text {
+			text-align: center;
+		}
 	}
 
 	/* SECTIONS */
-	.section { padding: 4rem 0; }
-	.articles-section { background: var(--surface-2); }
-	.section-header { text-align: center; margin-bottom: 2.5rem; }
-	.section-header h2 { font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 0.4rem; }
-	.section-header p { color: var(--text-light); font-size: 1rem; margin-bottom: 0.75rem; }
-	.see-all {
-		font-size: 0.9rem; font-weight: 600; color: #818cf8;
-		text-decoration: none; transition: color 0.2s;
+	.section {
+		padding: 4rem 0;
 	}
-	.see-all:hover { color: #a5b4fc; }
+	.articles-section {
+		background: var(--surface-2);
+	}
+	.section-header {
+		text-align: center;
+		margin-bottom: 2.5rem;
+	}
+	.section-header h2 {
+		font-size: 2rem;
+		font-weight: 800;
+		color: #fff;
+		margin-bottom: 0.4rem;
+	}
+	.section-header p {
+		color: var(--text-light);
+		font-size: 1rem;
+		margin-bottom: 0.75rem;
+	}
+	.see-all {
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: #818cf8;
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+	.see-all:hover {
+		color: #a5b4fc;
+	}
 
 	/* PRODUCTS */
 	.products-grid {
@@ -289,20 +446,52 @@ const formatDate = (date: string) => date
 	.product-card {
 		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: 16px; padding: 1.75rem;
-		display: flex; flex-direction: column; gap: 1rem;
-		transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+		border-radius: 16px;
+		padding: 1.75rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		transition:
+			transform 0.2s,
+			border-color 0.2s,
+			box-shadow 0.2s;
 	}
 	.product-card:hover {
 		transform: translateY(-5px);
 		border-color: var(--primary);
-		box-shadow: 0 0 30px rgba(99,102,241,0.15);
+		box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
 	}
-	.product-tag { font-size: 0.72rem; font-weight: 600; color: #818cf8; text-transform: uppercase; letter-spacing: 1px; }
-	.product-card h3 { font-size: 1.2rem; font-weight: 700; color: #fff; line-height: 1.3; }
-	.product-desc { color: var(--text-light); font-size: 0.9rem; line-height: 1.6; flex: 1; }
-	.product-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.25rem; }
-	.price { font-size: 1.4rem; font-weight: 800; color: #818cf8; }
+	.product-tag {
+		font-size: 0.72rem;
+		font-weight: 600;
+		color: #818cf8;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+	.product-card h3 {
+		font-size: 1.2rem;
+		font-weight: 700;
+		color: #fff;
+		line-height: 1.3;
+	}
+	.product-desc {
+		color: var(--text-light);
+		font-size: 0.9rem;
+		line-height: 1.6;
+		flex: 1;
+	}
+	.product-footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 0.25rem;
+	}
+	.price {
+		font-size: 1.4rem;
+		font-weight: 800;
+		color: #818cf8;
+	}
 
 	/* ARTICLES */
 	.articles-grid {
@@ -313,44 +502,121 @@ const formatDate = (date: string) => date
 	.article-card {
 		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: 16px; overflow: hidden;
-		display: flex; flex-direction: column;
-		transition: transform 0.2s, border-color 0.2s;
+		border-radius: 16px;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		transition:
+			transform 0.2s,
+			border-color 0.2s;
 	}
-	.article-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-	.article-img { display: block; aspect-ratio: 16/9; overflow: hidden; }
-	.article-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-	.article-card:hover .article-img img { transform: scale(1.04); }
-	.article-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 0.7rem; flex: 1; }
-	.article-meta { font-size: 0.8rem; color: var(--text-light); display: flex; gap: 0.4rem; }
-	.article-body h3 { font-size: 1.1rem; font-weight: 700; color: #fff; line-height: 1.35; }
-	.article-body h3 a { color: inherit; text-decoration: none; transition: color 0.2s; }
-	.article-body h3 a:hover { color: #a5b4fc; }
+	.article-card:hover {
+		transform: translateY(-5px);
+		border-color: var(--primary);
+	}
+	.article-img {
+		display: block;
+		aspect-ratio: 16/9;
+		overflow: hidden;
+	}
+	.article-img img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.3s;
+	}
+	.article-card:hover .article-img img {
+		transform: scale(1.04);
+	}
+	.article-body {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.7rem;
+		flex: 1;
+	}
+	.article-meta {
+		font-size: 0.8rem;
+		color: var(--text-light);
+		display: flex;
+		gap: 0.4rem;
+	}
+	.article-body h3 {
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: #fff;
+		line-height: 1.35;
+	}
+	.article-body h3 a {
+		color: inherit;
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+	.article-body h3 a:hover {
+		color: #a5b4fc;
+	}
 	.article-excerpt {
-		color: var(--text-light); font-size: 0.88rem; line-height: 1.6; flex: 1;
-		display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+		color: var(--text-light);
+		font-size: 0.88rem;
+		line-height: 1.6;
+		flex: 1;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
 	}
-	.read-link { font-size: 0.88rem; font-weight: 600; color: #818cf8; text-decoration: none; transition: color 0.2s; }
-	.read-link:hover { color: #a5b4fc; }
+	.read-link {
+		font-size: 0.88rem;
+		font-weight: 600;
+		color: #818cf8;
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+	.read-link:hover {
+		color: #a5b4fc;
+	}
 
 	/* CTA */
-	.cta-section { padding: 4rem 1.5rem 6rem; }
+	.cta-section {
+		padding: 4rem 1.5rem 6rem;
+	}
 	.cta-box {
-		background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%);
-		border: 1px solid rgba(99,102,241,0.3);
+		background: linear-gradient(
+			135deg,
+			rgba(99, 102, 241, 0.15) 0%,
+			rgba(139, 92, 246, 0.15) 100%
+		);
+		border: 1px solid rgba(99, 102, 241, 0.3);
 		border-radius: 20px;
 		padding: 3.5rem 2rem;
 		text-align: center;
 	}
-	.cta-box h2 { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 0.75rem; }
-	.cta-box p { color: var(--text-light); margin-bottom: 1.5rem; font-size: 1.05rem; }
+	.cta-box h2 {
+		font-size: 1.8rem;
+		font-weight: 800;
+		color: #fff;
+		margin-bottom: 0.75rem;
+	}
+	.cta-box p {
+		color: var(--text-light);
+		margin-bottom: 1.5rem;
+		font-size: 1.05rem;
+	}
 
 	.error-box {
-		background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-		color: #fca5a5; padding: 1.5rem; border-radius: 12px; text-align: center;
+		background: rgba(239, 68, 68, 0.1);
+		border: 1px solid rgba(239, 68, 68, 0.3);
+		color: #fca5a5;
+		padding: 1.5rem;
+		border-radius: 12px;
+		text-align: center;
 	}
 	.empty-box {
-		background: var(--surface); border: 1px dashed var(--border);
-		padding: 3rem; border-radius: 12px; text-align: center; color: var(--text-light);
+		background: var(--surface);
+		border: 1px dashed var(--border);
+		padding: 3rem;
+		border-radius: 12px;
+		text-align: center;
+		color: var(--text-light);
 	}
 </style>

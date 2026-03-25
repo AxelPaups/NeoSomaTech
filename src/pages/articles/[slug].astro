@@ -53,20 +53,11 @@ const jsonLd = article ? JSON.stringify({
 <Layout
     title={article ? `${article.titre} | NeoSomaTech` : 'Article non trouvé'}
     description={article?.description_seo || 'Article sur les exosquelettes.'}
+    image={imageUrl || '/favicon.png'}
+    type="article"
 >
     <!-- JSON-LD SEO -->
     {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
-
-    <!-- Open Graph & Twitter Card -->
-    {article && (
-        <>
-            <meta slot="head" property="og:title" content={article.titre} />
-            <meta slot="head" property="og:description" content={article.description_seo} />
-            {imageUrl && <meta slot="head" property="og:image" content={imageUrl} />}
-            <meta slot="head" property="og:type" content="article" />
-            <meta slot="head" name="twitter:card" content="summary_large_image" />
-        </>
-    )}
 
     {errorMessage ? (
         <div class="container error-box">

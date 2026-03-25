@@ -47,6 +47,7 @@ const jsonLd = produit ? JSON.stringify({
 <Layout
     title={produit ? `${produit.Nom_du_produit} | NeoSomaTech` : 'Produit introuvable'}
     description={produit?.descripton_simple || 'Exosquelette NeoSomaTech'}
+    image={imageUrl || '/favicon.png'}
 >
     {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
 
