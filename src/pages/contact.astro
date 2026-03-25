@@ -14,14 +14,21 @@ import Layout from '../layouts/Layout.astro';
                     <span class="icon">📧</span>
                     <div>
                         <strong>Email</strong>
-                        <p>contact@neosomatech.com</p>
+                        <p>neosomatech@gmail.com</p>
                     </div>
                 </div>
                 <div class="info-block">
                     <span class="icon">⏰</span>
                     <div>
-                        <strong>Horaires</strong>
-                        <p>Lundi – Vendredi, 9h – 18h</p>
+                        <strong>Disponibilité</strong>
+                        <p>7j/7, 24h/24</p>
+                    </div>
+                </div>
+                <div class="info-block">
+                    <span class="icon">🕒</span>
+                    <div>
+                        <strong>Délai de réponse</strong>
+                        <p>Sous 72h maximum. Réponse envoyée à l'adresse indiquée dans le formulaire.</p>
                     </div>
                 </div>
             </div>
@@ -42,11 +49,6 @@ import Layout from '../layouts/Layout.astro';
                 <div class="form-group">
                     <label for="message">Votre message</label>
                     <textarea id="message" name="message" rows="5" placeholder="Décrivez votre demande..." required></textarea>
-                </div>
-                
-                <div class="info-box-green">
-                    <span class="icon">ℹ️</span>
-                    <p>Vous aurez une réponse sous <strong>72h</strong>. Notre équipe vous répondra directement à l'adresse email indiquée ci-dessus.</p>
                 </div>
 
                 <button type="submit" class="btn" id="submitBtn">Envoyer le message &rarr;</button>
@@ -157,24 +159,19 @@ import Layout from '../layouts/Layout.astro';
         color: #3b82f6;
     }
 
-    .info-box-green {
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-        background: rgba(16, 185, 129, 0.08);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        margin: 0.5rem 0;
+    .info-block {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        padding: 1.25rem;
+        border-radius: 16px;
+        transition: transform 0.2s, border-color 0.2s;
     }
-    .info-box-green p {
-        font-size: 0.88rem;
-        color: #10b981;
-        line-height: 1.5;
+    .info-block:hover {
+        transform: translateX(5px);
+        border-color: var(--primary);
     }
-    .info-box-green strong {
-        font-weight: 700;
-        text-decoration: underline;
+    .info-block p {
+        line-height: 1.4;
     }
 
     @media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
