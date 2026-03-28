@@ -97,29 +97,32 @@ const formatDate = (date: string) =>
 				</p>
 			</div>
 			<div class="mission-pillars">
-				<div class="pillar">
-					<div class="pillar-icon">🔬</div>
-					<h3>Expertise technique</h3>
-					<p>
-						Des analyses détaillées rédigées par des spécialistes en
-						robotique et biomécanique.
-					</p>
+				<div class="pillar-card">
+					<div class="pillar-icon-wrapper">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-microscope"><path d="M6 18h8"/><path d="M3 22h18"/><path d="m14 22-4-4 4-4"/><path d="m9 14 2 2"/><path d="M12 21a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/><path d="M18 12.2V7a5 5 0 0 0-5-5"/><path d="M11 5a4 4 0 0 1 4 4v2"/></svg>
+					</div>
+					<div class="pillar-content">
+						<h3>Expertise technique</h3>
+						<p>Des analyses détaillées rédigées par des spécialistes en robotique et biomécanique.</p>
+					</div>
 				</div>
-				<div class="pillar">
-					<div class="pillar-icon">⚡</div>
-					<h3>Innovation continue</h3>
-					<p>
-						Nous suivons les dernières avancées pour vous présenter
-						les technologies les plus récentes du marché.
-					</p>
+				<div class="pillar-card">
+					<div class="pillar-icon-wrapper">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap"><path d="m13 2-2 10h3L11 22l2-10h-3z"/></svg>
+					</div>
+					<div class="pillar-content">
+						<h3>Innovation continue</h3>
+						<p>Veille technologique permanente sur les dernières avancées du marché mondial.</p>
+					</div>
 				</div>
-				<div class="pillar">
-					<div class="pillar-icon">🤝</div>
-					<h3>Accompagnement personnalisé</h3>
-					<p>
-						Notre équipe répond à vos questions pour trouver
-						l'exosquelette adapté à votre situation.
-					</p>
+				<div class="pillar-card">
+					<div class="pillar-icon-wrapper">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2 6-6"/><path d="m18 14 2.5 2.5a3.3 3.3 0 0 1 0 4.7 3.3 3.3 0 0 1-4.7 0L13.5 19"/><path d="M18 14 14.4 7.1a3.3 3.3 0 0 0-4.7 0L4.2 12.6a3.3 3.3 0 0 0 0 4.7l4.2 4.2a3.3 3.3 0 0 0 4.7 0l1.9-1.9"/><path d="M8 11v.01"/><path d="M16 15v.01"/></svg>
+					</div>
+					<div class="pillar-content">
+						<h3>Accompagnement</h3>
+						<p>Conseils personnalisés pour identifier l'exosquelette le plus adapté à vos besoins.</p>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -344,71 +347,99 @@ const formatDate = (date: string) =>
 
 	/* MISSION */
 	.mission-section {
-		padding: 6rem 0;
-		background: linear-gradient(
-			to bottom,
-			transparent,
-			var(--surface-2) 50%,
-			transparent
+		padding: 8rem 0;
+		position: relative;
+		overflow: hidden;
+	}
+	.mission-section::before {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 80%;
+		height: 80%;
+		background: radial-gradient(
+			circle at center,
+			rgba(99, 102, 241, 0.05) 0%,
+			transparent 70%
 		);
+		pointer-events: none;
 	}
 	.mission-inner {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 4rem;
+		gap: 5rem;
 		align-items: center;
 	}
 	.section-label {
 		display: inline-block;
-		color: var(--primary);
+		color: #818cf8;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 2px;
 		font-size: 0.8rem;
 		margin-bottom: 1rem;
+		padding: 0.4rem 1rem;
+		background: rgba(99, 102, 241, 0.1);
+		border-radius: 99px;
+		border: 1px solid rgba(99, 102, 241, 0.2);
 	}
 	.mission-text h2 {
-		font-size: 2.5rem;
-		font-weight: 800;
+		font-size: clamp(2rem, 4vw, 3rem);
+		font-weight: 900;
 		color: #fff;
-		line-height: 1.2;
-		margin-bottom: 1.5rem;
+		line-height: 1.1;
+		margin-bottom: 2rem;
+		letter-spacing: -1px;
 	}
 	.mission-text p {
 		color: var(--text-light);
-		font-size: 1.1rem;
+		font-size: 1.15rem;
 		line-height: 1.7;
-		margin-bottom: 1.2rem;
+		margin-bottom: 1.5rem;
 	}
 	.mission-pillars {
 		display: flex;
 		flex-direction: column;
-		gap: 2rem;
+		gap: 1.5rem;
 	}
-	.pillar {
+	.pillar-card {
 		display: flex;
 		gap: 1.5rem;
-		align-items: flex-start;
+		align-items: center;
+		padding: 1.5rem;
+		background: rgba(255, 255, 255, 0.03);
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		border-radius: 20px;
+		transition: all 0.3s ease;
 	}
-	.pillar-icon {
-		font-size: 2rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		width: 60px;
-		height: 60px;
+	.pillar-card:hover {
+		background: rgba(99, 102, 241, 0.05);
+		border-color: rgba(99, 102, 241, 0.3);
+		transform: translateX(10px);
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+	}
+	.pillar-icon-wrapper {
+		width: 56px;
+		height: 56px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		border-radius: 12px;
+		background: var(--gradient);
+		color: #fff;
+		border-radius: 14px;
 		flex-shrink: 0;
+		box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
 	}
-	.pillar h3 {
-		font-size: 1.15rem;
+	.pillar-content h3 {
+		font-size: 1.1rem;
 		font-weight: 700;
 		color: #fff;
-		margin-bottom: 0.4rem;
+		margin-bottom: 0.3rem;
 	}
-	.pillar p {
+	.pillar-content p {
 		color: var(--text-light);
 		font-size: 0.95rem;
 		line-height: 1.5;
@@ -417,10 +448,13 @@ const formatDate = (date: string) =>
 	@media (max-width: 992px) {
 		.mission-inner {
 			grid-template-columns: 1fr;
-			gap: 3rem;
+			gap: 4rem;
 		}
 		.mission-text {
 			text-align: center;
+		}
+		.pillar-card:hover {
+			transform: translateY(-5px);
 		}
 	}
 
