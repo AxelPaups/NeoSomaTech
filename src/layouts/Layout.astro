@@ -138,4 +138,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		background: rgba(99, 102, 241, 0.1);
 		opacity: 1;
 	}
+
+	/* Responsive Globals */
+	@media (max-width: 768px) {
+		html {
+			font-size: 15px;
+		}
+		.container {
+			padding: 0 1rem;
+		}
+	}
 </style>

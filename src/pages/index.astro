@@ -494,7 +494,7 @@ const formatDate = (date: string) =>
 	/* PRODUCTS */
 	.products-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
 		gap: 2rem;
 		margin-bottom: 3rem;
 	}
@@ -634,7 +634,7 @@ const formatDate = (date: string) =>
 	/* ARTICLES */
 	.articles-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
 		gap: 1.5rem;
 	}
 	.article-card {
@@ -756,5 +756,21 @@ const formatDate = (date: string) =>
 		border-radius: 12px;
 		text-align: center;
 		color: var(--text-light);
+	}
+
+	/* Responsive Adjustments */
+	@media (max-width: 768px) {
+		.hero {
+			padding: 5rem 0 3rem;
+		}
+		.mission-section {
+			padding: 4rem 0;
+		}
+		.cta-section {
+			padding: 2rem 1rem 4rem;
+		}
+		.cta-box {
+			padding: 2rem 1.5rem;
+		}
 	}
 </style>
