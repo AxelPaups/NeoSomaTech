@@ -11,8 +11,9 @@ let produit: any = null;
 let errorMessage: string | null = null;
 
 try {
+    // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 } catch (error: any) {
@@ -24,9 +25,24 @@ if (!produit && !errorMessage) {
     return Astro.redirect('/404');
 }
 
+// Extraction de l'image principale
 const imageUrl = produit?.image
     ? `${directusUrl}/assets/${produit.image}`
     : null;
+
+// Extraction des images de la galerie
+let allImages: string[] = [];
+if (imageUrl) allImages.push(imageUrl);
+
+if (produit?.galerie && Array.isArray(produit.galerie)) {
+    produit.galerie.forEach((item: any) => {
+        // La clé dépend de votre config sur Directus. M2M par défaut c'est directus_files_id
+        const fileId = item.directus_files_id || item.image || (typeof item === 'string' ? item : null);
+        if (fileId) {
+            allImages.push(`${directusUrl}/assets/${fileId}`);
+        }
+    });
+}
 
 const jsonLd = produit ? JSON.stringify({
     "@context": "https://schema.org",
@@ -68,11 +84,34 @@ const jsonLd = produit ? JSON.stringify({
 
                 <!-- ===== BLOC PRINCIPAL (image gauche / infos droite) ===== -->
                 <section class="product-top">
-                    <!-- IMAGE GAUCHE -->
+                    <!-- IMAGE GAUCHE (CARROUSEL) -->
                     <div class="product-gallery">
-                        {imageUrl ? (
-                            <div class="main-image">
-                                <img src={imageUrl} alt={produit.Nom_du_produit} />
+                        {allImages.length > 0 ? (
+                            <div class="carousel-container">
+                                <div class="carousel-main">
+                                    <img id="main-carousel-img" src={allImages[0]} alt={produit.Nom_du_produit} />
+                                    
+                                    {allImages.length > 1 && (
+                                        <div class="carousel-controls">
+                                            <button id="prev-btn" aria-label="Image précédente">&larr;</button>
+                                            <button id="next-btn" aria-label="Image suivante">&rarr;</button>
+                                        </div>
+                                    )}
+                                </div>
+                                {allImages.length > 1 && (
+                                    <div class="carousel-thumbnails">
+                                        {allImages.map((imgUrl, index) => (
+                                            <button 
+                                                class={`thumbnail-btn ${index === 0 ? 'active' : ''}`} 
+                                                data-index={index}
+                                                data-image={imgUrl}
+                                                aria-label={`Voir l'image ${index + 1}`}
+                                            >
+                                                <img src={imgUrl} alt={`${produit.Nom_du_produit} - vue ${index + 1}`} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div class="image-placeholder">
@@ -176,22 +215,99 @@ const jsonLd = produit ? JSON.stringify({
         margin-bottom: 3rem;
     }
 
-    /* GALERIE */
+    /* GALERIE / CARROUSEL */
     .product-gallery { position: sticky; top: 6rem; }
-    .main-image {
+    
+    .carousel-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .carousel-main {
+        position: relative;
         border-radius: 20px;
         overflow: hidden;
         border: 1px solid var(--border);
         background: var(--surface);
     }
-    .main-image img {
+    .carousel-main img {
         width: 100%;
         aspect-ratio: 1 / 1;
+        /* object-fit: cover assure que les images de tailles différentes remplissent parfaitement le carré sans être déformées */
         object-fit: cover;
         display: block;
-        transition: transform 0.4s;
+        transition: opacity 0.3s ease-in-out;
     }
-    .main-image:hover img { transform: scale(1.03); }
+    
+    /* Boutons de contrôle (flèches) */
+    .carousel-controls {
+        position: absolute;
+        top: 50%;
+        left: 0; right: 0;
+        transform: translateY(-50%);
+        display: flex;
+        justify-content: space-between;
+        padding: 0 1rem;
+        pointer-events: none; /* Laisse cliquer au travers sauf sur les boutons */
+    }
+    .carousel-controls button {
+        pointer-events: auto;
+        background: rgba(15, 23, 42, 0.7);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.2);
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        transition: background 0.2s, transform 0.2s;
+    }
+    .carousel-controls button:hover {
+        background: var(--primary, #6366f1);
+        transform: scale(1.1);
+    }
+
+    /* Vignettes (thumbnails) */
+    .carousel-thumbnails {
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+    .carousel-thumbnails::-webkit-scrollbar {
+        height: 6px;
+    }
+    .carousel-thumbnails::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 6px;
+    }
+    .thumbnail-btn {
+        flex: 0 0 80px;
+        height: 80px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        cursor: pointer;
+        background: var(--surface);
+        padding: 0;
+        opacity: 0.6;
+        transition: opacity 0.2s, border-color 0.2s;
+    }
+    .thumbnail-btn:hover {
+        opacity: 0.9;
+    }
+    .thumbnail-btn.active {
+        opacity: 1;
+        border-color: #6366f1;
+    }
+    .thumbnail-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Pareil ici, les vignettes gardent une bonne proportion */
+        display: block;
+    }
     .image-placeholder {
         border-radius: 20px;
         border: 1px dashed var(--border);
@@ -331,3 +447,62 @@ const jsonLd = produit ? JSON.stringify({
         color: #fca5a5; padding: 2rem; border-radius: 12px; text-align: center;
     }
 </style>
+
+<script>
+    // Script exécuté côté client pour gérer le carrousel
+    document.addEventListener('DOMContentLoaded', () => {
+        const mainImg = document.getElementById('main-carousel-img') as HTMLImageElement;
+        const thumbnails = document.querySelectorAll('.thumbnail-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        if (!mainImg || thumbnails.length === 0) return;
+
+        let currentIndex = 0;
+
+        function updateCarousel(index: number) {
+            // Mettre à jour l'image principale
+            const newImage = thumbnails[index].getAttribute('data-image');
+            if (newImage && mainImg) {
+                // Petit effet de fondu transparent
+                mainImg.style.opacity = '0.5';
+                setTimeout(() => {
+                    mainImg.src = newImage;
+                    mainImg.style.opacity = '1';
+                }, 150);
+            }
+            
+            // Mettre à jour la classe active sur les vignettes
+            thumbnails.forEach(t => t.classList.remove('active'));
+            thumbnails[index].classList.add('active');
+            
+            // Scroller la vignette pour qu'elle soit visible si on utilise les flèches
+            (thumbnails[index] as HTMLElement).scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            });
+        }
+
+        // Clic sur les vignettes
+        thumbnails.forEach((thumb, index) => {
+            thumb.addEventListener('click', () => {
+                currentIndex = index;
+                updateCarousel(currentIndex);
+            });
+        });
+
+        // Flèches de navigation
+        if (prevBtn && nextBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex > 0) ? currentIndex - 1 : thumbnails.length - 1;
+                updateCarousel(currentIndex);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex < thumbnails.length - 1) ? currentIndex + 1 : 0;
+                updateCarousel(currentIndex);
+            });
+        }
+    });
+</script>
