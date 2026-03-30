@@ -81,7 +81,7 @@ try {
     .card {
         background: var(--surface);
         border: 1px solid var(--border);
-        border-radius: 16px;
+        border-radius: 20px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -103,13 +103,19 @@ try {
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: padding 0.4s ease;
     }
     .card-img-link img {
         width: 100%; height: 100%;
         object-fit: contain;
-        transition: transform 0.4s;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .card:hover .card-img-link img { transform: scale(1.05); }
+    .card:hover .card-img-link { 
+        padding: 0; 
+    }
+    .card:hover .card-img-link img { 
+        transform: scale(1.15); 
+    }
     .img-placeholder {
         width: 100%; height: 100%;
         display: flex; align-items: center; justify-content: center;
