@@ -8,6 +8,7 @@ const { slug } = Astro.params;
 const directusUrl = "https://spirited-squid.pikapod.net";
 
 let produit: any = null;
+let produitsSimilaires: any[] = [];
 let errorMessage: string | null = null;
 
 try {
@@ -16,6 +17,14 @@ try {
         `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
+
+    // Récupération des produits similaires (excluant le produit actuel)
+    if (produit) {
+        const others = await fetchDirectus(
+            `/items/Produits?filter[slug][_neq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image&limit=4`
+        );
+        produitsSimilaires = Array.isArray(others) ? others : [];
+    }
 } catch (error: any) {
     console.error(`Erreur produit ${slug}:`, error);
     errorMessage = error.message;
@@ -183,6 +192,31 @@ const jsonLd = produit ? JSON.stringify({
                             <p>Les avis clients seront affichés ici prochainement.</p>
                         </div>
                     </div>
+
+                    <!-- PRODUITS SIMILAIRES -->
+                    {produitsSimilaires.length > 0 && (
+                        <div class="similar-products">
+                            <h2 class="section-title main-title">Produits <span class="gradient-text">Similaires</span></h2>
+                            <div class="similar-grid">
+                                {produitsSimilaires.map((p: any) => (
+                                    <article class="similar-card">
+                                        <a href={`/produits/${p.slug || p.id}`} class="similar-card-img">
+                                            {p.image ? (
+                                                <img src={`${directusUrl}/assets/${p.image}`} alt={p.Nom_du_produit} />
+                                            ) : (
+                                                <div class="similar-placeholder">🦾</div>
+                                            )}
+                                        </a>
+                                        <div class="similar-card-body">
+                                            <h3><a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit}</a></h3>
+                                            <p class="similar-price">{p.prix ? `${p.prix} €` : 'Contact'}</p>
+                                            <a href={`/produits/${p.slug || p.id}`} class="similar-btn">Voir &rarr;</a>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                 </section>
             </>
@@ -445,6 +479,74 @@ const jsonLd = produit ? JSON.stringify({
     .error-box {
         background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
         color: #fca5a5; padding: 2rem; border-radius: 12px; text-align: center;
+    }
+
+    /* PRODUITS SIMILAIRES */
+    .similar-products {
+        margin-top: 2rem;
+    }
+    .similar-products .main-title {
+        border-bottom: none;
+        margin-bottom: 2rem;
+        text-align: center;
+        font-size: 2rem;
+    }
+    .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .similar-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+    .similar-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .similar-card:hover {
+        transform: translateY(-5px);
+        border-color: #6366f1;
+    }
+    .similar-card-img {
+        display: block;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background: var(--surface-2);
+    }
+    .similar-card-img img {
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    .similar-card:hover .similar-card-img img { transform: scale(1.05); }
+    .similar-placeholder {
+        width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; background: rgba(99,102,241,0.05);
+    }
+    .similar-card-body {
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .similar-card-body h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+    .similar-card-body h3 a { color: #fff; text-decoration: none; }
+    .similar-card-body h3 a:hover { color: #818cf8; }
+    .similar-price { font-size: 1.1rem; font-weight: 800; color: #818cf8; margin: 0; }
+    .similar-btn {
+        margin-top: 0.5rem;
+        font-size: 0.85rem; font-weight: 600; color: #818cf8;
+        text-decoration: none; display: flex; align-items: center; gap: 0.25rem;
+    }
+    .similar-btn:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+        .similar-grid { grid-template-columns: 1fr; }
     }
 </style>
 
