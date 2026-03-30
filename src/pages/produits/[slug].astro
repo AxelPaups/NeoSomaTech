@@ -14,16 +14,30 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
-    // Récupération des produits similaires (excluant le produit actuel)
+    // Récupération des produits similaires (priorité à la même marque si elle existe)
     if (produit) {
+        // Tentative de récupération des produits de la même marque (excluant le produit actuel)
+        // Note: 'marque' est récupéré même s'il n'est pas encore défini (renverra null)
+        const brandFilter = produit.marque ? `&filter[marque][_eq]=${produit.marque}` : '';
         const others = await fetchDirectus(
-            `/items/Produits?filter[slug][_neq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image&limit=4`
+            `/items/Produits?filter[slug][_neq]=${slug}${brandFilter}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=4`
         );
         produitsSimilaires = Array.isArray(others) ? others : [];
+
+        // Si on n'a pas 4 produits de la même marque, on complète avec les autres produits du catalogue
+        if (produitsSimilaires.length < 4) {
+            const excludeSlugs = [slug, ...produitsSimilaires.map(p => p.slug || p.id)];
+            // On utilise slug au lieu d'ID pour simplifier le filtrage _nin
+            const fallbackQuery = `/items/Produits?filter[slug][_nin]=${excludeSlugs.join(',')}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=${4 - produitsSimilaires.length}`;
+            const more = await fetchDirectus(fallbackQuery);
+            if (Array.isArray(more)) {
+                produitsSimilaires = [...produitsSimilaires, ...more];
+            }
+        }
     }
 } catch (error: any) {
     console.error(`Erreur produit ${slug}:`, error);
@@ -208,6 +222,7 @@ const jsonLd = produit ? JSON.stringify({
                                             )}
                                         </a>
                                         <div class="similar-card-body">
+                                            {p.marque && <div class="brand-tag">{p.marque}</div>}
                                             <h3><a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit}</a></h3>
                                             <p class="similar-price">{p.prix ? `${p.prix} €` : 'Contact'}</p>
                                             <a href={`/produits/${p.slug || p.id}`} class="similar-btn">Voir &rarr;</a>
@@ -513,13 +528,17 @@ const jsonLd = produit ? JSON.stringify({
     }
     .similar-card-img {
         display: block;
-        aspect-ratio: 4 / 3;
+        aspect-ratio: 1 / 1;
         overflow: hidden;
         background: var(--surface-2);
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .similar-card-img img {
         width: 100%; height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         transition: transform 0.3s;
     }
     .similar-card:hover .similar-card-img img { transform: scale(1.05); }
@@ -532,7 +551,10 @@ const jsonLd = produit ? JSON.stringify({
         padding: 1.25rem;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.4rem;
+    }
+    .brand-tag {
+        font-size: 0.68rem; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1px;
     }
     .similar-card-body h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
     .similar-card-body h3 a { color: #fff; text-decoration: none; }
