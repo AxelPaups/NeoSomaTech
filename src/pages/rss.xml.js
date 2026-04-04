@@ -7,7 +7,7 @@ export async function GET(context) {
   );
 
   return rss({
-    title: 'NeoSomaTech - Le Blog des Exosquelettes',
+    title: 'NeoSomaTech - Les Articles sur les Exosquelettes',
     description: 'Actualités, guides et innovations dans le monde des exosquelettes.',
     site: context.site,
     items: articles.map((article) => ({
