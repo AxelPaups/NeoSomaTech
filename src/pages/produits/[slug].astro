@@ -14,7 +14,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -160,6 +160,35 @@ const jsonLd = produit ? JSON.stringify({
                         <!-- DESCRIPTION COURTE -->
                         {produit.descripton_simple && (
                             <p class="short-desc">{produit.descripton_simple}</p>
+                        )}
+
+                        <!-- VARIANTES -->
+                        {produit.variantes && produit.variantes.length > 0 && (
+                            <div class="variants-selection">
+                                <span class="variants-label">Choisir un modèle :</span>
+                                <div class="variants-grid">
+                                    <button 
+                                        class="variant-btn active" 
+                                        data-name="Standard"
+                                        data-price={produit.prix || ''}
+                                        data-image={imageUrl}
+                                        data-url={produit.Bouton_acheter || ''}
+                                    >
+                                        Par défaut
+                                    </button>
+                                    {produit.variantes.map((v: any) => (
+                                        <button 
+                                            class="variant-btn" 
+                                            data-name={v.Nom}
+                                            data-price={v.Prix || produit.prix || ''}
+                                            data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
+                                            data-url={v.Lien_achat || produit.Bouton_acheter || ''}
+                                        >
+                                            {v.Nom}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         )}
 
                         <hr class="divider" />
@@ -412,6 +441,28 @@ const jsonLd = produit ? JSON.stringify({
         text-align: center;
     }
 
+    /* VARIANTES */
+    .variants-selection { margin-top: 1rem; }
+    .variants-label { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 0.75rem; display: block; }
+    .variants-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .variant-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: #fff;
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .variant-btn:hover { border-color: #818cf8; background: rgba(99, 102, 241, 0.05); }
+    .variant-btn.active {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.1);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+    }
+
     /* GARANTIES */
     .trust-badges {
         display: flex; gap: 0.75rem; flex-wrap: wrap;
@@ -635,5 +686,42 @@ const jsonLd = produit ? JSON.stringify({
                 updateCarousel(currentIndex);
             });
         }
+
+        // --- GESTION DES VARIANTES ---
+        const variantBtns = document.querySelectorAll('.variant-btn');
+        const priceDisplay = document.querySelector('.price');
+        const buyBtn = document.querySelector('.btn-buy') as HTMLAnchorElement;
+
+        variantBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active state
+                variantBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Get data from attributes
+                const newPrice = btn.getAttribute('data-price');
+                const newImage = btn.getAttribute('data-image');
+                const newUrl = btn.getAttribute('data-url');
+
+                // Update Price
+                if (priceDisplay && newPrice) {
+                    priceDisplay.textContent = newPrice.includes('€') ? newPrice : `${newPrice} €`;
+                }
+
+                // Update Image (use the updateCarousel logic to have the fade effect)
+                if (newImage && mainImg) {
+                    mainImg.style.opacity = '0.5';
+                    setTimeout(() => {
+                        mainImg.src = newImage;
+                        mainImg.style.opacity = '1';
+                    }, 150);
+                }
+
+                // Update Buy Link
+                if (buyBtn && newUrl) {
+                    buyBtn.href = newUrl;
+                }
+            });
+        });
     });
 </script>
