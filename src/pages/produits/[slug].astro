@@ -771,6 +771,9 @@ const jsonLd = produit ? JSON.stringify({
                     try {
                         const gallery = JSON.parse(newGalleryStr);
                         if (Array.isArray(gallery) && gallery.length > 0) {
+                            // On récupère le nom du produit pour l'alt
+                            const productName = document.querySelector('h1')?.textContent || 'Produit';
+                            
                             // On vide et on reconstruit les vignettes
                             carouselThumbnails.innerHTML = gallery.map((imgUrl, index) => `
                                 <button 
@@ -779,7 +782,7 @@ const jsonLd = produit ? JSON.stringify({
                                     data-image="${imgUrl}"
                                     aria-label="Voir l'image ${index + 1}"
                                 >
-                                    <img src="${imgUrl}" alt="Thumbnail ${index + 1}" style="width:100%; height:100%; object-fit:cover; display:block;" />
+                                    <img src="${imgUrl}" alt="${productName} - vue ${index + 1}" />
                                 </button>
                             `).join('');
 
