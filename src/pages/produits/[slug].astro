@@ -661,8 +661,11 @@ const jsonLd = produit ? JSON.stringify({
         let currentIndex = 0;
 
         function updateCarousel(index: number) {
-            // Mettre à jour l'image principale
-            const newImage = thumbnails[index].getAttribute('data-image');
+            // On récupère les miniatures actuelles (peuvent avoir changé avec une variante)
+            const currentThumbnails = document.querySelectorAll('.thumbnail-btn');
+            if (currentThumbnails.length === 0) return;
+
+            const newImage = currentThumbnails[index].getAttribute('data-image');
             if (newImage && mainImg) {
                 // Petit effet de fondu transparent
                 mainImg.style.opacity = '0.5';
@@ -673,24 +676,33 @@ const jsonLd = produit ? JSON.stringify({
             }
             
             // Mettre à jour la classe active sur les vignettes
-            thumbnails.forEach(t => t.classList.remove('active'));
-            thumbnails[index].classList.add('active');
+            currentThumbnails.forEach(t => t.classList.remove('active'));
+            currentThumbnails[index].classList.add('active');
             
-            // Scroller la vignette pour qu'elle soit visible si on utilise les flèches
-            (thumbnails[index] as HTMLElement).scrollIntoView({
+            // Scroller la vignette pour qu'elle soit visible
+            (currentThumbnails[index] as HTMLElement).scrollIntoView({
                 behavior: 'smooth',
                 block: 'nearest',
                 inline: 'center'
             });
         }
 
-        // Clic sur les vignettes
-        thumbnails.forEach((thumb, index) => {
-            thumb.addEventListener('click', () => {
-                currentIndex = index;
-                updateCarousel(currentIndex);
+        // Fonction pour attacher les écouteurs aux vignettes
+        function attachThumbnailEvents() {
+            const currentThumbnails = document.querySelectorAll('.thumbnail-btn');
+            currentThumbnails.forEach((thumb, index) => {
+                // On clone pour éviter les doubles écouteurs si nécessaire
+                const newThumb = thumb.cloneNode(true);
+                thumb.parentNode?.replaceChild(newThumb, thumb);
+                newThumb.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateCarousel(currentIndex);
+                });
             });
-        });
+        }
+
+        // Initialisation
+        attachThumbnailEvents();
 
         // Flèches de navigation
         if (prevBtn && nextBtn) {
@@ -771,14 +783,11 @@ const jsonLd = produit ? JSON.stringify({
                                 </button>
                             `).join('');
 
-                            // Ré-attacher les écouteurs de clics aux nouvelles vignettes
-                            const newThumbnails = carouselThumbnails.querySelectorAll('.thumbnail-btn');
-                            newThumbnails.forEach((thumb, index) => {
-                                thumb.addEventListener('click', () => {
-                                    currentIndex = index;
-                                    updateCarousel(currentIndex);
-                                });
-                            });
+                            // Ré-attacher les écouteurs de clics aux nouvelles vignettes via la fonction partagée
+                            attachThumbnailEvents();
+                            
+                            // Reset l'index à 0 pour la nouvelle galerie
+                            currentIndex = 0;
                         }
                     } catch (e) { console.error("Erreur parsing galerie:", e); }
                 }
