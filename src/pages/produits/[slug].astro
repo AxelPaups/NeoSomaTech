@@ -177,7 +177,7 @@ const jsonLd = produit ? JSON.stringify({
                                         data-desc-long={produit.description_principale || ''}
                                         data-gallery={JSON.stringify(allImages)}
                                     >
-                                        Par défaut
+                                        {produit.nom_court || 'Par défaut'}
                                     </button>
                                     {produit.variantes.map((v: any) => {
                                         // Collecte des images de la galerie de la variante
@@ -193,7 +193,7 @@ const jsonLd = produit ? JSON.stringify({
                                         return (
                                             <button 
                                                 class="variant-btn" 
-                                                data-name={v.Nom_du_produit}
+                                                data-name={v.nom_court || v.Nom_du_produit}
                                                 data-price={v.prix || produit.prix || ''}
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
@@ -201,7 +201,7 @@ const jsonLd = produit ? JSON.stringify({
                                                 data-desc-long={v.description_principale || produit.description_principale || ''}
                                                 data-gallery={variantGallery.length > 0 ? JSON.stringify(variantGallery) : JSON.stringify(allImages)}
                                             >
-                                                {v.Nom_du_produit}
+                                                {v.nom_court || v.Nom_du_produit}
                                             </button>
                                         );
                                     })}
