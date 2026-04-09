@@ -14,7 +14,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,pourcentage_promo&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -150,10 +150,21 @@ const jsonLd = produit ? JSON.stringify({
                         <h1>{produit.Nom_du_produit}</h1>
 
                         <!-- PRIX -->
-                        <div class="price-block">
-                            <span class="price">
-                                {produit.prix ? `${produit.prix} €` : 'Nous contacter'}
-                            </span>
+                        <div class="price-block" id="price-block-container">
+                            {produit.promo && produit.pourcentage_promo ? (
+                                <>
+                                    <span class="price original-price">
+                                        {produit.prix ? `${produit.prix} €` : ''}
+                                    </span>
+                                    <span class="price promo-price">
+                                        {produit.prix ? `${(produit.prix * (1 - produit.pourcentage_promo / 100)).toFixed(2).replace('.00', '')} €` : 'Nous contacter'}
+                                    </span>
+                                </>
+                            ) : (
+                                <span class="price">
+                                    {produit.prix ? `${produit.prix} €` : 'Nous contacter'}
+                                </span>
+                            )}
                             {produit.prix && <span class="price-note">TTC · Livraison incluse</span>}
                         </div>
 
@@ -171,6 +182,8 @@ const jsonLd = produit ? JSON.stringify({
                                         class="variant-btn active" 
                                         data-name="Standard"
                                         data-price={produit.prix || ''}
+                                        data-promo={produit.promo ? 'true' : 'false'}
+                                        data-promo-percent={produit.pourcentage_promo || 0}
                                         data-image={imageUrl}
                                         data-url={produit.Bouton_acheter || ''}
                                         data-desc-short={produit.descripton_simple || ''}
@@ -195,6 +208,8 @@ const jsonLd = produit ? JSON.stringify({
                                                 class="variant-btn" 
                                                 data-name={v.nom_court || v.Nom_du_produit}
                                                 data-price={v.prix || produit.prix || ''}
+                                                data-promo={v.promo !== undefined && v.promo !== null ? (v.promo ? 'true' : 'false') : (produit.promo ? 'true' : 'false')}
+                                                data-promo-percent={v.pourcentage_promo !== undefined && v.pourcentage_promo !== null ? v.pourcentage_promo : (produit.pourcentage_promo || 0)}
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
                                                 data-desc-short={v.description_simple || produit.descripton_simple || ''}
@@ -438,6 +453,18 @@ const jsonLd = produit ? JSON.stringify({
         font-size: 2.4rem; font-weight: 900;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .original-price {
+        font-size: 1.5rem;
+        text-decoration: line-through;
+        color: #a0aec0;
+        background: none;
+        -webkit-background-clip: unset; -webkit-text-fill-color: unset; background-clip: unset;
+    }
+    .promo-price {
+        color: #ef4444;
+        background: none;
+        -webkit-background-clip: unset; -webkit-text-fill-color: unset; background-clip: unset;
     }
     .price-note {
         font-size: 0.82rem; color: var(--text-light);
@@ -719,7 +746,7 @@ const jsonLd = produit ? JSON.stringify({
 
         // --- GESTION DES VARIANTES ---
         const variantBtns = document.querySelectorAll('.variant-btn');
-        const priceDisplay = document.querySelector('.price');
+        const priceBlock = document.getElementById('price-block-container');
         const buyBtn = document.querySelector('.btn-buy') as HTMLAnchorElement;
         const shortDesc = document.querySelector('.short-desc');
         const longDesc = document.querySelector('.rich-content');
@@ -733,6 +760,8 @@ const jsonLd = produit ? JSON.stringify({
 
                 // Récupérer les données des attributs
                 const newPrice = btn.getAttribute('data-price');
+                const isPromo = btn.getAttribute('data-promo') === 'true';
+                const promoPercent = parseFloat(btn.getAttribute('data-promo-percent') || '0');
                 const newImage = btn.getAttribute('data-image');
                 const newUrl = btn.getAttribute('data-url');
                 const newDescShort = btn.getAttribute('data-desc-short');
@@ -740,8 +769,28 @@ const jsonLd = produit ? JSON.stringify({
                 const newGalleryStr = btn.getAttribute('data-gallery');
 
                 // Mise à jour du Prix
-                if (priceDisplay && newPrice) {
-                    priceDisplay.textContent = newPrice.includes('€') ? newPrice : `${newPrice} €`;
+                if (priceBlock && newPrice) {
+                    const priceVal = parseFloat(newPrice);
+                    if (!isNaN(priceVal)) {
+                        if (isPromo && promoPercent > 0) {
+                            const discountedPrice = (priceVal * (1 - promoPercent / 100)).toFixed(2).replace('.00', '');
+                            priceBlock.innerHTML = `
+                                <span class="price original-price">${priceVal} €</span>
+                                <span class="price promo-price">${discountedPrice} €</span>
+                                <span class="price-note">TTC · Livraison incluse</span>
+                            `;
+                        } else {
+                            priceBlock.innerHTML = `
+                                <span class="price">${priceVal} €</span>
+                                <span class="price-note">TTC · Livraison incluse</span>
+                            `;
+                        }
+                    } else {
+                        priceBlock.innerHTML = `
+                            <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
+                            <span class="price-note">TTC · Livraison incluse</span>
+                        `;
+                    }
                 }
 
                 // Mise à jour de l'image (si on en a une)
