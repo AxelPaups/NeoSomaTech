@@ -9,6 +9,7 @@ const directusUrl = "https://spirited-squid.pikapod.net";
 
 let produit: any = null;
 let produitsSimilaires: any[] = [];
+let avis: any[] = [];
 let errorMessage: string | null = null;
 
 try {
@@ -21,28 +22,41 @@ try {
     // Récupération des produits similaires (priorité à la même marque si elle existe)
     if (produit) {
         // Tentative de récupération des produits de la même marque (excluant le produit actuel)
-        // Note: 'marque' est récupéré même s'il n'est pas encore défini (renverra null)
         const brandFilter = produit.marque ? `&filter[marque][_eq]=${produit.marque}` : '';
         const others = await fetchDirectus(
             `/items/Produits?filter[slug][_neq]=${slug}${brandFilter}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=4`
         );
         produitsSimilaires = Array.isArray(others) ? others : [];
 
-        // Si on n'a pas 4 produits de la même marque, on complète avec les autres produits du catalogue
         if (produitsSimilaires.length < 4) {
             const excludeSlugs = [slug, ...produitsSimilaires.map(p => p.slug || p.id)];
-            // On utilise slug au lieu d'ID pour simplifier le filtrage _nin
             const fallbackQuery = `/items/Produits?filter[slug][_nin]=${excludeSlugs.join(',')}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=${4 - produitsSimilaires.length}`;
             const more = await fetchDirectus(fallbackQuery);
             if (Array.isArray(more)) {
                 produitsSimilaires = [...produitsSimilaires, ...more];
             }
         }
+
+        // Récupération des avis pour ce produit
+        try {
+            const avisData = await fetchDirectus(
+                `/items/Avis?filter[produit_slug][_eq]=${slug}&sort[]=-date_created&fields=prenom,note,commentaire,date_created&limit=50`
+            );
+            avis = Array.isArray(avisData) ? avisData : [];
+        } catch (e) {
+            // Si la collection n'existe pas encore, on ne bloque pas la page
+            avis = [];
+        }
     }
 } catch (error: any) {
     console.error(`Erreur produit ${slug}:`, error);
     errorMessage = error.message;
 }
+
+// Calcul de la note moyenne
+const noteMoyenne = avis.length > 0
+    ? Math.round((avis.reduce((sum: number, a: any) => sum + (a.note || 0), 0) / avis.length) * 10) / 10
+    : null;
 
 if (!produit && !errorMessage) {
     return Astro.redirect('/404');
@@ -275,12 +289,111 @@ if (produit && produit.promo && produit.prix_promo) {
                         </div>
                     </div>
 
-                    <!-- AVIS (placeholder pour plus tard) -->
-                    <div class="tab-section">
-                        <h2 class="section-title">Avis clients</h2>
-                        <div class="reviews-placeholder">
-                            <p class="stars">★★★★★</p>
-                            <p>Les avis clients seront affichés ici prochainement.</p>
+                    <!-- AVIS CLIENTS -->
+                    <div class="tab-section" id="avis-section">
+                        <div class="avis-header">
+                            <h2 class="section-title" style="margin-bottom:0; border-bottom:none;">Avis clients</h2>
+                            {noteMoyenne && (
+                                <div class="avis-moyenne">
+                                    <span class="avis-moyenne-note">{noteMoyenne}</span>
+                                    <div class="avis-moyenne-etoiles">
+                                        {[1,2,3,4,5].map(i => (
+                                            <span class={i <= Math.round(noteMoyenne) ? 'star filled' : 'star'}>★</span>
+                                        ))}
+                                    </div>
+                                    <span class="avis-count">({avis.length} avis)</span>
+                                </div>
+                            )}
+                        </div>
+                        <div style="border-bottom: 1px solid var(--border); margin: 1.25rem 0;"></div>
+
+                        <!-- Liste des avis existants -->
+                        {avis.length > 0 ? (
+                            <div class="avis-liste">
+                                {avis.map((a: any) => (
+                                    <div class="avis-card">
+                                        <div class="avis-card-top">
+                                            <div class="avis-avatar">{a.prenom ? a.prenom[0].toUpperCase() : '?'}</div>
+                                            <div class="avis-meta">
+                                                <strong class="avis-prenom">{a.prenom || 'Anonyme'}</strong>
+                                                <div class="avis-etoiles">
+                                                    {[1,2,3,4,5].map(i => (
+                                                        <span class={i <= (a.note || 0) ? 'star filled' : 'star'}>★</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {a.date_created && (
+                                                <span class="avis-date">
+                                                    {new Date(a.date_created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p class="avis-commentaire">{a.commentaire}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p class="avis-empty">Soyez le premier à donner votre avis sur ce produit !</p>
+                        )}
+
+                        <!-- Formulaire de soumission -->
+                        <div class="avis-form-container">
+                            <h3 class="avis-form-title">Laisser un avis</h3>
+                            <form id="avis-form" novalidate>
+                                <input type="hidden" name="produit_slug" value={slug} />
+
+                                <!-- Note avec étoiles -->
+                                <div class="form-group">
+                                    <label class="form-label">Note <span class="required">*</span></label>
+                                    <div class="stars-input" id="stars-input" role="group" aria-label="Note de 1 à 5">
+                                        {[1,2,3,4,5].map(i => (
+                                            <button type="button" class="star-btn" data-value={i} aria-label={`${i} étoile${i > 1 ? 's' : ''}`}>★</button>
+                                        ))}
+                                    </div>
+                                    <input type="hidden" name="note" id="note-value" value="" />
+                                    <span class="field-error" id="note-error"></span>
+                                </div>
+
+                                <div class="form-row">
+                                    <!-- Prénom -->
+                                    <div class="form-group">
+                                        <label for="avis-prenom" class="form-label">Prénom <span class="required">*</span></label>
+                                        <input type="text" id="avis-prenom" name="prenom" class="form-input" placeholder="Votre prénom" autocomplete="given-name" />
+                                        <span class="field-error" id="prenom-error"></span>
+                                    </div>
+                                    <!-- Email -->
+                                    <div class="form-group">
+                                        <label for="avis-email" class="form-label">Email <span class="required">*</span></label>
+                                        <input type="email" id="avis-email" name="email" class="form-input" placeholder="votre@email.com" autocomplete="email" />
+                                        <span class="field-error" id="email-error"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Téléphone -->
+                                <div class="form-group">
+                                    <label for="avis-tel" class="form-label">Téléphone <span class="optional">(facultatif)</span></label>
+                                    <input type="tel" id="avis-tel" name="telephone" class="form-input" placeholder="+33 6 12 34 56 78" autocomplete="tel" />
+                                </div>
+
+                                <!-- Commentaire -->
+                                <div class="form-group">
+                                    <label for="avis-commentaire" class="form-label">Commentaire <span class="required">*</span></label>
+                                    <textarea id="avis-commentaire" name="commentaire" class="form-input form-textarea" placeholder="Partagez votre expérience avec ce produit..." rows={4}></textarea>
+                                    <span class="field-error" id="commentaire-error"></span>
+                                </div>
+
+                                <div class="form-footer">
+                                    <span class="form-note"><span class="required">*</span> Champs obligatoires</span>
+                                    <button type="submit" class="btn btn-buy" id="avis-submit">Envoyer mon avis</button>
+                                </div>
+
+                                <div id="avis-success" class="avis-success" style="display:none;">
+                                    ✅ Merci ! Votre avis a bien été enregistré.
+                                </div>
+                                <div id="avis-error-global" class="avis-error-global" style="display:none;">
+                                    ⚠️ Une erreur est survenue. Veuillez réessayer.
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -585,7 +698,7 @@ if (produit && produit.promo && produit.prix_promo) {
     :global(.rich-content td) { padding: 0.65rem 1rem; border: 1px solid var(--border); color: var(--text); }
 
     /* FAQ PLACEHOLDER */
-    .faq-placeholder, .reviews-placeholder {
+    .faq-placeholder {
         text-align: center;
         padding: 2rem;
         color: var(--text-light);
@@ -593,7 +706,148 @@ if (produit && produit.promo && produit.prix_promo) {
         line-height: 1.7;
     }
     .faq-placeholder a { color: #818cf8; text-decoration: underline; }
-    .stars { font-size: 2rem; color: #f59e0b; margin-bottom: 0.5rem; }
+
+    /* ===== AVIS CLIENTS ===== */
+    .avis-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .avis-moyenne {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .avis-moyenne-note {
+        font-size: 2rem;
+        font-weight: 900;
+        color: #f59e0b;
+    }
+    .avis-moyenne-etoiles { display: flex; gap: 2px; }
+    .avis-count { font-size: 0.88rem; color: var(--text-light); }
+    .star { font-size: 1.1rem; color: #4a5568; }
+    .star.filled { color: #f59e0b; }
+
+    /* Liste des avis */
+    .avis-liste {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+    }
+    .avis-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        transition: border-color 0.2s;
+    }
+    .avis-card:hover { border-color: #6366f1; }
+    .avis-card-top {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+    }
+    .avis-avatar {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 1rem; color: #fff;
+        flex-shrink: 0;
+    }
+    .avis-meta { flex: 1; }
+    .avis-prenom { font-size: 0.95rem; color: #fff; display: block; }
+    .avis-etoiles { display: flex; gap: 2px; margin-top: 2px; }
+    .avis-date { font-size: 0.78rem; color: var(--text-light); margin-left: auto; }
+    .avis-commentaire { font-size: 0.95rem; color: var(--text-light); line-height: 1.7; margin: 0; }
+    .avis-empty {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Formulaire d'avis */
+    .avis-form-container {
+        border-top: 1px solid var(--border);
+        padding-top: 2rem;
+        margin-top: 1rem;
+    }
+    .avis-form-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .form-label { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; }
+    .required { color: #ef4444; }
+    .optional { color: var(--text-light); font-weight: 400; font-size: 0.8rem; }
+    .form-input {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        color: #fff;
+        width: 100%;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+        outline: none;
+    }
+    .form-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-input.error { border-color: #ef4444; }
+    .form-input.valid { border-color: #10b981; }
+    .form-textarea { resize: vertical; min-height: 100px; }
+    .field-error { font-size: 0.8rem; color: #ef4444; min-height: 1.1em; }
+
+    /* Étoiles cliquables */
+    .stars-input { display: flex; gap: 4px; }
+    .star-btn {
+        background: none; border: none; cursor: pointer;
+        font-size: 2rem; color: #4a5568;
+        transition: color 0.15s, transform 0.1s;
+        padding: 0 2px;
+        line-height: 1;
+    }
+    .star-btn:hover, .star-btn.active { color: #f59e0b; }
+    .star-btn.hover-preview { color: #f59e0b; }
+
+    .form-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+    .form-note { font-size: 0.8rem; color: var(--text-light); }
+    .avis-success {
+        margin-top: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(16,185,129,0.1);
+        border: 1px solid rgba(16,185,129,0.3);
+        border-radius: 10px;
+        color: #6ee7b7;
+        font-size: 0.95rem;
+    }
+    .avis-error-global {
+        margin-top: 1rem;
+        padding: 1rem 1.25rem;
+        background: rgba(239,68,68,0.1);
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 10px;
+        color: #fca5a5;
+        font-size: 0.95rem;
+    }
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
@@ -860,5 +1114,149 @@ if (produit && produit.promo && produit.prix_promo) {
                 }
             });
         });
+
+        // ===== GESTION DU FORMULAIRE D'AVIS =====
+        const avisForm = document.getElementById('avis-form') as HTMLFormElement | null;
+        if (avisForm) {
+            const starBtns = avisForm.querySelectorAll('.star-btn');
+            const noteInput = document.getElementById('note-value') as HTMLInputElement | null;
+            const prenomInput = document.getElementById('avis-prenom') as HTMLInputElement | null;
+            const emailInput = document.getElementById('avis-email') as HTMLInputElement | null;
+            const commentaireInput = document.getElementById('avis-commentaire') as HTMLTextAreaElement | null;
+            const submitBtn = document.getElementById('avis-submit') as HTMLButtonElement | null;
+            const successMsg = document.getElementById('avis-success');
+            const errorGlobal = document.getElementById('avis-error-global');
+
+            let selectedNote = 0;
+
+            // Gestion des étoiles cliquables
+            starBtns.forEach((btn) => {
+                const val = parseInt(btn.getAttribute('data-value') || '0');
+
+                btn.addEventListener('mouseenter', () => {
+                    starBtns.forEach((b) => {
+                        const bVal = parseInt(b.getAttribute('data-value') || '0');
+                        b.classList.toggle('hover-preview', bVal <= val);
+                    });
+                });
+
+                btn.addEventListener('mouseleave', () => {
+                    starBtns.forEach((b) => {
+                        b.classList.remove('hover-preview');
+                        const bVal = parseInt(b.getAttribute('data-value') || '0');
+                        b.classList.toggle('active', bVal <= selectedNote);
+                    });
+                });
+
+                btn.addEventListener('click', () => {
+                    selectedNote = val;
+                    if (noteInput) noteInput.value = String(selectedNote);
+                    starBtns.forEach((b) => {
+                        const bVal = parseInt(b.getAttribute('data-value') || '0');
+                        b.classList.toggle('active', bVal <= selectedNote);
+                    });
+                    const noteError = document.getElementById('note-error');
+                    if (noteError) noteError.textContent = '';
+                });
+            });
+
+            // Validation d'un champ
+            function validateField(input: HTMLInputElement | HTMLTextAreaElement, errorId: string, rules: { required?: boolean; email?: boolean }): boolean {
+                const errorEl = document.getElementById(errorId);
+                const val = input.value.trim();
+                input.classList.remove('error', 'valid');
+
+                if (rules.required && !val) {
+                    input.classList.add('error');
+                    if (errorEl) errorEl.textContent = 'Ce champ est obligatoire.';
+                    return false;
+                }
+                if (rules.email && val) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(val)) {
+                        input.classList.add('error');
+                        if (errorEl) errorEl.textContent = 'Veuillez entrer une adresse email valide.';
+                        return false;
+                    }
+                }
+                input.classList.add('valid');
+                if (errorEl) errorEl.textContent = '';
+                return true;
+            }
+
+            // Validation en temps réel au départ du champ
+            prenomInput?.addEventListener('blur', () => prenomInput && validateField(prenomInput, 'prenom-error', { required: true }));
+            emailInput?.addEventListener('blur', () => emailInput && validateField(emailInput, 'email-error', { required: true, email: true }));
+            commentaireInput?.addEventListener('blur', () => commentaireInput && validateField(commentaireInput, 'commentaire-error', { required: true }));
+
+            // Soumission du formulaire
+            avisForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                // Validation complète avant envoi
+                let valid = true;
+                if (selectedNote === 0) {
+                    const noteError = document.getElementById('note-error');
+                    if (noteError) noteError.textContent = 'Veuillez sélectionner une note.';
+                    valid = false;
+                }
+                if (prenomInput && !validateField(prenomInput, 'prenom-error', { required: true })) valid = false;
+                if (emailInput && !validateField(emailInput, 'email-error', { required: true, email: true })) valid = false;
+                if (commentaireInput && !validateField(commentaireInput, 'commentaire-error', { required: true })) valid = false;
+
+                if (!valid) return;
+
+                // Désactiver le bouton pendant l'envoi
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Envoi en cours...';
+                }
+                if (successMsg) successMsg.style.display = 'none';
+                if (errorGlobal) errorGlobal.style.display = 'none';
+
+                // Construction du payload
+                const formData = new FormData(avisForm);
+                const payload: Record<string, any> = {};
+                formData.forEach((value, key) => {
+                    if (key === 'note') {
+                        payload[key] = parseInt(value as string);
+                    } else if ((value as string).trim() !== '') {
+                        payload[key] = value;
+                    }
+                });
+
+                try {
+                    const response = await fetch('https://spirited-squid.pikapod.net/items/Avis', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer 0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+
+                    // Succès : reset du formulaire
+                    avisForm.reset();
+                    selectedNote = 0;
+                    starBtns.forEach((b) => b.classList.remove('active', 'hover-preview'));
+                    if (noteInput) noteInput.value = '';
+                    prenomInput?.classList.remove('valid');
+                    emailInput?.classList.remove('valid');
+                    commentaireInput?.classList.remove('valid');
+                    if (successMsg) successMsg.style.display = 'block';
+
+                } catch (err) {
+                    console.error('Erreur envoi avis:', err);
+                    if (errorGlobal) errorGlobal.style.display = 'block';
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Envoyer mon avis';
+                    }
+                }
+            });
+        }
     });
 </script>
