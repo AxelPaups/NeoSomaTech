@@ -14,7 +14,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,pourcentage_promo&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -85,15 +85,16 @@ const jsonLd = produit ? JSON.stringify({
 let isPromoValid = false;
 let displayPromoPrice = '';
 
-if (produit && produit.promo && produit.pourcentage_promo) {
-    const rawPrix = String(produit.prix || '').replace(',', '.').replace(/\s/g, ''); // enlever espaces et virgules
-    const rawPromo = String(produit.pourcentage_promo || '').replace(',', '.').replace(/[^\d.-]/g, '');
-    const prixNum = parseFloat(rawPrix);
+if (produit && produit.promo && produit.prix_promo) {
+    const rawPromo = String(produit.prix_promo).replace(',', '.').replace(/[^\d.-]/g, '');
     const promoNum = parseFloat(rawPromo);
     
-    if (!isNaN(prixNum) && !isNaN(promoNum)) {
+    if (!isNaN(promoNum)) {
         isPromoValid = true;
-        displayPromoPrice = `${(prixNum * (1 - promoNum / 100)).toFixed(2).replace('.00', '')} €`;
+        displayPromoPrice = `${promoNum.toFixed(2).replace('.00', '')} €`;
+    } else {
+        isPromoValid = true;
+        displayPromoPrice = String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`;
     }
 }
 ---
@@ -198,7 +199,7 @@ if (produit && produit.promo && produit.pourcentage_promo) {
                                         data-name="Standard"
                                         data-price={produit.prix || ''}
                                         data-promo={isPromoValid ? 'true' : 'false'}
-                                        data-promo-percent={isPromoValid ? String(produit.pourcentage_promo).replace(/[^\d.-]/g, '') : '0'}
+                                        data-prix-promo={produit.prix_promo || ''}
                                         data-image={imageUrl}
                                         data-url={produit.Bouton_acheter || ''}
                                         data-desc-short={produit.descripton_simple || ''}
@@ -224,7 +225,7 @@ if (produit && produit.promo && produit.pourcentage_promo) {
                                                 data-name={v.nom_court || v.Nom_du_produit}
                                                 data-price={v.prix || produit.prix || ''}
                                                 data-promo={v.promo !== undefined && v.promo !== null ? (v.promo ? 'true' : 'false') : (produit.promo ? 'true' : 'false')}
-                                                data-promo-percent={v.pourcentage_promo !== undefined && v.pourcentage_promo !== null ? v.pourcentage_promo : (produit.pourcentage_promo || 0)}
+                                                data-prix-promo={v.prix_promo !== undefined && v.prix_promo !== null ? v.prix_promo : (produit.prix_promo || '')}
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
                                                 data-desc-short={v.description_simple || produit.descripton_simple || ''}
@@ -776,7 +777,7 @@ if (produit && produit.promo && produit.pourcentage_promo) {
                 // Récupérer les données des attributs
                 const newPrice = btn.getAttribute('data-price');
                 const isPromo = btn.getAttribute('data-promo') === 'true';
-                const promoPercent = parseFloat(btn.getAttribute('data-promo-percent') || '0');
+                const newPrixPromo = btn.getAttribute('data-prix-promo');
                 const newImage = btn.getAttribute('data-image');
                 const newUrl = btn.getAttribute('data-url');
                 const newDescShort = btn.getAttribute('data-desc-short');
@@ -785,25 +786,23 @@ if (produit && produit.promo && produit.pourcentage_promo) {
 
                 // Mise à jour du Prix
                 if (priceBlock && newPrice) {
-                    // Nettoyage de la chaîne de prix (gestion virgules, espaces, symboles €)
-                    const cleanPrice = newPrice.replace(',', '.').replace(/\s/g, '').replace(/[^\d.-]/g, '');
-                    const priceVal = parseFloat(cleanPrice);
-
-                    if (!isNaN(priceVal)) {
-                        if (isPromo && promoPercent > 0) {
-                            const discountedPrice = (priceVal * (1 - promoPercent / 100)).toFixed(2).replace('.00', '');
-                            priceBlock.innerHTML = `
-                                <span class="price original-price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
-                                <span class="price promo-price">${discountedPrice} €</span>
-                                <span class="price-note">TTC · Livraison incluse</span>
-                            `;
-                        } else {
-                            priceBlock.innerHTML = `
-                                <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
-                                <span class="price-note">TTC · Livraison incluse</span>
-                            `;
+                    if (isPromo && newPrixPromo) {
+                        const cleanPromo = newPrixPromo.replace(',', '.').replace(/[^\d.-]/g, '');
+                        const promoVal = parseFloat(cleanPromo);
+                        let finalPromoStr = newPrixPromo;
+                        if (!isNaN(promoVal)) {
+                            finalPromoStr = promoVal.toFixed(2).replace('.00', '') + (newPrixPromo.includes('€') ? '' : ' €');
+                        } else if (!finalPromoStr.includes('€')) {
+                            finalPromoStr += ' €';
                         }
+                        
+                        priceBlock.innerHTML = `
+                            <span class="price original-price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
+                            <span class="price promo-price">${finalPromoStr}</span>
+                            <span class="price-note">TTC · Livraison incluse</span>
+                        `;
                     } else {
+                        // Cas sans promo
                         priceBlock.innerHTML = `
                             <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
                             <span class="price-note">TTC · Livraison incluse</span>
