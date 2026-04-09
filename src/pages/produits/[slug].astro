@@ -223,8 +223,8 @@ if (produit && produit.promo && produit.prix_promo) {
                                                 class="variant-btn" 
                                                 data-name={v.nom_court || v.Nom_du_produit}
                                                 data-price={v.prix || produit.prix || ''}
-                                                data-promo={v.promo !== undefined && v.promo !== null ? (v.promo ? 'true' : 'false') : (produit.promo ? 'true' : 'false')}
-                                                data-prix-promo={v.prix_promo !== undefined && v.prix_promo !== null ? v.prix_promo : (produit.prix_promo || '')}
+                                                data-promo={v.promo ? 'true' : 'false'}
+                                                data-prix-promo={v.prix_promo || ''}
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
                                                 data-desc-short={v.description_simple || produit.descripton_simple || ''}
@@ -464,19 +464,19 @@ if (produit && produit.promo && produit.prix_promo) {
         display: flex; align-items: baseline; gap: 1rem;
         flex-wrap: wrap;
     }
-    .price {
+    :global(.price) {
         font-size: 2.4rem; font-weight: 900;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .original-price {
+    :global(.original-price) {
         font-size: 1.5rem;
         text-decoration: line-through;
         color: #a0aec0;
         background: none;
         -webkit-background-clip: unset; -webkit-text-fill-color: unset; background-clip: unset;
     }
-    .promo-price {
+    :global(.promo-price) {
         color: #ef4444;
         background: none;
         -webkit-background-clip: unset; -webkit-text-fill-color: unset; background-clip: unset;
