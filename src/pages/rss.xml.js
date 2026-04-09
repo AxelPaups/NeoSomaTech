@@ -10,12 +10,15 @@ export async function GET(context) {
     title: 'NeoSomaTech - Les Articles sur les Exosquelettes',
     description: 'Actualités, guides et innovations dans le monde des exosquelettes.',
     site: context.site,
-    items: articles.map((article) => ({
-      title: article.titre,
-      pubDate: new Date(article.date_publication),
-      description: article.description_seo,
-      link: `/articles/${article.slug}/`,
-    })),
+    items: articles.map((article) => {
+      const d = new Date(article.date_publication);
+      return {
+        title: article.titre,
+        pubDate: isNaN(d.getTime()) ? new Date() : d,
+        description: article.description_seo,
+        link: `/articles/${article.slug}/`,
+      };
+    }),
     customData: `<language>fr-fr</language>`,
   });
 }

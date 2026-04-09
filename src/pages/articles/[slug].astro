@@ -30,7 +30,13 @@ const imageUrl = article?.image_principale
 
 const formatDate = (date: string) => {
     if (!date) return '';
-    return new Intl.DateTimeFormat('fr-FR', { year:'numeric', month:'long', day:'numeric' }).format(new Date(date));
+    try {
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return date;
+        return new Intl.DateTimeFormat('fr-FR', { year:'numeric', month:'long', day:'numeric' }).format(d);
+    } catch (e) {
+        return date;
+    }
 };
 
 // JSON-LD pour Google

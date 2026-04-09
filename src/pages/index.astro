@@ -21,14 +21,20 @@ try {
 }
 
 const directusUrl = "https://spirited-squid.pikapod.net";
-const formatDate = (date: string) =>
-	date
-		? new Intl.DateTimeFormat("fr-FR", {
-				year: "numeric",
-				month: "long",
-				day: "numeric",
-			}).format(new Date(date))
-		: "";
+const formatDate = (date: string) => {
+	if (!date) return "";
+	try {
+		const d = new Date(date);
+		if (isNaN(d.getTime())) return date;
+		return new Intl.DateTimeFormat("fr-FR", {
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		}).format(d);
+	} catch (e) {
+		return date;
+	}
+};
 ---
 
 <Layout
