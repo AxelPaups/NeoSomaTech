@@ -40,7 +40,7 @@ try {
         // Récupération des avis pour ce produit
         try {
             const avisData = await fetchDirectus(
-                `/items/Avis?filter[produit_slug][_eq]=${slug}&sort[]=-date_created&fields=prenom,note,commentaire,date_created&limit=50`
+                `/items/Avis?filter[produit_slug][_eq]=${slug}&sort[]=-date_created&fields=prenom,note,avis_texte,date_created&limit=50`
             );
             avis = Array.isArray(avisData) ? avisData : [];
         } catch (e) {
@@ -328,7 +328,7 @@ if (produit && produit.promo && produit.prix_promo) {
                                                 </span>
                                             )}
                                         </div>
-                                        <p class="avis-commentaire">{a.commentaire}</p>
+                                        <p class="avis-commentaire">{a.avis_texte}</p>
                                     </div>
                                 ))}
                             </div>
@@ -377,9 +377,9 @@ if (produit && produit.promo && produit.prix_promo) {
 
                                 <!-- Commentaire -->
                                 <div class="form-group">
-                                    <label for="avis-commentaire" class="form-label">Commentaire <span class="required">*</span></label>
-                                    <textarea id="avis-commentaire" name="commentaire" class="form-input form-textarea" placeholder="Partagez votre expérience avec ce produit..." rows={4}></textarea>
-                                    <span class="field-error" id="commentaire-error"></span>
+                                    <label for="avis-texte" class="form-label">Commentaire <span class="required">*</span></label>
+                                    <textarea id="avis-texte" name="avis_texte" class="form-input form-textarea" placeholder="Partagez votre expérience avec ce produit..." rows={4}></textarea>
+                                    <span class="field-error" id="avis-texte-error"></span>
                                 </div>
 
                                 <div class="form-footer">
@@ -1122,7 +1122,7 @@ if (produit && produit.promo && produit.prix_promo) {
             const noteInput = document.getElementById('note-value') as HTMLInputElement | null;
             const prenomInput = document.getElementById('avis-prenom') as HTMLInputElement | null;
             const emailInput = document.getElementById('avis-email') as HTMLInputElement | null;
-            const commentaireInput = document.getElementById('avis-commentaire') as HTMLTextAreaElement | null;
+            const avisTexteInput = document.getElementById('avis-texte') as HTMLTextAreaElement | null;
             const submitBtn = document.getElementById('avis-submit') as HTMLButtonElement | null;
             const successMsg = document.getElementById('avis-success');
             const errorGlobal = document.getElementById('avis-error-global');
@@ -1187,7 +1187,7 @@ if (produit && produit.promo && produit.prix_promo) {
             // Validation en temps réel au départ du champ
             prenomInput?.addEventListener('blur', () => prenomInput && validateField(prenomInput, 'prenom-error', { required: true }));
             emailInput?.addEventListener('blur', () => emailInput && validateField(emailInput, 'email-error', { required: true, email: true }));
-            commentaireInput?.addEventListener('blur', () => commentaireInput && validateField(commentaireInput, 'commentaire-error', { required: true }));
+            avisTexteInput?.addEventListener('blur', () => avisTexteInput && validateField(avisTexteInput, 'avis-texte-error', { required: true }));
 
             // Soumission du formulaire
             avisForm.addEventListener('submit', async (e) => {
@@ -1202,7 +1202,7 @@ if (produit && produit.promo && produit.prix_promo) {
                 }
                 if (prenomInput && !validateField(prenomInput, 'prenom-error', { required: true })) valid = false;
                 if (emailInput && !validateField(emailInput, 'email-error', { required: true, email: true })) valid = false;
-                if (commentaireInput && !validateField(commentaireInput, 'commentaire-error', { required: true })) valid = false;
+                if (avisTexteInput && !validateField(avisTexteInput, 'avis-texte-error', { required: true })) valid = false;
 
                 if (!valid) return;
 
@@ -1246,7 +1246,7 @@ if (produit && produit.promo && produit.prix_promo) {
                     if (noteInput) noteInput.value = '';
                     prenomInput?.classList.remove('valid');
                     emailInput?.classList.remove('valid');
-                    commentaireInput?.classList.remove('valid');
+                    avisTexteInput?.classList.remove('valid');
                     if (successMsg) successMsg.style.display = 'block';
 
                 } catch (err: any) {
