@@ -14,7 +14,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
