@@ -136,7 +136,27 @@ if (produit && produit.promo && produit.prix_promo) {
                 </nav>
 
                 <!-- ===== BLOC PRINCIPAL (image gauche / infos droite) ===== -->
-                <section class="product-top">
+                <style is:inline>
+                    /* CSS CRITIQUE : Fixe la mise en page AVANT le chargement du CSS Astro */
+                    .product-top { 
+                        display: grid !important; 
+                        grid-template-columns: 1fr 1fr !important; 
+                        gap: 3rem !important; 
+                        opacity: 0; 
+                    }
+                    .carousel-main { aspect-ratio: 1/1 !important; width: 100% !important; max-width: 600px !important; background: #1a1a2e; border-radius: 20px; }
+                    .product-top.is-ready { opacity: 1; transition: opacity 0.2s ease-in; }
+                    @media (max-width: 768px) { .product-top { grid-template-columns: 1fr !important; } }
+                </style>
+
+                <section class="product-top" id="main-product-section">
+                    <script is:inline>
+                        // On affiche le contenu dès que la structure est là
+                        (function(){
+                            const el = document.getElementById('main-product-section');
+                            if(el) el.classList.add('is-ready');
+                        })();
+                    </script>
                     <!-- IMAGE GAUCHE (CARROUSEL) -->
                     <div class="product-gallery">
                         {allImages.length > 0 ? (
