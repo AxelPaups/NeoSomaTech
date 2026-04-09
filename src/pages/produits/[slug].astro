@@ -81,6 +81,21 @@ const jsonLd = produit ? JSON.stringify({
         "url": produit.Bouton_acheter || Astro.url.href
     }
 }) : null;
+
+let isPromoValid = false;
+let displayPromoPrice = '';
+
+if (produit && produit.promo && produit.pourcentage_promo) {
+    const rawPrix = String(produit.prix || '').replace(',', '.').replace(/\s/g, ''); // enlever espaces et virgules
+    const rawPromo = String(produit.pourcentage_promo || '').replace(',', '.').replace(/[^\d.-]/g, '');
+    const prixNum = parseFloat(rawPrix);
+    const promoNum = parseFloat(rawPromo);
+    
+    if (!isNaN(prixNum) && !isNaN(promoNum)) {
+        isPromoValid = true;
+        displayPromoPrice = `${(prixNum * (1 - promoNum / 100)).toFixed(2).replace('.00', '')} €`;
+    }
+}
 ---
 
 <Layout
@@ -151,13 +166,13 @@ const jsonLd = produit ? JSON.stringify({
 
                         <!-- PRIX -->
                         <div class="price-block" id="price-block-container">
-                            {produit.promo && produit.pourcentage_promo ? (
+                            {isPromoValid ? (
                                 <>
                                     <span class="price original-price">
                                         {produit.prix ? `${produit.prix} €` : ''}
                                     </span>
                                     <span class="price promo-price">
-                                        {produit.prix ? `${(produit.prix * (1 - produit.pourcentage_promo / 100)).toFixed(2).replace('.00', '')} €` : 'Nous contacter'}
+                                        {displayPromoPrice}
                                     </span>
                                 </>
                             ) : (
@@ -182,8 +197,8 @@ const jsonLd = produit ? JSON.stringify({
                                         class="variant-btn active" 
                                         data-name="Standard"
                                         data-price={produit.prix || ''}
-                                        data-promo={produit.promo ? 'true' : 'false'}
-                                        data-promo-percent={produit.pourcentage_promo || 0}
+                                        data-promo={isPromoValid ? 'true' : 'false'}
+                                        data-promo-percent={isPromoValid ? String(produit.pourcentage_promo).replace(/[^\d.-]/g, '') : '0'}
                                         data-image={imageUrl}
                                         data-url={produit.Bouton_acheter || ''}
                                         data-desc-short={produit.descripton_simple || ''}
@@ -770,18 +785,21 @@ const jsonLd = produit ? JSON.stringify({
 
                 // Mise à jour du Prix
                 if (priceBlock && newPrice) {
-                    const priceVal = parseFloat(newPrice);
+                    // Nettoyage de la chaîne de prix (gestion virgules, espaces, symboles €)
+                    const cleanPrice = newPrice.replace(',', '.').replace(/\s/g, '').replace(/[^\d.-]/g, '');
+                    const priceVal = parseFloat(cleanPrice);
+
                     if (!isNaN(priceVal)) {
                         if (isPromo && promoPercent > 0) {
                             const discountedPrice = (priceVal * (1 - promoPercent / 100)).toFixed(2).replace('.00', '');
                             priceBlock.innerHTML = `
-                                <span class="price original-price">${priceVal} €</span>
+                                <span class="price original-price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
                                 <span class="price promo-price">${discountedPrice} €</span>
                                 <span class="price-note">TTC · Livraison incluse</span>
                             `;
                         } else {
                             priceBlock.innerHTML = `
-                                <span class="price">${priceVal} €</span>
+                                <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
                                 <span class="price-note">TTC · Livraison incluse</span>
                             `;
                         }
