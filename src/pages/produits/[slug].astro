@@ -181,7 +181,6 @@ if (produit && produit.promo && produit.prix_promo) {
                                     {produit.prix ? `${produit.prix} €` : 'Nous contacter'}
                                 </span>
                             )}
-                            {produit.prix && <span class="price-note">TTC · Livraison incluse</span>}
                         </div>
 
                         <!-- DESCRIPTION COURTE -->
@@ -799,13 +798,11 @@ if (produit && produit.promo && produit.prix_promo) {
                         priceBlock.innerHTML = `
                             <span class="price original-price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
                             <span class="price promo-price">${finalPromoStr}</span>
-                            <span class="price-note">TTC · Livraison incluse</span>
                         `;
                     } else {
                         // Cas sans promo
                         priceBlock.innerHTML = `
                             <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
-                            <span class="price-note">TTC · Livraison incluse</span>
                         `;
                     }
                 }
