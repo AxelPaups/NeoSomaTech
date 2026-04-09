@@ -1247,7 +1247,13 @@ if (produit && produit.promo && produit.prix_promo) {
                     prenomInput?.classList.remove('valid');
                     emailInput?.classList.remove('valid');
                     avisTexteInput?.classList.remove('valid');
-                    if (successMsg) successMsg.style.display = 'block';
+                    if (successMsg) {
+                        successMsg.style.display = 'block';
+                        // Rechargement automatique après 2 secondes pour afficher le nouvel avis
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    }
 
                 } catch (err: any) {
                     console.error('Erreur envoi avis:', err);
