@@ -1247,9 +1247,12 @@ if (produit && produit.promo && produit.prix_promo) {
                     commentaireInput?.classList.remove('valid');
                     if (successMsg) successMsg.style.display = 'block';
 
-                } catch (err) {
+                } catch (err: any) {
                     console.error('Erreur envoi avis:', err);
-                    if (errorGlobal) errorGlobal.style.display = 'block';
+                    if (errorGlobal) {
+                        errorGlobal.textContent = `⚠️ Une erreur est survenue (${err.message}). Veuillez vérifier les permissions de la collection Avis dans Directus.`;
+                        errorGlobal.style.display = 'block';
+                    }
                 } finally {
                     if (submitBtn) {
                         submitBtn.disabled = false;
