@@ -18,8 +18,9 @@ export const POST: APIRoute = async ({ request }) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Directus Error:', errorData);
-      return new Response(JSON.stringify(errorData), { 
-        status: response.status,
+      const msg = errorData.errors?.[0]?.message || `Erreur Directus ${response.status}`;
+      return new Response(JSON.stringify({ message: msg }), { 
+        status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }

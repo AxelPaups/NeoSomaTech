@@ -1234,7 +1234,10 @@ if (produit && produit.promo && produit.prix_promo) {
                         body: JSON.stringify(payload)
                     });
 
-                    if (!response.ok) throw new Error(`Erreur ${response.status}`);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || `Erreur ${response.status}`);
+                    }
 
                     // Succès : reset du formulaire
                     avisForm.reset();
