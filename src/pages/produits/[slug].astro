@@ -40,11 +40,11 @@ try {
         // Récupération des avis pour ce produit
         try {
             const avisData = await fetchDirectus(
-                `/items/Avis?filter[produit_slug][_eq]=${slug}&sort[]=-date_created&fields=prenom,note,avis_texte,date_created&limit=50`
+                `/items/Avis?filter[produit_slug][_eq]=${slug}&fields=prenom,note,avis_texte&limit=50`
             );
             avis = Array.isArray(avisData) ? avisData : [];
-        } catch (e) {
-            // Si la collection n'existe pas encore, on ne bloque pas la page
+        } catch (e: any) {
+            console.error(`[Avis Debug] Erreur sur ${slug}:`, e.message);
             avis = [];
         }
     }
