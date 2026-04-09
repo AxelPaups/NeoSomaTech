@@ -142,7 +142,16 @@ if (produit && produit.promo && produit.prix_promo) {
                         {allImages.length > 0 ? (
                             <div class="carousel-container">
                                 <div class="carousel-main">
-                                    <img id="main-carousel-img" src={allImages[0]} alt={produit.Nom_du_produit} />
+                                    <img 
+                                        id="main-carousel-img" 
+                                        src={allImages[0]} 
+                                        alt={produit.Nom_du_produit} 
+                                        width="800" 
+                                        height="800" 
+                                        style="aspect-ratio: 1/1; width: 100%; height: auto; object-fit: cover;"
+                                        fetchpriority="high"
+                                        loading="eager"
+                                    />
                                     
                                     {allImages.length > 1 && (
                                         <div class="carousel-controls">
@@ -160,7 +169,14 @@ if (produit && produit.promo && produit.prix_promo) {
                                                 data-image={imgUrl}
                                                 aria-label={`Voir l'image ${index + 1}`}
                                             >
-                                                <img src={imgUrl} alt={`${produit.Nom_du_produit} - vue ${index + 1}`} />
+                                                <img 
+                                                    src={imgUrl} 
+                                                    alt={`${produit.Nom_du_produit} - vue ${index + 1}`} 
+                                                    width="80" 
+                                                    height="80" 
+                                                    style="aspect-ratio: 1/1; object-fit: cover;"
+                                                    loading="lazy"
+                                                />
                                             </button>
                                         ))}
                                     </div>
