@@ -1226,11 +1226,10 @@ if (produit && produit.promo && produit.prix_promo) {
                 });
 
                 try {
-                    const response = await fetch('https://spirited-squid.pikapod.net/items/Avis', {
+                    const response = await fetch('/api/avis', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer 0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ'
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(payload)
                     });
