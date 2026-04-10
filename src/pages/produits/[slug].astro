@@ -15,7 +15,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -81,45 +81,31 @@ if (produit?.galerie && Array.isArray(produit.galerie)) {
     });
 }
 
-const jsonLd = produit ? JSON.stringify({
+const productJsonLd = produit ? JSON.stringify({
     "@context": "https://schema.org",
     "@type": "Product",
     "name": produit.Nom_du_produit,
-    "description": produit.descripton_simple,
-    "image": imageUrl,
+    "description": produit.seo_description || produit.descripton_simple || '',
+    "image": allImages.slice(0, 3),
+    "brand": produit.marque ? {
+        "@type": "Brand",
+        "name": produit.marque
+    } : undefined,
     "offers": {
         "@type": "Offer",
         "priceCurrency": "EUR",
-        "price": produit.prix || "0",
+        "price": isPromoValid 
+            ? produit.prix_promo.replace(/[^\d.,]/g, '').replace(',', '.') 
+            : (produit.prix ? produit.prix.replace(/[^\d.,]/g, '').replace(',', '.') : "0"),
         "availability": "https://schema.org/InStock",
-        "url": produit.Bouton_acheter || Astro.url.href
+        "url": Astro.url.href
     }
 }) : null;
 
-// JSON-LD Spécifique Stoko K1
-const stokoProductJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSON.stringify({
-  "@context": "https://schema.org/",
-  "@type": "Product",
-  "name": "Stoko Men's K1 Supportive Tight",
-  "image": allImages.slice(0, 2),
-  "description": "Le Stoko K1 est un collant exosquelette textile certifié dispositif médical pour le soutien du genou.",
-  "brand": {
-    "@type": "Brand",
-    "name": "Stoko"
-  },
-  "offers": {
-    "@type": "Offer",
-    "url": "https://neosomatech.com/produits/stoko-mens-k1-supportive-tight-genou",
-    "priceCurrency": "EUR",
-    "price": "499",
-    "availability": "https://schema.org/InStock"
-  }
-}) : null;
-
-const stokoFaqJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSON.stringify({
+const faqJsonLd = (produit?.faqs && produit.faqs.length > 0) ? JSON.stringify({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": (produit.faqs && produit.faqs.length > 0 ? produit.faqs : []).map((f: any) => ({
+  "mainEntity": produit.faqs.map((f: any) => ({
     "@type": "Question",
     "name": f.question,
     "acceptedAnswer": {
@@ -129,16 +115,11 @@ const stokoFaqJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSON.st
   }))
 }) : null;
 
-const metaDescription = slug === 'stoko-mens-k1-supportive-tight-genou'
-    ? "Découvrez le Stoko Men's K1, collant exosquelette textile certifié dispositif médical. 30m de câbles haute résistance pour soutenir vos genoux en ski, trail et running. Livraison France."
-    : (produit?.descripton_simple || 'Exosquelette NeoSomaTech');
+const metaDescription = produit?.seo_description || produit?.descripton_simple || 'Exosquelette NeoSomaTech';
 
-const customAlts = slug === 'stoko-mens-k1-supportive-tight-genou' ? [
-    "Stoko Men's K1 Supportive Tight - collant exosquelette genou vue de face",
-    "Détail du système Embrace Stoko K1 - réseau de câbles haute résistance intégrés",
-    "Molette de réglage BOA du Stoko K1 - ajustement de tension à la ceinture",
-    "Stoko K1 porté pendant activité sportive - ski et trail running genou protégé"
-] : [];
+const customAlts = produit?.custom_alts 
+    ? produit.custom_alts.split('\n').map((line: string) => line.trim()).filter((line: string) => line.length > 0)
+    : [];
 
 
 let isPromoValid = false;
@@ -163,12 +144,8 @@ if (produit && produit.promo && produit.prix_promo) {
     description={metaDescription}
     image={imageUrl || '/favicon.png'}
 >
-    {stokoProductJsonLd ? (
-        <script type="application/ld+json" set:html={stokoProductJsonLd} />
-    ) : (
-        jsonLd && <script type="application/ld+json" set:html={jsonLd} />
-    )}
-    {stokoFaqJsonLd && <script type="application/ld+json" set:html={stokoFaqJsonLd} />}
+    {productJsonLd && <script type="application/ld+json" set:html={productJsonLd} />}
+    {faqJsonLd && <script type="application/ld+json" set:html={faqJsonLd} />}
 
 
     <div class="page-wrapper container">
