@@ -80,6 +80,21 @@ if (produit?.galerie && Array.isArray(produit.galerie)) {
         }
     });
 }
+let isPromoValid = false;
+let displayPromoPrice = '';
+
+if (produit && produit.promo && produit.prix_promo) {
+    const rawPromo = String(produit.prix_promo).replace(',', '.').replace(/[^\d.-]/g, '');
+    const promoNum = parseFloat(rawPromo);
+    
+    if (!isNaN(promoNum)) {
+        isPromoValid = true;
+        displayPromoPrice = `${promoNum.toFixed(2).replace('.00', '')} €`;
+    } else {
+        isPromoValid = true;
+        displayPromoPrice = String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`;
+    }
+}
 
 const productJsonLd = produit ? JSON.stringify({
     "@context": "https://schema.org",
@@ -122,21 +137,7 @@ const customAlts = produit?.custom_alts
     : [];
 
 
-let isPromoValid = false;
-let displayPromoPrice = '';
 
-if (produit && produit.promo && produit.prix_promo) {
-    const rawPromo = String(produit.prix_promo).replace(',', '.').replace(/[^\d.-]/g, '');
-    const promoNum = parseFloat(rawPromo);
-    
-    if (!isNaN(promoNum)) {
-        isPromoValid = true;
-        displayPromoPrice = `${promoNum.toFixed(2).replace('.00', '')} €`;
-    } else {
-        isPromoValid = true;
-        displayPromoPrice = String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`;
-    }
-}
 ---
 
 <Layout
