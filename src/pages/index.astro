@@ -38,25 +38,32 @@ const formatDate = (date: string) => {
 ---
 
 <Layout
-	title="NeoSomaTech - Exosquelettes & Innovations"
-	description="NeoSomaTech : boutique et guides dédiés aux exosquelettes. Comparatifs, actualités et dernières innovations."
+	title="NeoSomaTech - Expert Exosquelettes Médicaux, Sportifs et Industriels"
+	description="NeoSomaTech est la référence française des exosquelettes. Découvrez nos solutions pour la mobilité, le sport et la santé : Stoko, orthèses actives et innovations. Expertise et livraison France."
 >
+	<!-- Données Structurées JSON-LD -->
 	<script type="application/ld+json" is:inline>
-		{
-			"@context": "https://schema.org",
-			"@type": "WebSite",
-			"name": "NeoSomaTech",
-			"url": "https://neosomatech.com",
-			"description": "NeoSomaTech : boutique et guides dédiés aux exosquelettes. Comparatifs, actualités et dernières innovations.",
-			"publisher": {
+		[
+			{
+				"@context": "https://schema.org",
+				"@type": "WebSite",
+				"name": "NeoSomaTech",
+				"url": "https://neosomatech.com",
+				"description": "Boutique et expert en solutions d'exosquelettes pour la santé et le sport."
+			},
+			{
+				"@context": "https://schema.org",
 				"@type": "Organization",
 				"name": "NeoSomaTech",
-				"logo": {
-					"@type": "ImageObject",
-					"url": "https://neosomatech.com/favicon.png"
-				}
+				"url": "https://neosomatech.com",
+				"logo": "https://neosomatech.com/favicon.png",
+				"description": "NeoSomaTech est le spécialiste français des exosquelettes médicaux, industriels et sportifs, offrant expertise et solutions innovantes pour la mobilité humaine.",
+				"sameAs": [
+					"https://www.facebook.com/neosomatech",
+					"https://www.linkedin.com/company/neosomatech"
+				]
 			}
-		}
+		]
 	</script>
 	<!-- ===== HERO ===== -->
 	<section class="hero">

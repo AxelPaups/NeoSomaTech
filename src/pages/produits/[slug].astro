@@ -194,7 +194,7 @@ const customAlts = produit?.custom_alts
                                     <img 
                                         id="main-carousel-img" 
                                         src={allImages[0]} 
-                                        alt={customAlts[0] || produit.Nom_du_produit} 
+                                        alt={customAlts[0] || `${produit.Nom_du_produit} - vue 1`} 
                                         width="800" 
                                         height="800" 
                                         style="aspect-ratio: 1/1; width: 100%; height: auto; object-fit: cover;"
@@ -1112,6 +1112,8 @@ const customAlts = produit?.custom_alts
                 mainImg.style.opacity = '0.5';
                 setTimeout(() => {
                     mainImg.src = newImage;
+                    const thumbImg = currentThumbnails[index].querySelector('img');
+                    if (thumbImg) mainImg.alt = thumbImg.alt;
                     mainImg.style.opacity = '1';
                 }, 150);
             }
@@ -1211,6 +1213,9 @@ const customAlts = produit?.custom_alts
                     mainImg.style.opacity = '0.5';
                     setTimeout(() => {
                         mainImg.src = newImage;
+                        // On prend l'alt de la première vignette de la nouvelle galerie
+                        const firstThumb = carouselThumbnails?.querySelector('.thumbnail-btn img') as HTMLImageElement | null;
+                        if (firstThumb) mainImg.alt = firstThumb.alt;
                         mainImg.style.opacity = '1';
                     }, 150);
                 }
