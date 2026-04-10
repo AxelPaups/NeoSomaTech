@@ -15,7 +15,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faq&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faq,faqs.*&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -119,48 +119,14 @@ const stokoProductJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSO
 const stokoFaqJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSON.stringify({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Quelle est la différence entre le Stoko K1 et une orthèse classique ?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Contrairement à une orthèse rigide, le Stoko K1 est un collant textile intégrant des câbles polymères souples. Il pèse 60 % moins qu'une orthèse rigide, s'adapte à tous les sports et ne s'aperçoit pas sous les vêtements."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Le Stoko K1 est-il remboursé par la mutuelle ou la Sécurité sociale ?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Certifié dispositif médical de Classe 1, certaines mutuelles peuvent partiellement le prendre en charge. Renseignez-vous auprès de votre organisme complémentaire avec la désignation \"dispositif médical de compression genou\"."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Peut-on laver le Stoko K1 en machine ?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Oui, il est lavable en machine. Un sac de lavage est inclus avec le produit pour protéger les câbles."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Le Stoko K1 fonctionne-t-il après une opération du ligament croisé (LCA) ?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Le Stoko K1 est conçu pour aider à gérer les instabilités du LCA. Il est recommandé de consulter votre médecin ou kinésithérapeute avant de l'utiliser en post-opératoire."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Comment régler la tension des câbles ?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Deux molettes de réglage (système BOA) situées à la ceinture permettent d'ajuster la tension pour chaque jambe indépendamment."
-      }
+  "mainEntity": (produit.faqs && produit.faqs.length > 0 ? produit.faqs : []).map((f: any) => ({
+    "@type": "Question",
+    "name": f.question,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": f.reponse.replace(/<[^>]*>?/gm, '') // Strip HTML for JSON-LD text
     }
-  ]
+  }))
 }) : null;
 
 const metaDescription = slug === 'stoko-mens-k1-supportive-tight-genou'
@@ -404,7 +370,21 @@ if (produit && produit.promo && produit.prix_promo) {
                     <!-- FAQ -->
                     <div class="tab-section faq-section">
                         <h2 class="section-title">Questions fréquentes</h2>
-                        {produit.faq ? (
+                        {produit.faqs && produit.faqs.length > 0 ? (
+                            <div class="faq-accordion">
+                                {produit.faqs.map((f: any) => (
+                                    <details class="faq-item">
+                                        <summary class="faq-question">
+                                            <span>{f.question}</span>
+                                            <span class="faq-icon"></span>
+                                        </summary>
+                                        <div class="faq-answer">
+                                            <div class="rich-content" set:html={f.reponse} />
+                                        </div>
+                                    </details>
+                                ))}
+                            </div>
+                        ) : produit.faq ? (
                             <div class="rich-content" set:html={produit.faq} />
                         ) : (
                             <div class="faq-placeholder">
@@ -794,6 +774,70 @@ if (produit && produit.promo && produit.prix_promo) {
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid var(--border);
+    }
+
+    /* FAQ ACCORDEON */
+    .faq-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .faq-item {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.02);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .faq-item[open] {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.05);
+    }
+    .faq-question {
+        padding: 1.25rem 1.5rem;
+        cursor: pointer;
+        list-style: none; /* Cache la flèche native */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 600;
+        color: #fff;
+        user-select: none;
+    }
+    .faq-question::-webkit-details-marker {
+        display: none; /* Cache la flèche sur Chrome/Safari */
+    }
+    .faq-question::placeholder { color: var(--text-light); }
+    .faq-icon {
+        width: 20px;
+        height: 20px;
+        position: relative;
+        transition: transform 0.3s ease;
+    }
+    .faq-icon::before, .faq-icon::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 12px;
+        height: 2px;
+        background: #6366f1;
+        transform: translate(-50%, -50%);
+        transition: all 0.3s ease;
+    }
+    .faq-icon::after {
+        transform: translate(-50%, -50%) rotate(90deg);
+    }
+    .faq-item[open] .faq-icon {
+        transform: rotate(45deg);
+    }
+    .faq-item[open] .faq-icon::after {
+        opacity: 0;
+    }
+    .faq-answer {
+        padding: 0 1.5rem 1.5rem;
+        color: var(--text-light);
+        line-height: 1.7;
     }
 
     /* WYSIWYG — :global() requis car set:html échappe au scope Astro */
