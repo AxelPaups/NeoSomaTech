@@ -34,6 +34,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<link rel="canonical" href={canonicalURL} />
+		<link rel="alternate" hreflang="fr-fr" href={canonicalURL} />
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content={type} />

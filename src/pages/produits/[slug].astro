@@ -15,7 +15,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faq&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -96,6 +96,85 @@ const jsonLd = produit ? JSON.stringify({
     }
 }) : null;
 
+// JSON-LD Spécifique Stoko K1
+const stokoProductJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "Stoko Men's K1 Supportive Tight",
+  "image": allImages.slice(0, 2),
+  "description": "Le Stoko K1 est un collant exosquelette textile certifié dispositif médical pour le soutien du genou.",
+  "brand": {
+    "@type": "Brand",
+    "name": "Stoko"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "https://neosomatech.com/produits/stoko-mens-k1-supportive-tight-genou",
+    "priceCurrency": "EUR",
+    "price": "499",
+    "availability": "https://schema.org/InStock"
+  }
+}) : null;
+
+const stokoFaqJsonLd = slug === 'stoko-mens-k1-supportive-tight-genou' ? JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Quelle est la différence entre le Stoko K1 et une orthèse classique ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Contrairement à une orthèse rigide, le Stoko K1 est un collant textile intégrant des câbles polymères souples. Il pèse 60 % moins qu'une orthèse rigide, s'adapte à tous les sports et ne s'aperçoit pas sous les vêtements."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le Stoko K1 est-il remboursé par la mutuelle ou la Sécurité sociale ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Certifié dispositif médical de Classe 1, certaines mutuelles peuvent partiellement le prendre en charge. Renseignez-vous auprès de votre organisme complémentaire avec la désignation \"dispositif médical de compression genou\"."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Peut-on laver le Stoko K1 en machine ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Oui, il est lavable en machine. Un sac de lavage est inclus avec le produit pour protéger les câbles."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Le Stoko K1 fonctionne-t-il après une opération du ligament croisé (LCA) ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le Stoko K1 est conçu pour aider à gérer les instabilités du LCA. Il est recommandé de consulter votre médecin ou kinésithérapeute avant de l'utiliser en post-opératoire."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Comment régler la tension des câbles ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Deux molettes de réglage (système BOA) situées à la ceinture permettent d'ajuster la tension pour chaque jambe indépendamment."
+      }
+    }
+  ]
+}) : null;
+
+const metaDescription = slug === 'stoko-mens-k1-supportive-tight-genou'
+    ? "Découvrez le Stoko Men's K1, collant exosquelette textile certifié dispositif médical. 30m de câbles haute résistance pour soutenir vos genoux en ski, trail et running. Livraison France."
+    : (produit?.descripton_simple || 'Exosquelette NeoSomaTech');
+
+const customAlts = slug === 'stoko-mens-k1-supportive-tight-genou' ? [
+    "Stoko Men's K1 Supportive Tight - collant exosquelette genou vue de face",
+    "Détail du système Embrace Stoko K1 - réseau de câbles haute résistance intégrés",
+    "Molette de réglage BOA du Stoko K1 - ajustement de tension à la ceinture",
+    "Stoko K1 porté pendant activité sportive - ski et trail running genou protégé"
+] : [];
+
+
 let isPromoValid = false;
 let displayPromoPrice = '';
 
@@ -115,10 +194,16 @@ if (produit && produit.promo && produit.prix_promo) {
 
 <Layout
     title={produit ? `${produit.Nom_du_produit} | NeoSomaTech` : 'Produit introuvable'}
-    description={produit?.descripton_simple || 'Exosquelette NeoSomaTech'}
+    description={metaDescription}
     image={imageUrl || '/favicon.png'}
 >
-    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
+    {stokoProductJsonLd ? (
+        <script type="application/ld+json" set:html={stokoProductJsonLd} />
+    ) : (
+        jsonLd && <script type="application/ld+json" set:html={jsonLd} />
+    )}
+    {stokoFaqJsonLd && <script type="application/ld+json" set:html={stokoFaqJsonLd} />}
+
 
     <div class="page-wrapper container">
 
@@ -165,7 +250,7 @@ if (produit && produit.promo && produit.prix_promo) {
                                     <img 
                                         id="main-carousel-img" 
                                         src={allImages[0]} 
-                                        alt={produit.Nom_du_produit} 
+                                        alt={customAlts[0] || produit.Nom_du_produit} 
                                         width="800" 
                                         height="800" 
                                         style="aspect-ratio: 1/1; width: 100%; height: auto; object-fit: cover;"
@@ -191,7 +276,7 @@ if (produit && produit.promo && produit.prix_promo) {
                                             >
                                                 <img 
                                                     src={imgUrl} 
-                                                    alt={`${produit.Nom_du_produit} - vue ${index + 1}`} 
+                                                    alt={customAlts[index] || `${produit.Nom_du_produit} - vue ${index + 1}`} 
                                                     width="80" 
                                                     height="80" 
                                                     style="aspect-ratio: 1/1; object-fit: cover;"
@@ -316,13 +401,17 @@ if (produit && produit.promo && produit.prix_promo) {
                         </div>
                     )}
 
-                    <!-- FAQ (placeholder pour plus tard) -->
+                    <!-- FAQ -->
                     <div class="tab-section faq-section">
                         <h2 class="section-title">Questions fréquentes</h2>
-                        <div class="faq-placeholder">
-                            <p>🔧 Les questions fréquentes seront disponibles prochainement.</p>
-                            <p>Pour toute question, <a href="/contact">contactez-nous &rarr;</a></p>
-                        </div>
+                        {produit.faq ? (
+                            <div class="rich-content" set:html={produit.faq} />
+                        ) : (
+                            <div class="faq-placeholder">
+                                <p>🔧 Les questions fréquentes seront disponibles prochainement.</p>
+                                <p>Pour toute question, <a href="/contact">contactez-nous &rarr;</a></p>
+                            </div>
+                        )}
                     </div>
 
                     <!-- AVIS CLIENTS -->
