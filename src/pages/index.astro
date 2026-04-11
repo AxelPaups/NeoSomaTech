@@ -42,28 +42,34 @@ const formatDate = (date: string) => {
 	description="NeoSomaTech, référence francophone des exosquelettes sportifs et médicaux. Découvrez nos sélections, comparatifs et guides d'achat : Ski-Mojo, Hypershell, Stoko. Livraison France."
 >
 	<!-- Données Structurées JSON-LD -->
+	<!-- Données Structurées JSON-LD -->
 	<script type="application/ld+json" is:inline>
-		[
-			{
-				"@context": "https://schema.org",
-				"@type": "WebSite",
-				"name": "NeoSomaTech",
-				"url": "https://neosomatech.com",
-				"description": "Boutique et expert en solutions d'exosquelettes pour la santé et le sport."
-			},
-			{
-				"@context": "https://schema.org",
-				"@type": "Organization",
-				"name": "NeoSomaTech",
-				"url": "https://neosomatech.com",
-				"logo": "https://neosomatech.com/favicon.png",
-				"description": "NeoSomaTech est le spécialiste français des exosquelettes médicaux, industriels et sportifs, offrant expertise et solutions innovantes pour la mobilité humaine.",
-				"sameAs": [
-					"https://www.facebook.com/neosomatech",
-					"https://www.linkedin.com/company/neosomatech"
-				]
+		{
+			"@context": "https://schema.org",
+			"@type": "WebSite",
+			"name": "NeoSomaTech",
+			"url": "https://neosomatech.com",
+			"description": "Boutique et expert en solutions d'exosquelettes pour la santé et le sport.",
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": "https://neosomatech.com/boutique?q={search_term_string}",
+				"query-input": "required name=search_term_string"
 			}
-		]
+		}
+	</script>
+	<script type="application/ld+json" is:inline>
+		{
+			"@context": "https://schema.org",
+			"@type": "Organization",
+			"name": "NeoSomaTech",
+			"url": "https://neosomatech.com",
+			"logo": "https://neosomatech.com/favicon.png",
+			"description": "NeoSomaTech est le spécialiste français des exosquelettes médicaux, industriels et sportifs, offrant expertise et solutions innovantes pour la mobilité humaine.",
+			"sameAs": [
+				"https://www.facebook.com/neosomatech",
+				"https://www.linkedin.com/company/neosomatech"
+			]
+		}
 	</script>
 	<!-- ===== HERO ===== -->
 	<section class="hero">
