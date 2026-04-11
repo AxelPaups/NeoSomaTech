@@ -143,7 +143,7 @@ const customAlts = produit?.custom_alts
 <Layout
     title={produit ? `${produit.Nom_du_produit} | NeoSomaTech` : 'Produit introuvable'}
     description={metaDescription}
-    image={imageUrl || '/favicon.png'}
+    image={imageUrl || '/og-image.png'}
 >
     {productJsonLd && <script type="application/ld+json" set:html={productJsonLd} />}
     {faqJsonLd && <script type="application/ld+json" set:html={faqJsonLd} />}
