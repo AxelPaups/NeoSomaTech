@@ -270,7 +270,7 @@ const customAlts = produit?.custom_alts
                                 <div class="variants-grid">
                                     <button 
                                         class="variant-btn active" 
-                                        data-name="Standard"
+                                        data-name={produit.Nom_du_produit}
                                         data-price={produit.prix || ''}
                                         data-promo={isPromoValid ? 'true' : 'false'}
                                         data-prix-promo={produit.prix_promo || ''}
@@ -1179,7 +1179,22 @@ const customAlts = produit?.custom_alts
                 const newUrl = btn.getAttribute('data-url');
                 const newDescShort = btn.getAttribute('data-desc-short');
                 const newDescLong = btn.getAttribute('data-desc-long');
+                const newName = btn.getAttribute('data-name');
                 const newGalleryStr = btn.getAttribute('data-gallery');
+
+                // Mise à jour du Titre (H1, Document Title, Breadcrumb)
+                if (newName) {
+                    // Update H1
+                    const h1 = document.querySelector('h1');
+                    if (h1) h1.textContent = newName;
+                    
+                    // Update Document Title
+                    document.title = `${newName} | NeoSomaTech`;
+                    
+                    // Update Breadcrumb last span
+                    const breadcrumbLast = document.querySelector('.breadcrumb span:last-child');
+                    if (breadcrumbLast) breadcrumbLast.textContent = newName;
+                }
 
                 // Mise à jour du Prix
                 if (priceBlock && newPrice) {
