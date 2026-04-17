@@ -296,7 +296,7 @@ const customAlts = produit?.custom_alts
                                         return (
                                             <button 
                                                 class="variant-btn" 
-                                                data-name={v.nom_court || v.Nom_du_produit}
+                                                data-name={v.Nom_du_produit || produit.Nom_du_produit}
                                                 data-price={v.prix || produit.prix || ''}
                                                 data-promo={v.promo ? 'true' : 'false'}
                                                 data-prix-promo={v.prix_promo || ''}
