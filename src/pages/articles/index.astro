@@ -11,6 +11,16 @@ try {
     articles = await fetchDirectus(
         '/items/Articles?sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale'
     );
+
+    // Tri manuel pour garantir le classement antéchronologique (le plus récent en haut)
+    // Utile car Directus peut faire un tri alphabétique si le champ n'est pas typé "Date"
+    if (Array.isArray(articles)) {
+        articles.sort((a, b) => {
+            const dateA = a.date_publication ? new Date(a.date_publication).getTime() : 0;
+            const dateB = b.date_publication ? new Date(b.date_publication).getTime() : 0;
+            return dateB - dateA; // Décroissant
+        });
+    }
 } catch (error: any) {
     console.error("Erreur Articles:", error);
     errorMessage = error.message;
