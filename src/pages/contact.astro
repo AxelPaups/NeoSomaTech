@@ -89,7 +89,7 @@ import Layout from '../layouts/Layout.astro';
                 body: formData,
             });
 
-            const result = await response.json().catch(() => ({ message: 'Erreur de réponse serveur.' }));
+            const result = await response.json().catch(() => ({ message: 'Erreur de lecture de la réponse serveur.' }));
 
             if (response.ok) {
                 statusDiv.textContent = result.message || 'Message envoyé !';
@@ -102,15 +102,18 @@ import Layout from '../layouts/Layout.astro';
                     submitBtn.disabled = false;
                 }, 3000);
             } else {
+                // Log de l'erreur détaillée pour aider au débogage
+                if (result.debug) console.error('Server Debug Info:', result.debug);
+                
                 statusDiv.textContent = result.message || 'Une erreur est survenue lors de l’envoi.';
                 statusDiv.className = 'status-message error show';
                 submitBtn.disabled = false;
                 submitBtn.style.opacity = '1';
                 submitBtn.textContent = 'Réessayer l\'envoi →';
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Fetch error:', error);
-            statusDiv.textContent = 'Erreur réseau. Vérifiez votre connexion internet.';
+            statusDiv.textContent = 'Erreur réseau ou crash du serveur. Consultez la console.';
             statusDiv.className = 'status-message error show';
             submitBtn.disabled = false;
             submitBtn.style.opacity = '1';
