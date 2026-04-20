@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { directusUrl, directusToken } from '../../lib/directus';
 
 export const POST: APIRoute = async ({ request }) => {
   const data = await request.formData();
@@ -17,13 +18,12 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  const directusUrl = "https://spirited-squid.pikapod.net";
-
   try {
     const response = await fetch(`${directusUrl}/items/Messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${directusToken}`
       },
       body: JSON.stringify({
         nom: name,

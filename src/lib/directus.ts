@@ -1,6 +1,7 @@
 // URL et Jeton écrits en dur pour garantir le fonctionnement serveur Cloudflare
-const directusUrl = "https://spirited-squid.pikapod.net";
-const directusToken = "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ";
+// URL et Jeton écrits en dur pour garantir le fonctionnement serveur Cloudflare
+export const directusUrl = "https://spirited-squid.pikapod.net";
+export const directusToken = "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ";
 
 /**
  * Requête Fetch basique et universelle pour Cloudflare Workers/Pages
