@@ -16,8 +16,8 @@ export const POST: APIRoute = async ({ request }) => {
     const response = await fetch(`${directusUrl}/items/Messages`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${directusToken}`
+        'Content-Type': 'application/json'
+        // 'Authorization': `Bearer ${directusToken}` // Test sans le header
       },
       body: JSON.stringify({
         nom: name,
