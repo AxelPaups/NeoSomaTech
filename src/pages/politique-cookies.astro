@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Politique de cookies | NeoSomaTech" description="Découvrez notre politique d'utilisation des cookies sur NeoSomaTech. Transparence sur les traceurs et outils analytiques.">
+    <div class="page container">
+        <div class="breadcrumb"><a href="/">Accueil</a> / Politique de cookies</div>
+        <h1>Politique de <span class="gradient-text">Cookies</span></h1>
+        
+        <div class="content">
+            <section>
+                <h2>1. Qu'est-ce qu'un cookie ?</h2>
+                <p>Un "cookie" est un petit fichier, généralement constitué de lettres et de chiffres, envoyé par le serveur internet au fichier cookie du navigateur situé sur le disque dur de votre ordinateur.</p>
+            </section>
+
+            <section>
+                <h2>2. Pourquoi utilisons-nous des cookies ?</h2>
+                <p>Nous utilisons des cookies pour améliorer votre expérience utilisateur et analyser le trafic sur notre boutique.</p>
+                <ul>
+                    <li><strong>Cookies techniques :</strong> Nécessaires au fonctionnement du site, notamment pour la gestion des sessions via notre CMS <strong>Directus</strong>.</li>
+                    <li><strong>Cookies analytiques :</strong> Pour comprendre comment vous utilisez notre site, nous utilisons l'outil <strong>PostHog</strong>. Ces données nous aident à optimiser nos parcours et nos contenus.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>3. Gestion de vos préférences</h2>
+                <p>Vous pouvez à tout moment configurer votre navigateur pour qu'il bloque les cookies ou qu'il vous avertisse avant d'en accepter un.</p>
+                <p>La plupart des navigateurs vous permettent de :</p>
+                <ul>
+                    <li>Voir les cookies stockés et les supprimer individuellement.</li>
+                    <li>Bloquer les cookies de tiers.</li>
+                    <li>Bloquer les cookies de sites particuliers.</li>
+                    <li>Bloquer l'ensemble des cookies.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>4. Durée de conservation</h2>
+                <p>Les cookies analytiques ont une durée de vie limitée qui n'excède généralement pas 13 mois.</p>
+            </section>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .page { max-width: 780px; padding: 4rem 1.5rem 6rem; }
+    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #fff; letter-spacing: -1.5px; margin-bottom: 2rem; }
+    .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .content { display: flex; flex-direction: column; gap: 2.5rem; }
+    .content h2 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    .content p, .content li { color: var(--text-light); line-height: 1.8; margin-bottom: 0.75rem; }
+    .content ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+    .content strong { color: #fff; }
+</style>

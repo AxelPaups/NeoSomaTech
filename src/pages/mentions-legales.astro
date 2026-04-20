@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Mentions légales | NeoSomaTech" description="Consultez les mentions légales de NeoSomaTech. Informations sur l'éditeur, l'hébergement et la propriété intellectuelle.">
+    <div class="page container">
+        <div class="breadcrumb"><a href="/">Accueil</a> / Mentions légales</div>
+        <h1>Mentions <span class="gradient-text">Légales</span></h1>
+        
+        <div class="content">
+            <section>
+                <h2>1. Édition du site</h2>
+                <p>En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site internet <strong>neosomatech.com</strong> l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi :</p>
+                <p><strong>Propriétaire du site :</strong> NeoSomaTech - [Votre Nom / Nom d'entreprise]</p>
+                <p><strong>Responsable de la publication :</strong> Axel Paups - Contact : via le formulaire de contact du site.</p>
+            </section>
+
+            <section>
+                <h2>2. Hébergement</h2>
+                <p>Le site est hébergé par <strong>Cloudflare, Inc.</strong></p>
+                <p>Adresse : 101 Townsend St, San Francisco, CA 94107, USA.</p>
+                <p>Site web : <a href="https://www.cloudflare.com" target="_blank" rel="noopener">www.cloudflare.com</a></p>
+            </section>
+
+            <section>
+                <h2>3. Propriété intellectuelle et contrefaçons</h2>
+                <p>Le propriétaire du site est titulaire des droits de propriété intellectuelle ou détient les droits d'usage sur tous les éléments accessibles sur le site internet, notamment les textes, images, graphismes, logos, vidéos, architecture, icônes et sons.</p>
+                <p>Toute reproduction, représentation, modification, publication, adaptation de tout ou partie des éléments du site, quel que soit le moyen ou le procédé utilisé, est interdite, sauf autorisation écrite préalable de NeoSomaTech.</p>
+            </section>
+
+            <section>
+                <h2>4. Limitations de responsabilité</h2>
+                <p>NeoSomaTech ne pourra être tenu pour responsable des dommages directs et indirects causés au matériel de l'utilisateur, lors de l'accès au site neosomatech.com.</p>
+                <p>NeoSomaTech décline toute responsabilité quant à l'utilisation qui pourrait être faite des informations et contenus présents sur neosomatech.com.</p>
+            </section>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    .page { max-width: 780px; padding: 4rem 1.5rem 6rem; }
+    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 1.5rem; }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #fff; letter-spacing: -1.5px; margin-bottom: 2rem; }
+    .gradient-text {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .content { display: flex; flex-direction: column; gap: 2.5rem; }
+    .content h2 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+    .content p { color: var(--text-light); line-height: 1.8; margin-bottom: 1rem; }
+    .content strong { color: #fff; }
+    .content a { color: #818cf8; text-decoration: none; }
+    .content a:hover { text-decoration: underline; }
+</style>
