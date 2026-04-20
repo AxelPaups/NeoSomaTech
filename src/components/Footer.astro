@@ -2,8 +2,29 @@
 /**
  * Footer Component - NeoSomaTech
  * Design: Dark Tech / Ultra Premium
+ * Dynamique : Données récupérées depuis Directus
  */
+import { fetchDirectus } from "../lib/directus";
+
 const currentYear = new Date().getFullYear();
+
+let produits: any[] = [];
+let articles: any[] = [];
+
+try {
+  [produits, articles] = await Promise.all([
+    fetchDirectus("/items/Produits?fields=Nom_du_produit,slug&limit=10"),
+    fetchDirectus("/items/Articles?sort=-date_publication&limit=3&fields=titre,slug")
+  ]);
+} catch (error) {
+  console.error("Erreur lors de la récupération des données du footer:", error);
+}
+
+// Fonction utilitaire pour nettoyer les titres (avant les deux points)
+const cleanTitle = (title: string) => {
+  if (!title) return "";
+  return title.includes(':') ? title.split(':')[0].trim() : title;
+};
 ---
 
 <footer class="footer">
@@ -29,26 +50,39 @@ const currentYear = new Date().getFullYear();
       </div>
     </div>
 
-    <!-- Colonne 2: Expertise -->
+    <!-- Colonne 2: Nos Produits (Dynamique) -->
     <div class="footer-col">
-      <h3>Expertise</h3>
+      <h3>Nos Produits</h3>
       <nav>
         <ul>
-          <li><a href="/expertise/exosquelettes-actifs">Exosquelettes Actifs</a></li>
-          <li><a href="/expertise/soutien-passif">Soutien Passif</a></li>
-          <li><a href="/expertise/performance-sportive">Performance Sportive</a></li>
+          {produits.map((prd) => (
+            <li>
+              <a href={`/produits/${prd.slug}`}>{prd.Nom_du_produit}</a>
+            </li>
+          ))}
+          {produits.length === 0 && (
+            <>
+              <li><a href="/produits/ski-mojo">Ski-Mojo</a></li>
+              <li><a href="/produits/hypershell">Hypershell</a></li>
+            </>
+          )}
         </ul>
       </nav>
     </div>
 
-    <!-- Colonne 3: Compagnie -->
+    <!-- Colonne 3: Articles (Derniers 3 dynamique) -->
     <div class="footer-col">
-      <h3>Compagnie</h3>
+      <h3>Articles</h3>
       <nav>
         <ul>
-          <li><a href="/a-propos">À propos</a></li>
-          <li><a href="/blog">Blog NeoSomaTech</a></li>
-          <li><a href="/contact">Contact</a></li>
+          {articles.map((art) => (
+            <li>
+              <a href={`/articles/${art.slug}`}>{cleanTitle(art.titre)}</a>
+            </li>
+          ))}
+          {articles.length === 0 && (
+            <li><a href="/articles">Dernières actualités</a></li>
+          )}
         </ul>
       </nav>
     </div>
@@ -60,6 +94,7 @@ const currentYear = new Date().getFullYear();
         <ul>
           <li><a href="/mentions-legales">Mentions légales</a></li>
           <li><a href="/politique-cookies">Politique de cookies</a></li>
+          <li><a href="/a-propos">À propos</a></li>
         </ul>
       </nav>
       <div class="france-mention">
