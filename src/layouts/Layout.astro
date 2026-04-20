@@ -1,5 +1,6 @@
 ---
 import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
 import PostHog from '../components/PostHog.astro';
 
 interface Props {
@@ -54,16 +55,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		<!-- PostHog Analytics -->
 		<PostHog />
 	</head>
-	<body>
+	<body id="top">
 		<Header />
 		<main>
 			<slot />
 		</main>
-		<footer class="footer">
-			<div class="container">
-				<p>&copy; {new Date().getFullYear()} NeoSomaTech. Tous droits réservés.</p>
-			</div>
-		</footer>
+		<Footer />
 	</body>
 </html>
 
@@ -103,13 +100,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		margin: 0 auto;
 		padding: 0 1.5rem;
 		width: 100%;
-	}
-	.footer {
-		border-top: 1px solid var(--border);
-		padding: 2rem 0;
-		text-align: center;
-		color: var(--text-light);
-		font-size: 0.9rem;
 	}
 	.btn {
 		display: inline-flex;
