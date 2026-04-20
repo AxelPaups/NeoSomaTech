@@ -8,18 +8,21 @@ import { fetchDirectus } from "../lib/directus";
 
 const currentYear = new Date().getFullYear();
 
-let produits: any[] = [];
+let marques: string[] = [];
 let articles: any[] = [];
 
 try {
-  [produits, articles] = await Promise.all([
-    fetchDirectus("/items/Produits?fields=Nom_du_produit,slug&limit=10"),
+  const [produitsData, articlesData] = await Promise.all([
+    fetchDirectus("/items/Produits?fields=marque&limit=100"),
     fetchDirectus("/items/Articles?sort=-date_publication&limit=3&fields=titre,slug")
   ]);
+  
+  // Extraction des marques uniques
+  marques = [...new Set(produitsData.map((p: any) => p.marque).filter(Boolean))].sort();
+  articles = articlesData;
 } catch (error) {
   console.error("Erreur lors de la récupération des données du footer:", error);
 }
-
 // Fonction utilitaire pour nettoyer les titres (avant les deux points)
 const cleanTitle = (title: string) => {
   if (!title) return "";
@@ -50,20 +53,20 @@ const cleanTitle = (title: string) => {
       </div>
     </div>
 
-    <!-- Colonne 2: Nos Produits (Dynamique) -->
+    <!-- Colonne 2: Nos Marques (Dynamique) -->
     <div class="footer-col">
-      <h3>Nos Produits</h3>
+      <h3>Nos Marques</h3>
       <nav>
         <ul>
-          {produits.map((prd) => (
+          {marques.map((marque) => (
             <li>
-              <a href={`/produits/${prd.slug}`}>{prd.Nom_du_produit}</a>
+              <a href={`/boutique?marque=${encodeURIComponent(marque)}`}>{marque}</a>
             </li>
           ))}
-          {produits.length === 0 && (
+          {marques.length === 0 && (
             <>
-              <li><a href="/produits/ski-mojo">Ski-Mojo</a></li>
-              <li><a href="/produits/hypershell">Hypershell</a></li>
+              <li><a href="/boutique?marque=Ski-Mojo">Ski-Mojo</a></li>
+              <li><a href="/boutique?marque=Hypershell">Hypershell</a></li>
             </>
           )}
         </ul>

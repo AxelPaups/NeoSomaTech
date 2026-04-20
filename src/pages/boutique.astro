@@ -4,11 +4,15 @@ import { fetchDirectus } from '../lib/directus';
 
 const directusUrl = "https://spirited-squid.pikapod.net";
 
+// Récupération du filtre de marque depuis l'URL
+const brandFilter = Astro.url.searchParams.get('marque');
+
 let produits: any[] = [];
 let errorMessage: string | null = null;
 
 try {
-    produits = await fetchDirectus('/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image');
+    const filterQuery = brandFilter ? `&filter[marque][_eq]=${encodeURIComponent(brandFilter)}` : '';
+    produits = await fetchDirectus(`/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque${filterQuery}`);
 } catch (error: any) {
     errorMessage = error.message;
 }
@@ -16,9 +20,28 @@ try {
 
 <Layout title="Boutique Exosquelettes | NeoSomaTech" description="Découvrez notre sélection complète d'exosquelettes pour le ski, le travail et la rééducation.">
     <header class="page-header container">
-        <div class="breadcrumb"><a href="/">Accueil</a> / Boutique</div>
-        <h1>Notre <span class="gradient-text">Boutique</span></h1>
-        <p>Tous nos exosquelettes, sélectionnés pour leur qualité et leur innovation.</p>
+        <div class="breadcrumb"><a href="/">Accueil</a> / <a href="/boutique">Boutique</a></div>
+        <h1>
+            {brandFilter ? (
+                <>Produits <span class="gradient-text">{brandFilter}</span></>
+            ) : (
+                <>Notre <span class="gradient-text">Boutique</span></>
+            )}
+        </h1>
+        <p>
+            {brandFilter 
+                ? `Découvrez tous les modèles de la marque ${brandFilter}.` 
+                : "Tous nos exosquelettes, sélectionnés pour leur qualité et leur innovation."
+            }
+        </p>
+        
+        {brandFilter && (
+            <div class="filter-controls">
+                <a href="/boutique" class="btn-clear-filter">
+                    &times; Supprimer le filtre
+                </a>
+            </div>
+        )}
     </header>
 
     <div class="container" style="padding-bottom: 5rem;">
@@ -68,6 +91,26 @@ try {
     .gradient-text {
         background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    
+    .filter-controls { margin-top: 1.5rem; }
+    .btn-clear-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border);
+        color: var(--text-light);
+        padding: 0.5rem 1rem;
+        border-radius: 99px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .btn-clear-filter:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #fca5a5;
     }
 
     /* GRILLE */
