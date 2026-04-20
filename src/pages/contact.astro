@@ -63,13 +63,23 @@ import Layout from '../layouts/Layout.astro';
     const statusDiv = document.querySelector('#statusMessage') as HTMLDivElement;
     const submitBtn = document.querySelector('#submitBtn') as HTMLButtonElement;
 
+    // Réinitialise le message d'état quand l'utilisateur tape à nouveau
+    form?.querySelectorAll('input, textarea').forEach(input => {
+        input.addEventListener('input', () => {
+            statusDiv.style.display = 'none';
+            statusDiv.className = 'status-message';
+        });
+    });
+
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         // Reset UI
-        statusDiv.textContent = 'Envoi en cours...';
-        statusDiv.className = 'status-message info';
+        statusDiv.textContent = 'Chargement de votre message...';
+        statusDiv.className = 'status-message info show';
         submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.7';
+        submitBtn.textContent = 'Envoi en cours...';
 
         const formData = new FormData(form);
 
@@ -79,21 +89,32 @@ import Layout from '../layouts/Layout.astro';
                 body: formData,
             });
 
-            const result = await response.json();
+            const result = await response.json().catch(() => ({ message: 'Erreur de réponse serveur.' }));
 
             if (response.ok) {
-                statusDiv.textContent = result.message;
-                statusDiv.className = 'status-message success';
+                statusDiv.textContent = result.message || 'Message envoyé !';
+                statusDiv.className = 'status-message success show';
                 form.reset();
+                submitBtn.textContent = 'Message Envoyé ✓';
+                setTimeout(() => {
+                    submitBtn.textContent = 'Envoyer un autre message →';
+                    submitBtn.style.opacity = '1';
+                    submitBtn.disabled = false;
+                }, 3000);
             } else {
-                statusDiv.textContent = result.message || 'Une erreur est survenue.';
-                statusDiv.className = 'status-message error';
+                statusDiv.textContent = result.message || 'Une erreur est survenue lors de l’envoi.';
+                statusDiv.className = 'status-message error show';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.textContent = 'Réessayer l\'envoi →';
             }
         } catch (error) {
-            statusDiv.textContent = 'Erreur réseau. Vérifiez votre connexion.';
-            statusDiv.className = 'status-message error';
-        } finally {
+            console.error('Fetch error:', error);
+            statusDiv.textContent = 'Erreur réseau. Vérifiez votre connexion internet.';
+            statusDiv.className = 'status-message error show';
             submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.textContent = 'Réessayer l\'envoi →';
         }
     });
 </script>
@@ -134,29 +155,38 @@ import Layout from '../layouts/Layout.astro';
     
     /* STATUS MESSAGES */
     .status-message {
-        margin-top: 1rem;
-        padding: 1rem;
-        border-radius: 8px;
-        font-size: 0.9rem;
+        margin-top: 1.5rem;
+        padding: 1.25rem;
+        border-radius: 12px;
+        font-size: 0.95rem;
         display: none;
+        animation: fadeIn 0.3s ease-out;
+        line-height: 1.5;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .status-message.show {
+        display: block;
     }
     .status-message.success {
-        display: block;
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        color: #10b981;
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
     }
     .status-message.error {
-        display: block;
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #ef4444;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #f87171;
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
     }
     .status-message.info {
-        display: block;
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
     }
 
     .info-block {
