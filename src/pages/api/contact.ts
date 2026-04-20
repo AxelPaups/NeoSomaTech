@@ -2,12 +2,14 @@ import type { APIRoute } from 'astro';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    console.log('--- TEST MINIMAL API ---');
+    console.log('--- TEST STEP 2: formData ---');
+    const data = await request.formData();
+    const name = data.get('name');
+    console.log('Nom reçu:', name);
     
-    // Si l'erreur persiste ici, c'est qu'elle vient d'Astro/Cloudflare avant même notre code
     return new Response(
       JSON.stringify({
-        message: 'Test réussi. Si vous voyez ceci, l\'erreur ne vient pas de l\'initialisation de la route.',
+        message: `Success reading formData! Name: ${name}`,
       }),
       { 
         status: 200,
@@ -17,7 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error: any) {
     return new Response(
       JSON.stringify({
-        message: `Erreur dans le test minimal : ${error.message}`,
+        message: `Erreur dans le test formData : ${error.message}`,
         stack: error.stack
       }),
       { 
