@@ -11,19 +11,19 @@ export const POST: APIRoute = async ({ request }) => {
     const tel = data.get('tel');
     const message = data.get('message');
     
-    console.log('Données prêtes, envoi à:', `${directusUrl}/items/Messages`);
-
-    const response = await fetch(`${directusUrl}/items/Messages`, {
+    // On utilise l'access_token en paramètre d'URL pour éviter le bug du header 'Authorization'
+    const url = `${directusUrl}/items/Messages?access_token=${directusToken}`;
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-        // 'Authorization': `Bearer ${directusToken}` // Test sans le header
       },
       body: JSON.stringify({
-        nom: name,
-        email: email,
-        telephone: tel || '',
-        message: message,
+        nom: name?.toString() || '',
+        email: email?.toString() || '',
+        telephone: tel?.toString() || '',
+        message: message?.toString() || '',
       }),
     });
 
