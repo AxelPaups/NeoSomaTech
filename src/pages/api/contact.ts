@@ -36,12 +36,14 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
     // Envoi vers la collection Directus "Messages"
-    // On utilise l'en-tête Authorization standard.
-    const directusResponse = await fetch(`${directusUrl}/items/Messages`, {
+    // On utilise l'access_token en paramètre d'URL pour éviter que Cloudflare 
+    // ne tente de "vérifier" (verify) indûment l'en-tête Authorization.
+    const url = `${directusUrl}/items/Messages?access_token=${directusToken}`;
+
+    const directusResponse = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${directusToken}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         nom,
