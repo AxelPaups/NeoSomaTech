@@ -51,6 +51,11 @@ import Layout from '../layouts/Layout.astro';
                     <textarea id="message" name="message" rows="5" placeholder="Décrivez votre demande..." required></textarea>
                 </div>
 
+                <div class="form-group checkbox-group">
+                    <input id="rgpd" name="rgpd" type="checkbox" required />
+                    <label for="rgpd">J'accepte que mes données soient conservées pour le traitement de ma demande conformément à la <a href="/politique-cookies" target="_blank">politique de confidentialité</a>.</label>
+                </div>
+
                 <button type="submit" class="btn" id="submitBtn">Envoyer le message &rarr;</button>
                 <div id="statusMessage" class="status-message"></div>
             </form>
@@ -64,7 +69,7 @@ import Layout from '../layouts/Layout.astro';
     const submitBtn = document.querySelector('#submitBtn') as HTMLButtonElement;
 
     // Réinitialise le message d'état quand l'utilisateur tape à nouveau
-    form?.querySelectorAll('input, textarea').forEach(input => {
+    form?.querySelectorAll('input, textarea, checkbox').forEach(input => {
         input.addEventListener('input', () => {
             statusDiv.style.display = 'none';
             statusDiv.className = 'status-message';
@@ -81,12 +86,23 @@ import Layout from '../layouts/Layout.astro';
         submitBtn.style.opacity = '0.7';
         submitBtn.textContent = 'Envoi en cours...';
 
+        // Extraction des données du formulaire
         const formData = new FormData(form);
+        const payload = {
+            nom: formData.get('name'),
+            email: formData.get('email'),
+            telephone: formData.get('tel'),
+            message: formData.get('message'),
+            rgpd: (formData.get('rgpd') === 'on' || formData.get('rgpd') === 'true')
+        };
 
         try {
             const response = await fetch('/api/contact', {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
             });
 
             const result = await response.json().catch(() => ({ message: 'Erreur de lecture de la réponse serveur.' }));
@@ -100,11 +116,8 @@ import Layout from '../layouts/Layout.astro';
                     submitBtn.textContent = 'Envoyer un autre message →';
                     submitBtn.style.opacity = '1';
                     submitBtn.disabled = false;
-                }, 3000);
+                }, 4000);
             } else {
-                // Log de l'erreur détaillée pour aider au débogage
-                if (result.debug) console.error('Server Debug Info:', result.debug);
-                
                 statusDiv.textContent = result.message || 'Une erreur est survenue lors de l’envoi.';
                 statusDiv.className = 'status-message error show';
                 submitBtn.disabled = false;
@@ -155,6 +168,28 @@ import Layout from '../layouts/Layout.astro';
     }
     .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
     .form-group input::placeholder, .form-group textarea::placeholder { color: #4a5568; }
+
+    /* RGPD */
+    .checkbox-group {
+        flex-direction: row !important;
+        align-items: flex-start;
+        gap: 0.75rem !important;
+        margin-top: 0.5rem;
+    }
+    .checkbox-group input {
+        width: auto;
+        margin-top: 0.25rem;
+    }
+    .checkbox-group label {
+        font-size: 0.8rem !important;
+        line-height: 1.4;
+        color: #94a3b8 !important;
+        font-weight: 400 !important;
+    }
+    .checkbox-group label a {
+        color: #818cf8;
+        text-decoration: underline;
+    }
     
     /* STATUS MESSAGES */
     .status-message {
