@@ -39,7 +39,8 @@ export const POST: APIRoute = async ({ request }) => {
     if (!directusResponse.ok) {
       console.log('API: Etape 7 - Directus Error');
       const errorData = await directusResponse.json().catch(() => ({}));
-      throw new Error(`Directus error: ${directusResponse.status}`);
+      console.error('Détails erreur Directus:', errorData);
+      throw new Error(`Directus error ${directusResponse.status}: ${JSON.stringify(errorData)}`);
     }
 
     console.log('API: Etape 8 - Succès');
