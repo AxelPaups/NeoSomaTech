@@ -7,74 +7,49 @@ import { directusUrl, directusToken } from '../../lib/directus';
  */
 export const POST: APIRoute = async ({ request }) => {
   try {
-    // Lecture du corps de la requête en JSON
+    console.log('API: Etape 1 - Début');
     let body;
     try {
       body = await request.json();
+      console.log('API: Etape 2 - JSON lu');
     } catch (e) {
-      return new Response(JSON.stringify({ message: "Le format de la requête est invalide (JSON attendu)." }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      console.log('API: Erreur lecture JSON');
+      return new Response(JSON.stringify({ message: "Le format de la requête est invalide." }), { status: 400 });
     }
 
     const { nom, email, telephone, message, rgpd } = body;
+    console.log('API: Etape 3 - Champs extraits');
 
-    // Validation des données
-    if (!nom || !email || !message) {
-      return new Response(JSON.stringify({ message: "Veuillez remplir tous les champs obligatoires." }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (!nom || !email || !message || !rgpd) {
+      console.log('API: Validation échouée');
+      return new Response(JSON.stringify({ message: "Champs manquants ou RGPD non coché." }), { status: 400 });
     }
 
-    if (!rgpd) {
-        return new Response(JSON.stringify({ message: "Vous devez accepter la conservation de vos données pour envoyer un message." }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-
-    // Envoi vers la collection Directus "Messages"
-    // On utilise l'access_token en paramètre d'URL pour éviter que Cloudflare 
-    // ne tente de "vérifier" (verify) indûment l'en-tête Authorization.
     const url = `${directusUrl}/items/Messages?access_token=${directusToken}`;
+    console.log('API: Etape 4 - URL préparée:', url);
 
+    console.log('API: Etape 5 - Tentative fetch...');
     const directusResponse = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        nom,
-        email,
-        telephone: telephone || '',
-        message
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nom, email, telephone: telephone || '', message }),
     });
+    console.log('API: Etape 6 - Fetch terminé, statut:', directusResponse.status);
 
-    // Gestion de la réponse de Directus
     if (!directusResponse.ok) {
+      console.log('API: Etape 7 - Directus Error');
       const errorData = await directusResponse.json().catch(() => ({}));
-      console.error('Directus API Error:', directusResponse.status, errorData);
-      
-      const errorMessage = errorData.errors?.[0]?.message || `Erreur Directus (${directusResponse.status})`;
-      throw new Error(errorMessage);
+      throw new Error(`Directus error: ${directusResponse.status}`);
     }
 
-    return new Response(JSON.stringify({ message: "Votre message a été envoyé avec succès !" }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.log('API: Etape 8 - Succès');
+    return new Response(JSON.stringify({ message: "Message envoyé !" }), { status: 200 });
 
   } catch (error: any) {
-    console.error('Critical Contact API Error:', error);
-    return new Response(JSON.stringify({ 
-        message: `Erreur serveur : ${error.message}`,
-        details: error.stack // Aide au débogage si besoin
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('API: CRASH FINAL', error);
+    return new Response(JSON.stringify({
+      message: `Erreur serveur : ${error.message}`,
+      details: error.stack
+    }), { status: 500 });
   }
 };
