@@ -1,0 +1,164 @@
+---
+// src/components/Schema.astro
+import { directusUrl } from '../lib/directus';
+
+interface Props {
+    type?: 'website' | 'article' | 'product' | 'page';
+    item?: any;
+    faqs?: any[];
+}
+
+const { type = 'website', item, faqs } = Astro.props;
+
+const siteUrl = Astro.site ? Astro.site.origin : 'https://neosomatech.com';
+const currentUrl = Astro.url.href;
+
+// 1. Base Organization
+const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    "name": "NeoSomaTech",
+    "url": siteUrl,
+    "logo": {
+        "@type": "ImageObject",
+        "url": `${siteUrl}/favicon.png`,
+        "width": "512",
+        "height": "512"
+    },
+    "description": "Spécialiste français des exosquelettes médicaux, industriels et sportifs.",
+    "sameAs": []
+};
+
+// 2. Base WebSite
+const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    "name": "NeoSomaTech",
+    "url": siteUrl,
+    "description": "Expert en solutions d'exosquelettes pour la santé et le sport.",
+    "publisher": { "@id": `${siteUrl}/#organization` },
+    "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${siteUrl}/boutique?q={search_term_string}`,
+        "query-input": "required name=search_term_string"
+    }
+};
+
+// 3. Breadcrumbs
+const pathSegments = Astro.url.pathname.split('/').filter(Boolean);
+const breadcrumbList: any[] = [
+    {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": siteUrl
+    }
+];
+
+let accumulatedPath = '';
+pathSegments.forEach((segment, index) => {
+    accumulatedPath += `/${segment}`;
+    let name = segment.charAt(0).toUpperCase() + segment.slice(1);
+    
+    // Custom names for specific paths
+    if (segment === 'produits' || segment === 'boutique') name = 'Boutique';
+    if (segment === 'articles') name = 'Blog';
+    
+    // If it's the last segment and we have an item name, use it
+    if (index === pathSegments.length - 1 && item) {
+        name = item.Nom_du_produit || item.titre || name;
+    }
+
+    breadcrumbList.push({
+        "@type": "ListItem",
+        "position": index + 2,
+        "name": name,
+        "item": `${siteUrl}${accumulatedPath}`
+    });
+});
+
+const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": breadcrumbList
+};
+
+// 4. Specific Schemas
+let specificSchema: any = null;
+
+if (type === 'product' && item) {
+    const isPromoValid = item.promo && item.prix_promo;
+    const price = isPromoValid 
+        ? String(item.prix_promo).replace(/[^\d.,]/g, '').replace(',', '.') 
+        : (item.prix ? String(item.prix).replace(/[^\d.,]/g, '').replace(',', '.') : "0");
+
+    let productImages: string[] = [];
+    if (item.allImages && Array.isArray(item.allImages)) {
+        productImages = item.allImages.slice(0, 3);
+    } else if (item.image) {
+        productImages = [`${directusUrl}/assets/${item.image}`];
+    }
+
+    specificSchema = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": item.Nom_du_produit,
+        "description": item.seo_description || item.descripton_simple || '',
+        "image": productImages,
+        "brand": item.marque ? {
+            "@type": "Brand",
+            "name": item.marque
+        } : undefined,
+        "offers": {
+            "@type": "Offer",
+            "priceCurrency": "EUR",
+            "price": price,
+            "availability": "https://schema.org/InStock",
+            "url": currentUrl
+        }
+    };
+} else if (type === 'article' && item) {
+    specificSchema = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": item.titre,
+        "description": item.description_seo,
+        "datePublished": item.date_publication,
+        "author": { "@type": "Person", "name": item.auteur || "NeoSomaTech" },
+        "image": item.image_principale ? `${directusUrl}/assets/${item.image_principale}` : undefined,
+        "publisher": { "@id": `${siteUrl}/#organization` },
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": currentUrl
+        }
+    };
+}
+
+// 5. FAQ Schema
+let faqSchema: any = null;
+if (faqs && faqs.length > 0) {
+    faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": faqs.map((f: any) => ({
+            "@type": "Question",
+            "name": f.question,
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": f.reponse.replace(/<[^>]*>?/gm, '')
+            }
+        }))
+    };
+}
+---
+
+<!-- Global Schemas -->
+<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} is:inline />
+<script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} is:inline />
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} is:inline />
+
+<!-- Specific Schemas -->
+{specificSchema && <script type="application/ld+json" set:html={JSON.stringify(specificSchema)} is:inline />}
+{faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />}

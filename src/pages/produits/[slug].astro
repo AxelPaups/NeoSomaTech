@@ -96,39 +96,6 @@ if (produit && produit.promo && produit.prix_promo) {
     }
 }
 
-const productJsonLd = produit ? JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": produit.Nom_du_produit,
-    "description": produit.seo_description || produit.descripton_simple || '',
-    "image": allImages.slice(0, 3),
-    "brand": produit.marque ? {
-        "@type": "Brand",
-        "name": produit.marque
-    } : undefined,
-    "offers": {
-        "@type": "Offer",
-        "priceCurrency": "EUR",
-        "price": isPromoValid 
-            ? produit.prix_promo.replace(/[^\d.,]/g, '').replace(',', '.') 
-            : (produit.prix ? produit.prix.replace(/[^\d.,]/g, '').replace(',', '.') : "0"),
-        "availability": "https://schema.org/InStock",
-        "url": Astro.url.href
-    }
-}) : null;
-
-const faqJsonLd = (produit?.faqs && produit.faqs.length > 0) ? JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": produit.faqs.map((f: any) => ({
-    "@type": "Question",
-    "name": f.question,
-    "acceptedAnswer": {
-      "@type": "Answer",
-      "text": f.reponse.replace(/<[^>]*>?/gm, '') // Strip HTML for JSON-LD text
-    }
-  }))
-}) : null;
 
 const metaDescription = produit?.seo_description || produit?.descripton_simple || 'Exosquelette NeoSomaTech';
 
@@ -144,9 +111,10 @@ const customAlts = produit?.custom_alts
     title={produit ? `${produit.Nom_du_produit} | NeoSomaTech` : 'Produit introuvable'}
     description={metaDescription}
     image={imageUrl || '/og-image.png'}
+    type="product"
+    schemaItem={{ ...produit, allImages }}
+    faqs={produit?.faqs}
 >
-    {productJsonLd && <script type="application/ld+json" set:html={productJsonLd} />}
-    {faqJsonLd && <script type="application/ld+json" set:html={faqJsonLd} />}
 
 
     <div class="page-wrapper container">

@@ -74,21 +74,6 @@ const formatDate = (date: string) => {
     }
 };
 
-// JSON-LD pour Google
-const jsonLd = article ? JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": article.titre,
-    "description": article.description_seo,
-    "datePublished": article.date_publication,
-    "author": { "@type": "Person", "name": article.auteur || "NeoSomaTech" },
-    "image": imageUrl,
-    "publisher": {
-        "@type": "Organization",
-        "name": "NeoSomaTech",
-        "logo": { "@type": "ImageObject", "url": `${Astro.url.origin}/favicon.svg` }
-    }
-}) : null;
 ---
 
 <Layout
@@ -96,9 +81,8 @@ const jsonLd = article ? JSON.stringify({
     description={article?.description_seo || 'Article sur les exosquelettes.'}
     image={imageUrl || '/favicon.png'}
     type="article"
+    schemaItem={article}
 >
-    <!-- JSON-LD SEO -->
-    {jsonLd && <script type="application/ld+json" set:html={jsonLd} />}
 
     {errorMessage ? (
         <div class="container error-box">

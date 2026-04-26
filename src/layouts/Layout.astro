@@ -2,19 +2,23 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostHog from '../components/PostHog.astro';
+import Schema from '../components/Schema.astro';
 
 interface Props {
 	title: string;
 	description?: string;
 	image?: string;
-	type?: 'website' | 'article';
+	type?: 'website' | 'article' | 'product' | 'page';
+	schemaItem?: any;
+	faqs?: any[];
 }
 
-const { 
 	title, 
 	description = 'NeoSomaTech - Boutique et Articles dédiés aux Exosquelettes',
 	image = '/og-image.png',
-	type = 'website'
+	type = 'website',
+	schemaItem,
+	faqs
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -54,6 +58,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		
 		<!-- PostHog Analytics -->
 		<PostHog />
+
+		<!-- Structured Data -->
+		<Schema type={type} item={schemaItem} faqs={faqs} />
 	</head>
 	<body id="top">
 		<Header />
