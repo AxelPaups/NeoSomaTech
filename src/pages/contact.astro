@@ -118,9 +118,6 @@ import Layout from '../layouts/Layout.astro';
                     submitBtn.disabled = false;
                 }, 4000);
             } else {
-                // Log de l'erreur détaillée pour aider au débogage
-                console.error('Erreur Serveur Détails:', result);
-                
                 statusDiv.textContent = result.message || 'Une erreur est survenue lors de l’envoi.';
                 statusDiv.className = 'status-message error show';
                 submitBtn.disabled = false;

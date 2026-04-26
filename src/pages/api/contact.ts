@@ -7,50 +7,41 @@ import { directusUrl, directusToken } from '../../lib/directus';
  */
 export const POST: APIRoute = async ({ request }) => {
   try {
-    console.log('API: Etape 1 - Début');
-    let body;
-    try {
-      body = await request.json();
-      console.log('API: Etape 2 - JSON lu');
-    } catch (e) {
-      console.log('API: Erreur lecture JSON');
-      return new Response(JSON.stringify({ message: "Le format de la requête est invalide." }), { status: 400 });
-    }
-
+    const body = await request.json();
     const { nom, email, telephone, message, rgpd } = body;
-    console.log('API: Etape 3 - Champs extraits');
 
+    // Validation
     if (!nom || !email || !message || !rgpd) {
-      console.log('API: Validation échouée');
-      return new Response(JSON.stringify({ message: "Champs manquants ou RGPD non coché." }), { status: 400 });
+      return new Response(JSON.stringify({ message: "Champs obligatoires manquants ou RGPD non accepté." }), { status: 400 });
     }
 
+    // Envoi vers Directus (Utilisation de l'access_token en query param pour la stabilité Cloudflare)
     const url = `${directusUrl}/items/Messages?access_token=${directusToken}`;
-    console.log('API: Etape 4 - URL préparée:', url);
 
-    console.log('API: Etape 5 - Tentative fetch...');
     const directusResponse = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nom, email, telephone: telephone || '', message }),
+      body: JSON.stringify({
+        nom,
+        email,
+        telephone: telephone || '',
+        message
+      }),
     });
-    console.log('API: Etape 6 - Fetch terminé, statut:', directusResponse.status);
 
     if (!directusResponse.ok) {
-      console.log('API: Etape 7 - Directus Error');
       const errorData = await directusResponse.json().catch(() => ({}));
-      console.error('Détails erreur Directus:', errorData);
-      throw new Error(`Directus error ${directusResponse.status}: ${JSON.stringify(errorData)}`);
+      console.error('Directus API Error:', errorData);
+      throw new Error(`Erreur Directus (${directusResponse.status})`);
     }
 
-    console.log('API: Etape 8 - Succès');
-    return new Response(JSON.stringify({ message: "Message envoyé !" }), { status: 200 });
+    return new Response(JSON.stringify({ message: "Votre message a été envoyé avec succès !" }), { status: 200 });
 
   } catch (error: any) {
-    console.error('API: CRASH FINAL', error);
-    return new Response(JSON.stringify({
-      message: `Erreur serveur : ${error.message}`,
-      details: error.stack
+    console.error('Contact API Error:', error.message);
+    return new Response(JSON.stringify({ 
+        message: "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer plus tard.",
+        error: error.message
     }), { status: 500 });
   }
 };

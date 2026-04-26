@@ -3,17 +3,49 @@
 // Page article avec SEO maximum : meta, og:, json-ld
 import Layout from '../../layouts/Layout.astro';
 import { fetchDirectus } from '../../lib/directus';
+import { linkifyProducts } from '../../lib/linkifyProducts';
 
 const { slug } = Astro.params;
 
 let article: any = null;
 let errorMessage: string | null = null;
+let productsForLinking: { name: string, slug: string }[] = [];
 
 try {
+    // 1. Récupérer l'article
     const data = await fetchDirectus(
         `/items/Articles?filter[slug][_eq]=${slug}&fields=id,titre,slug,description_seo,contenu,date_publication,auteur,image_principale&limit=1`
     );
     article = Array.isArray(data) ? data[0] : data;
+
+    // 2. Récupérer tous les produits pour les liens automatiques
+    if (article) {
+        const productsData = await fetchDirectus(`/items/Produits?fields=Nom_du_produit,nom_court,slug&limit=100`);
+        if (Array.isArray(productsData)) {
+            productsData.forEach((p: any) => {
+                // On ajoute le nom complet
+                if (p.Nom_du_produit) productsForLinking.push({ name: p.Nom_du_produit, slug: p.slug });
+                
+                // On ajoute le nom court s'il est différent
+                if (p.nom_court && p.nom_court !== p.Nom_du_produit) {
+                    productsForLinking.push({ name: p.nom_court, slug: p.slug });
+                }
+                
+                // Cas particuliers pour faciliter la détection (mots clés fréquents)
+                const lowerName = p.Nom_du_produit.toLowerCase();
+                if (lowerName.includes('ski-mojo')) {
+                    if (!productsForLinking.some(x => x.name === 'Ski-Mojo')) productsForLinking.push({ name: 'Ski-Mojo', slug: p.slug });
+                    if (!productsForLinking.some(x => x.name === 'Ski Mojo')) productsForLinking.push({ name: 'Ski Mojo', slug: p.slug });
+                }
+                if (lowerName.includes('hypershell')) {
+                    if (!productsForLinking.some(x => x.name === 'Hypershell')) productsForLinking.push({ name: 'Hypershell', slug: p.slug });
+                }
+                if (lowerName.includes('stoko')) {
+                    if (!productsForLinking.some(x => x.name === 'Stoko')) productsForLinking.push({ name: 'Stoko', slug: p.slug });
+                }
+            });
+        }
+    }
 } catch (error: any) {
     console.error(`Erreur article ${slug}:`, error);
     errorMessage = error.message;
@@ -22,6 +54,9 @@ try {
 if (!article && !errorMessage) {
     return Astro.redirect('/404');
 }
+
+// Application du linkify sur le contenu
+const linkifiedContent = article?.contenu ? linkifyProducts(article.contenu, productsForLinking) : '';
 
 const directusUrl = "https://spirited-squid.pikapod.net";
 const imageUrl = article?.image_principale
@@ -106,8 +141,8 @@ const jsonLd = article ? JSON.stringify({
                 )}
 
                 <!-- CONTENU HTML -->
-                {article.contenu && (
-                    <div class="article-content" set:html={article.contenu} />
+                {linkifiedContent && (
+                    <div class="article-content" set:html={linkifiedContent} />
                 )}
 
                 <!-- FOOTER ARTICLE -->
@@ -221,6 +256,27 @@ const jsonLd = article ? JSON.stringify({
     .article-content strong { color: #e2e8f0; }
     .article-content a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
     .article-content a:hover { color: #a5b4fc; }
+
+    /* Style pour les liens produits automatiques */
+    :global(.article-content .product-inline-link) {
+        color: #818cf8;
+        text-decoration: none !important;
+        border-bottom: 1px solid rgba(129, 140, 248, 0.4);
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-block;
+        line-height: 1.2;
+        padding: 0 2px;
+    }
+    :global(.article-content .product-inline-link:hover) {
+        color: #fff;
+        background: rgba(99, 102, 241, 0.2);
+        border-bottom-color: #6366f1;
+        border-radius: 4px;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
     .article-content ul, .article-content ol {
         margin: 1rem 0 1.5rem 1.5rem;
         display: flex;
