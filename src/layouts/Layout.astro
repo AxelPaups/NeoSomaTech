@@ -35,7 +35,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		<link rel="shortcut icon" href="/favicon.png" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 		
 		<!-- SEO Primordial -->
 		<title>{title}</title>
@@ -83,6 +83,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		--text-light: #94a3b8;
 		--border: rgba(99, 102, 241, 0.2);
 		--gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+		--font-description: 'Outfit', system-ui, sans-serif;
 	}
 	* {
 		box-sizing: border-box;
