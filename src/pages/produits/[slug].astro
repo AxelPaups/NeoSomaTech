@@ -1088,12 +1088,14 @@ const customAlts = produit?.custom_alts
             currentThumbnails.forEach(t => t.classList.remove('active'));
             currentThumbnails[index].classList.add('active');
             
-            // Scroller la vignette pour qu'elle soit visible
+            // Scroller la vignette pour qu'elle soit visible (désactivé pour éviter que la page ne scrolle)
+            /*
             (currentThumbnails[index] as HTMLElement).scrollIntoView({
                 behavior: 'smooth',
                 block: 'nearest',
                 inline: 'center'
             });
+            */
         }
 
         // Fonction pour attacher les écouteurs aux vignettes
