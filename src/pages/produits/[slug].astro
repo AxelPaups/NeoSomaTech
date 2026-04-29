@@ -783,6 +783,7 @@ const customAlts = produit?.custom_alts
 
     /* WYSIWYG — :global() requis car set:html échappe au scope Astro */
     :global(.rich-content) { color: var(--text); line-height: 1.85; font-size: 1rem; font-family: var(--font-description); }
+    :global(.rich-content *) { font-family: var(--font-description) !important; }
     :global(.rich-content h2) { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.6rem; }
     :global(.rich-content h3) { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 1.25rem 0 0.5rem; }
     :global(.rich-content h4) { font-size: 1rem; font-weight: 600; color: #cbd5e1; margin: 1rem 0 0.4rem; }
