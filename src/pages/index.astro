@@ -9,7 +9,7 @@ let errorMessage: string | null = null;
 try {
 	[produits, articles] = await Promise.all([
 		fetchDirectus(
-			"/items/Produits?limit=3&fields=id,Nom_du_produit,prix,descripton_simple,slug,image",
+			"/items/Produits?limit=3&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,promo,prix_promo",
 		),
 		fetchDirectus(
 			"/items/Articles?limit=3&sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale",
@@ -174,7 +174,12 @@ const formatDate = (date: string) => {
 				</div>
 			) : (
 				<div class="products-grid">
-					{produits.map((produit) => (
+					{produits.map((produit) => {
+						const isPromoValid = produit.promo && produit.prix_promo;
+						const displayPromoPrice = isPromoValid 
+							? (String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`) 
+							: null;
+						return (
 						<article class="product-card">
 							<div class="product-img-wrapper">
 								{produit.image ? (
@@ -186,7 +191,11 @@ const formatDate = (date: string) => {
 								) : (
 									<div class="img-placeholder">🦾</div>
 								)}
-								<div class="product-badge">Top Product</div>
+								{isPromoValid ? (
+									<div class="product-badge promo-badge">Promo</div>
+								) : (
+									<div class="product-badge">Top Product</div>
+								)}
 							</div>
 							<div class="product-info">
 								<div class="product-tag">Exosquelette</div>
@@ -197,11 +206,18 @@ const formatDate = (date: string) => {
 								<div class="product-footer">
 									<div class="price-container">
 										<span class="price-label">À partir de</span>
-										<span class="price">
-											{produit.prix
-												? `${produit.prix} €`
-												: "Sur devis"}
-										</span>
+										{isPromoValid ? (
+											<div class="promo-price-wrapper">
+												<span class="price old-price">{produit.prix} €</span>
+												<span class="price promo-price">{displayPromoPrice}</span>
+											</div>
+										) : (
+											<span class="price">
+												{produit.prix
+													? `${produit.prix} €`
+													: "Sur devis"}
+											</span>
+										)}
 									</div>
 									<a
 										href={`/produits/${produit.slug || produit.id}`}
@@ -213,7 +229,8 @@ const formatDate = (date: string) => {
 								</div>
 							</div>
 						</article>
-					))}
+						);
+					})}
 				</div>
 			)
 		}
@@ -622,6 +639,10 @@ const formatDate = (date: string) => {
 		text-transform: uppercase;
 		letter-spacing: 1px;
 	}
+	.promo-badge {
+		background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+		box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+	}
 	.product-info {
 		padding: 1.75rem;
 		display: flex;
@@ -674,6 +695,24 @@ const formatDate = (date: string) => {
 		font-weight: 900;
 		color: #fff;
 		background: var(--gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	.promo-price-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+	.old-price {
+		font-size: 1.1rem;
+		text-decoration: line-through;
+		color: var(--text-light);
+		opacity: 0.6;
+		background: none;
+		-webkit-text-fill-color: var(--text-light);
+	}
+	.promo-price {
+		background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 	}
