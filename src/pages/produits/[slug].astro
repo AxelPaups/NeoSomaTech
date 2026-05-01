@@ -137,13 +137,19 @@ const customAlts = produit?.custom_alts
                     /* CSS CRITIQUE : Fixe la mise en page AVANT le chargement du CSS Astro */
                     .product-top { 
                         display: grid !important; 
-                        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; 
-                        gap: 3rem !important; 
+                        grid-template-columns: 1fr !important; 
+                        gap: 2rem !important; 
                         opacity: 0; 
-                        min-width: 0 !important;                    }
+                        min-width: 0 !important;                    
+                    }
                     .carousel-main { aspect-ratio: 1/1 !important; width: 100% !important; max-width: 600px !important; background: #1a1a2e; border-radius: 20px; overflow: hidden; }
                     .product-top.is-ready { opacity: 1; transition: opacity 0.2s ease-in; }
-                    @media (max-width: 768px) { .product-top { grid-template-columns: 1fr !important; } }
+                    @media (min-width: 769px) { 
+                        .product-top { 
+                            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; 
+                            gap: 3rem !important; 
+                        } 
+                    }
                 </style>
 
                 <section class="product-top" id="main-product-section">
@@ -609,6 +615,7 @@ const customAlts = produit?.custom_alts
         display: flex;
         flex-direction: column;
         gap: 1.25rem;
+        min-width: 0;
     }
     .product-tag {
         font-size: 0.72rem; font-weight: 600;
@@ -703,12 +710,16 @@ const customAlts = produit?.custom_alts
         display: flex;
         flex-direction: column;
         gap: 3rem;
+        min-width: 0;
     }
     .tab-section {
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 16px;
         padding: 2rem 2.5rem;
+        min-width: 0;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
     .section-title {
         font-size: 1.35rem; font-weight: 800; color: #fff;
@@ -804,7 +815,8 @@ const customAlts = produit?.custom_alts
     }
     :global(.rich-content img) { max-width: 100%; border-radius: 10px; margin: 1.25rem 0; display: block; }
     :global(.rich-content hr) { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-    :global(.rich-content table) { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    :global(.rich-content table) { width: 100%; border-collapse: collapse; margin: 1.5rem 0; display: block; overflow-x: auto; }
+    :global(.rich-content pre) { max-width: 100%; overflow-x: auto; padding: 1rem; background: var(--surface-2); border-radius: 8px; margin: 1.25rem 0; }
     :global(.rich-content th) { background: rgba(99,102,241,0.1); color: #a5b4fc; padding: 0.75rem 1rem; text-align: left; font-weight: 600; border: 1px solid var(--border); }
     :global(.rich-content td) { padding: 0.65rem 1rem; border: 1px solid var(--border); color: var(--text); }
 
