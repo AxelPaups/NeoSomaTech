@@ -126,6 +126,43 @@ const formatDate = (date: string) => {
 		</div>
 	</section>
 
+	<!-- ===== ORIGINE DU NOM ===== -->
+	<section class="section meaning-section">
+		<div class="container">
+			<div class="section-header">
+				<span class="section-label">Notre ADN</span>
+				<h2>Pourquoi NeoSomaTech ?</h2>
+				<p>Un nom qui incarne notre vision : repousser les limites physiques grâce à l'innovation.</p>
+			</div>
+			
+			<div class="meaning-grid">
+				<div class="meaning-card">
+					<div class="meaning-word gradient-text">Neo</div>
+					<h3>Nouveau</h3>
+					<p>L'innovation constante, le renouveau de nos capacités et l'adoption des technologies de demain.</p>
+				</div>
+				<div class="meaning-card">
+					<div class="meaning-word gradient-text">Soma</div>
+					<h3>Le Corps</h3>
+					<p>Du grec <em>sôma</em>, l'humain reste au centre. La machine doit s'adapter à notre biologie, et non l'inverse.</p>
+				</div>
+				<div class="meaning-card">
+					<div class="meaning-word gradient-text">Tech</div>
+					<h3>Technologie</h3>
+					<p>L'outil de pointe, la robotique et la biomécanique qui rendent l'augmentation physique possible.</p>
+				</div>
+			</div>
+			
+			<div class="meaning-footer">
+				<p>
+					<strong>NeoSomaTech</strong>, c'est la convergence parfaite où 
+					<em>la nouvelle technologie épouse le corps humain</em> 
+					pour lui offrir de nouvelles possibilités et repousser l'horizon de la mobilité.
+				</p>
+			</div>
+		</div>
+	</section>
+
 	<!-- ===== PRODUITS ===== -->
 	<section class="section container">
 		<div class="section-header">
@@ -456,6 +493,64 @@ const formatDate = (date: string) => {
 		}
 	}
 
+	/* MEANING */
+	.meaning-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2rem;
+		margin-bottom: 3rem;
+	}
+	.meaning-card {
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid rgba(99, 102, 241, 0.1);
+		border-radius: 20px;
+		padding: 2.5rem 2rem;
+		text-align: center;
+		transition: all 0.3s ease;
+	}
+	.meaning-card:hover {
+		background: rgba(99, 102, 241, 0.05);
+		border-color: rgba(99, 102, 241, 0.3);
+		transform: translateY(-5px);
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+	}
+	.meaning-word {
+		font-size: 2.5rem;
+		font-weight: 900;
+		margin-bottom: 1rem;
+		display: inline-block;
+	}
+	.meaning-card h3 {
+		font-size: 1.2rem;
+		color: #fff;
+		margin-bottom: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+	}
+	.meaning-card p {
+		color: var(--text-light);
+		font-size: 0.95rem;
+		line-height: 1.6;
+	}
+	.meaning-footer {
+		text-align: center;
+		max-width: 750px;
+		margin: 0 auto;
+		padding: 2rem;
+		background: rgba(99, 102, 241, 0.05);
+		border-radius: 16px;
+		border-left: 4px solid #818cf8;
+	}
+	.meaning-footer p {
+		font-size: 1.15rem;
+		color: #fff;
+		line-height: 1.6;
+	}
+	.meaning-footer em {
+		color: #a5b4fc;
+		font-style: italic;
+	}
+
 	/* SECTIONS */
 	.section {
 		padding: 4rem 0;
@@ -769,6 +864,9 @@ const formatDate = (date: string) => {
 		}
 		.cta-box {
 			padding: 2rem 1.5rem;
+		}
+		.meaning-grid {
+			grid-template-columns: 1fr;
 		}
 	}
 </style>
