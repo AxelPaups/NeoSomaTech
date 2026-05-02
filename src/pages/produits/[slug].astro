@@ -15,7 +15,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,Lien_devis,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -250,6 +250,7 @@ const customAlts = produit?.custom_alts
                                         data-prix-promo={produit.prix_promo || ''}
                                         data-image={imageUrl}
                                         data-url={produit.Bouton_acheter || ''}
+                                        data-devis={produit.Lien_devis || ''}
                                         data-desc-short={produit.descripton_simple || ''}
                                         data-desc-long={produit.description_principale || ''}
                                         data-gallery={JSON.stringify(allImages)}
@@ -276,6 +277,7 @@ const customAlts = produit?.custom_alts
                                                 data-prix-promo={v.prix_promo || ''}
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
+                                                data-devis={v.Lien_devis || produit.Lien_devis || ''}
                                                 data-desc-short={v.description_simple || produit.descripton_simple || ''}
                                                 data-desc-long={v.description_principale || produit.description_principale || ''}
                                                 data-gallery={variantGallery.length > 0 ? JSON.stringify(variantGallery) : JSON.stringify(allImages)}
@@ -292,12 +294,12 @@ const customAlts = produit?.custom_alts
 
                         <!-- CTA -->
                         <div class="cta-group">
-                            {produit.Bouton_acheter ? (
-                                <a href={produit.Bouton_acheter} class="btn btn-buy" target="_blank" rel="noopener noreferrer">
-                                     Acheter maintenant
+                            {produit.prix ? (
+                                <a href={produit.Bouton_acheter || '#'} class="btn btn-buy" target={produit.Bouton_acheter ? "_blank" : "_self"} rel={produit.Bouton_acheter ? "noopener noreferrer" : undefined}>
+                                     Acheter le produit
                                 </a>
                             ) : (
-                                <a href="/contact" class="btn btn-buy"> Demander un devis</a>
+                                <a href={produit.Lien_devis || "/contact"} class="btn btn-buy" target={produit.Lien_devis ? "_blank" : "_self"} rel={produit.Lien_devis ? "noopener noreferrer" : undefined}> Faire un devis</a>
                             )}
                             <a href="/boutique" class="btn btn-outline">&larr; Retour boutique</a>
                         </div>
@@ -1161,6 +1163,7 @@ const customAlts = produit?.custom_alts
                 const newPrixPromo = btn.getAttribute('data-prix-promo');
                 const newImage = btn.getAttribute('data-image');
                 const newUrl = btn.getAttribute('data-url');
+                const newDevis = btn.getAttribute('data-devis');
                 const newDescShort = btn.getAttribute('data-desc-short');
                 const newDescLong = btn.getAttribute('data-desc-long');
                 const newName = btn.getAttribute('data-name');
@@ -1217,8 +1220,28 @@ const customAlts = produit?.custom_alts
                 }
 
                 // Mise à jour du lien d'achat
-                if (buyBtn && newUrl) {
-                    buyBtn.href = newUrl;
+                if (buyBtn) {
+                    if (newPrice) {
+                        buyBtn.href = newUrl || '#';
+                        buyBtn.textContent = ' Acheter le produit';
+                        if (newUrl) {
+                            buyBtn.setAttribute('target', '_blank');
+                            buyBtn.setAttribute('rel', 'noopener noreferrer');
+                        } else {
+                            buyBtn.setAttribute('target', '_self');
+                            buyBtn.removeAttribute('rel');
+                        }
+                    } else {
+                        buyBtn.href = newDevis || '/contact';
+                        buyBtn.textContent = ' Faire un devis';
+                        if (newDevis) {
+                            buyBtn.setAttribute('target', '_blank');
+                            buyBtn.setAttribute('rel', 'noopener noreferrer');
+                        } else {
+                            buyBtn.setAttribute('target', '_self');
+                            buyBtn.removeAttribute('rel');
+                        }
+                    }
                 }
 
                 // Mise à jour des descriptions
