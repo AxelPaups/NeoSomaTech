@@ -97,7 +97,7 @@ const productsJson = JSON.stringify(flatOptions);
                         </div>
                         
                         <div class="product-card empty">
-                            <div class="placeholder-icon">🦾</div>
+                            <img src="/favicon.png" alt="NST Logo" class="placeholder-logo" />
                             <p>Sélectionnez un produit</p>
                         </div>
 
@@ -339,9 +339,13 @@ const productsJson = JSON.stringify(flatOptions);
             text-align: center;
             gap: 1rem;
         }
-        .placeholder-icon {
-            font-size: 3rem;
-            opacity: 0.5;
+        .placeholder-logo {
+            width: 4rem;
+            height: 4rem;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            opacity: 0.15;
+            margin-bottom: 0.5rem;
         }
 
         .product-img-wrapper {
