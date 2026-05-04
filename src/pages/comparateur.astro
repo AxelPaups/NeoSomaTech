@@ -9,7 +9,7 @@ let errorMessage: string | null = null;
 
 try {
     // fields to request, including the new ones the user will add
-    const query = `/items/Produits?fields=id,Nom_du_produit,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification&limit=50`;
+    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification&limit=50`;
     const data = await fetchDirectus(query);
     products = Array.isArray(data) ? data : [];
 } catch (error: any) {
@@ -21,6 +21,7 @@ try {
 const productsJson = JSON.stringify(products.map(p => ({
     id: p.id,
     nom: p.Nom_du_produit,
+    nom_court: p.nom_court,
     slug: p.slug,
     image: p.image ? `${directusUrl}/assets/${p.image}` : null,
     prix: p.prix,
@@ -56,7 +57,7 @@ const productsJson = JSON.stringify(products.map(p => ({
                             <select class="product-selector" aria-label="Choisir un produit">
                                 <option value="">-- Sélectionner un produit --</option>
                                 {products.map((p) => (
-                                    <option value={p.id}>{p.Nom_du_produit}</option>
+                                    <option value={p.id}>{p.nom_court || p.Nom_du_produit}</option>
                                 ))}
                             </select>
                         </div>
@@ -300,18 +301,19 @@ const productsJson = JSON.stringify(products.map(p => ({
 
         .product-img-wrapper {
             width: 100%;
-            aspect-ratio: 4/3;
+            aspect-ratio: 1/1;
             background: #1a1a2e;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             border-bottom: 1px solid var(--border);
+            padding: 1.5rem;
         }
         .product-img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transition: transform 0.5s ease;
         }
         .product-card:hover .product-img {
