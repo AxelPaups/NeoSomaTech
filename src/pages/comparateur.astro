@@ -9,7 +9,7 @@ let errorMessage: string | null = null;
 
 try {
     // fields to request, including the new ones the user will add + variantes
-    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification,variantes.*&limit=50`;
+    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification,comparateur_defaut,variantes.*&limit=50`;
     const data = await fetchDirectus(query);
     products = Array.isArray(data) ? data : [];
 } catch (error: any) {
@@ -36,7 +36,8 @@ products.forEach(p => {
         temps_charge: p.temps_charge || 'N/A',
         materiaux: p.materiaux || 'N/A',
         garantie: p.garantie || 'N/A',
-        certification: p.certification || 'N/A'
+        certification: p.certification || 'N/A',
+        comparateur_defaut: p.comparateur_defaut === true
     });
 
     // Ses variantes
@@ -57,7 +58,8 @@ products.forEach(p => {
                 temps_charge: v.temps_charge || p.temps_charge || 'N/A',
                 materiaux: v.materiaux || p.materiaux || 'N/A',
                 garantie: v.garantie || p.garantie || 'N/A',
-                certification: v.certification || p.certification || 'N/A'
+                certification: v.certification || p.certification || 'N/A',
+                comparateur_defaut: false
             });
         });
     }
@@ -155,8 +157,13 @@ const productsJson = JSON.stringify(flatOptions);
             const productsData = JSON.parse(app.getAttribute('data-products') || '[]');
             const cols = app.querySelectorAll('.compare-col');
 
-            // Set default products (top 3)
-            const defaults = productsData.slice(0, 3).map(p => String(p.id));
+            // Set default products based on 'comparateur_defaut' flag
+            let defaultIds = productsData.filter(p => p.comparateur_defaut).map(p => String(p.id));
+            if (defaultIds.length < 3) {
+                const otherIds = productsData.filter(p => !p.comparateur_defaut).map(p => String(p.id));
+                defaultIds = [...defaultIds, ...otherIds].slice(0, 3);
+            }
+            const defaults = defaultIds.slice(0, 3);
 
             cols.forEach((col, index) => {
                 const select = col.querySelector('.product-selector');
