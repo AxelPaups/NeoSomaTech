@@ -8,8 +8,8 @@ let products: any[] = [];
 let errorMessage: string | null = null;
 
 try {
-    // fields to request, including the new ones the user will add
-    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification&limit=50`;
+    // fields to request, including the new ones the user will add + variantes
+    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification,variantes.*&limit=50`;
     const data = await fetchDirectus(query);
     products = Array.isArray(data) ? data : [];
 } catch (error: any) {
@@ -18,22 +18,52 @@ try {
 }
 
 // Prepare data for the client
-const productsJson = JSON.stringify(products.map(p => ({
-    id: p.id,
-    nom: p.Nom_du_produit,
-    nom_court: p.nom_court,
-    slug: p.slug,
-    image: p.image ? `${directusUrl}/assets/${p.image}` : null,
-    prix: p.prix,
-    marque: p.marque,
-    poids: p.poids || 'N/A',
-    autonomie: p.autonomie || 'N/A',
-    assistance_max: p.assistance_max || 'N/A',
-    temps_charge: p.temps_charge || 'N/A',
-    materiaux: p.materiaux || 'N/A',
-    garantie: p.garantie || 'N/A',
-    certification: p.certification || 'N/A'
-})));
+const flatOptions: any[] = [];
+
+products.forEach(p => {
+    // Produit principal
+    flatOptions.push({
+        id: p.id,
+        nom: p.Nom_du_produit,
+        nom_court: p.nom_court,
+        slug: p.slug,
+        image: p.image ? `${directusUrl}/assets/${p.image}` : null,
+        prix: p.prix,
+        marque: p.marque,
+        poids: p.poids || 'N/A',
+        autonomie: p.autonomie || 'N/A',
+        assistance_max: p.assistance_max || 'N/A',
+        temps_charge: p.temps_charge || 'N/A',
+        materiaux: p.materiaux || 'N/A',
+        garantie: p.garantie || 'N/A',
+        certification: p.certification || 'N/A'
+    });
+
+    // Ses variantes
+    if (p.variantes && p.variantes.length > 0) {
+        p.variantes.forEach((v: any) => {
+            flatOptions.push({
+                id: `v_${v.id}`,
+                nom: v.Nom_du_produit || p.Nom_du_produit,
+                nom_court: v.nom_court || v.Nom_du_produit,
+                parent_nom: p.nom_court || p.Nom_du_produit,
+                slug: p.slug,
+                image: v.Image ? `${directusUrl}/assets/${v.Image}` : (p.image ? `${directusUrl}/assets/${p.image}` : null),
+                prix: v.prix || p.prix,
+                marque: p.marque,
+                poids: v.poids || p.poids || 'N/A',
+                autonomie: v.autonomie || p.autonomie || 'N/A',
+                assistance_max: v.assistance_max || p.assistance_max || 'N/A',
+                temps_charge: v.temps_charge || p.temps_charge || 'N/A',
+                materiaux: v.materiaux || p.materiaux || 'N/A',
+                garantie: v.garantie || p.garantie || 'N/A',
+                certification: v.certification || p.certification || 'N/A'
+            });
+        });
+    }
+});
+
+const productsJson = JSON.stringify(flatOptions);
 
 ---
 
@@ -56,8 +86,10 @@ const productsJson = JSON.stringify(products.map(p => ({
                         <div class="product-selector-wrapper">
                             <select class="product-selector" aria-label="Choisir un produit">
                                 <option value="">-- Sélectionner un produit --</option>
-                                {products.map((p) => (
-                                    <option value={p.id}>{p.nom_court || p.Nom_du_produit}</option>
+                                {flatOptions.map((p) => (
+                                    <option value={p.id}>
+                                        {p.parent_nom ? `${p.parent_nom} - ${p.nom_court}` : (p.nom_court || p.nom)}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -158,9 +190,10 @@ const productsJson = JSON.stringify(products.map(p => ({
                     const brandTag = filledCard.querySelector('.brand-tag');
                     if (product.marque) {
                         brandTag.textContent = product.marque;
-                        brandTag.style.display = 'inline-block';
+                        brandTag.style.opacity = '1';
                     } else {
-                        brandTag.style.display = 'none';
+                        brandTag.textContent = 'X'; // Garde la hauteur
+                        brandTag.style.opacity = '0'; // Rend invisible
                     }
 
                     filledCard.querySelector('.product-name').textContent = product.nom;
@@ -335,6 +368,11 @@ const productsJson = JSON.stringify(products.map(p => ({
             letter-spacing: 1px;
             color: #818cf8;
             font-weight: 700;
+            min-height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s;
         }
         .product-name {
             font-size: 1.3rem;
@@ -342,6 +380,11 @@ const productsJson = JSON.stringify(products.map(p => ({
             color: #fff;
             margin: 0;
             line-height: 1.2;
+            min-height: 3.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         .product-price {
             font-size: 1.5rem;
