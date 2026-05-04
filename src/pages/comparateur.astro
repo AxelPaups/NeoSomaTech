@@ -1,0 +1,393 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { fetchDirectus } from '../lib/directus';
+
+const directusUrl = "https://spirited-squid.pikapod.net";
+
+let products: any[] = [];
+let errorMessage: string | null = null;
+
+try {
+    // fields to request, including the new ones the user will add
+    const query = `/items/Produits?fields=id,Nom_du_produit,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification&limit=50`;
+    const data = await fetchDirectus(query);
+    products = Array.isArray(data) ? data : [];
+} catch (error: any) {
+    console.error("Erreur lors de la récupération des produits :", error);
+    errorMessage = error.message;
+}
+
+// Prepare data for the client
+const productsJson = JSON.stringify(products.map(p => ({
+    id: p.id,
+    nom: p.Nom_du_produit,
+    slug: p.slug,
+    image: p.image ? `${directusUrl}/assets/${p.image}` : null,
+    prix: p.prix,
+    marque: p.marque,
+    poids: p.poids || 'N/A',
+    autonomie: p.autonomie || 'N/A',
+    assistance_max: p.assistance_max || 'N/A',
+    temps_charge: p.temps_charge || 'N/A',
+    materiaux: p.materiaux || 'N/A',
+    garantie: p.garantie || 'N/A',
+    certification: p.certification || 'N/A'
+})));
+
+---
+
+<Layout title="Comparateur de produits | NeoSomaTech" description="Comparez nos différents exosquelettes pour trouver celui qui correspond à vos besoins.">
+    <div class="page-wrapper container">
+        <header class="comparateur-header">
+            <h1 class="main-title">Comparateur <span class="gradient-text">de Produits</span></h1>
+            <p class="subtitle">Sélectionnez jusqu'à 3 produits pour comparer leurs caractéristiques en détail.</p>
+        </header>
+
+        {errorMessage ? (
+            <div class="error-box">⚠️ {errorMessage}</div>
+        ) : products.length === 0 ? (
+            <div class="empty-box">Aucun produit disponible pour la comparaison.</div>
+        ) : (
+            <div class="comparateur-grid" id="comparateur-app" data-products={productsJson}>
+                <!-- Les 3 colonnes de comparaison -->
+                {[0, 1, 2].map((colIndex) => (
+                    <div class="compare-col" data-col={colIndex}>
+                        <div class="product-selector-wrapper">
+                            <select class="product-selector" aria-label="Choisir un produit">
+                                <option value="">-- Sélectionner un produit --</option>
+                                {products.map((p) => (
+                                    <option value={p.id}>{p.Nom_du_produit}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        <div class="product-card empty">
+                            <div class="placeholder-icon">🦾</div>
+                            <p>Sélectionnez un produit</p>
+                        </div>
+
+                        <div class="product-card filled" style="display: none;">
+                            <div class="product-img-wrapper">
+                                <img src="" alt="" class="product-img" />
+                            </div>
+                            <div class="product-info-top">
+                                <div class="brand-tag"></div>
+                                <h2 class="product-name"></h2>
+                                <div class="product-price"></div>
+                                <a href="#" class="btn btn-buy btn-small">Voir le produit</a>
+                            </div>
+
+                            <div class="product-specs">
+                                <div class="spec-row">
+                                    <span class="spec-label">Poids</span>
+                                    <span class="spec-val" data-field="poids"></span>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">Autonomie</span>
+                                    <span class="spec-val" data-field="autonomie"></span>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">Assistance max.</span>
+                                    <span class="spec-val" data-field="assistance_max"></span>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">Temps de charge</span>
+                                    <span class="spec-val" data-field="temps_charge"></span>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">Matériaux</span>
+                                    <span class="spec-val" data-field="materiaux"></span>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">Garantie</span>
+                                    <span class="spec-val" data-field="garantie"></span>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-label">Certification</span>
+                                    <span class="spec-val" data-field="certification"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = document.getElementById('comparateur-app');
+            if (!app) return;
+
+            const productsData = JSON.parse(app.getAttribute('data-products') || '[]');
+            const cols = app.querySelectorAll('.compare-col');
+
+            // Set default products (top 3)
+            const defaults = productsData.slice(0, 3).map(p => String(p.id));
+
+            cols.forEach((col, index) => {
+                const select = col.querySelector('.product-selector');
+                const emptyCard = col.querySelector('.product-card.empty');
+                const filledCard = col.querySelector('.product-card.filled');
+
+                // Update UI function
+                const updateCard = (productId) => {
+                    if (!productId) {
+                        emptyCard.style.display = 'flex';
+                        filledCard.style.display = 'none';
+                        return;
+                    }
+
+                    const product = productsData.find(p => String(p.id) === String(productId));
+                    if (!product) return;
+
+                    emptyCard.style.display = 'none';
+                    filledCard.style.display = 'flex';
+
+                    // Update Image
+                    const img = filledCard.querySelector('.product-img');
+                    if (product.image) {
+                        img.src = product.image;
+                        img.style.display = 'block';
+                    } else {
+                        img.style.display = 'none';
+                    }
+
+                    // Update Top Info
+                    const brandTag = filledCard.querySelector('.brand-tag');
+                    if (product.marque) {
+                        brandTag.textContent = product.marque;
+                        brandTag.style.display = 'inline-block';
+                    } else {
+                        brandTag.style.display = 'none';
+                    }
+
+                    filledCard.querySelector('.product-name').textContent = product.nom;
+                    filledCard.querySelector('.product-price').textContent = product.prix ? `${product.prix} €` : 'Contact';
+                    filledCard.querySelector('.btn-buy').href = `/produits/${product.slug}`;
+
+                    // Update Specs
+                    filledCard.querySelector('[data-field="poids"]').textContent = product.poids;
+                    filledCard.querySelector('[data-field="autonomie"]').textContent = product.autonomie;
+                    filledCard.querySelector('[data-field="assistance_max"]').textContent = product.assistance_max;
+                    filledCard.querySelector('[data-field="temps_charge"]').textContent = product.temps_charge;
+                    filledCard.querySelector('[data-field="materiaux"]').textContent = product.materiaux;
+                    filledCard.querySelector('[data-field="garantie"]').textContent = product.garantie;
+                    filledCard.querySelector('[data-field="certification"]').textContent = product.certification;
+                };
+
+                // Listen to select changes
+                select.addEventListener('change', (e) => {
+                    updateCard(e.target.value);
+                });
+
+                // Apply defaults
+                if (defaults[index]) {
+                    select.value = defaults[index];
+                    updateCard(defaults[index]);
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .page-wrapper {
+            padding-top: 4rem;
+            padding-bottom: 6rem;
+        }
+
+        .comparateur-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        /* GRID DES COLONNES */
+        .comparateur-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        @media (min-width: 768px) {
+            .comparateur-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .compare-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 0;
+        }
+
+        /* SELECTEUR */
+        .product-selector-wrapper {
+            position: relative;
+        }
+        .product-selector {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .product-selector:focus, .product-selector:hover {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .product-selector-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            pointer-events: none;
+            font-size: 0.8rem;
+        }
+        .product-selector option {
+            background: var(--surface);
+            color: #fff;
+        }
+
+        /* CARTES PRODUIT */
+        .product-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .product-card:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .product-card.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            border: 1px dashed var(--border);
+            background: transparent;
+            box-shadow: none;
+            color: var(--text-light);
+            text-align: center;
+            gap: 1rem;
+        }
+        .placeholder-icon {
+            font-size: 3rem;
+            opacity: 0.5;
+        }
+
+        .product-img-wrapper {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: #1a1a2e;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .product-card:hover .product-img {
+            transform: scale(1.05);
+        }
+
+        .product-info-top {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .brand-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #818cf8;
+            font-weight: 700;
+        }
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .btn-small {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            width: 100%;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        /* SPECS */
+        .product-specs {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .spec-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
+        .spec-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .spec-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .spec-val {
+            font-size: 1.05rem;
+            color: #fff;
+            font-weight: 500;
+        }
+    </style>
+</Layout>
