@@ -37,7 +37,7 @@ products.forEach(p => {
         materiaux: p.materiaux || 'N/A',
         garantie: p.garantie || 'N/A',
         certification: p.certification || 'N/A',
-        comparateur_defaut: p.comparateur_defaut === true
+        comparateur_defaut: p.comparateur_defaut === true || p.comparateur_defaut === 'true' || p.comparateur_defaut === 1 || p.comparateur_defaut === '1'
     });
 
     // Ses variantes
@@ -158,34 +158,34 @@ const productsJson = JSON.stringify(flatOptions);
             const cols = app.querySelectorAll('.compare-col');
 
             // Set default products based on 'comparateur_defaut' flag
-            let defaultIds = productsData.filter(p => p.comparateur_defaut).map(p => String(p.id));
+            let defaultIds = productsData.filter((p: any) => p.comparateur_defaut).map((p: any) => String(p.id));
             if (defaultIds.length < 3) {
-                const otherIds = productsData.filter(p => !p.comparateur_defaut).map(p => String(p.id));
+                const otherIds = productsData.filter((p: any) => !p.comparateur_defaut).map((p: any) => String(p.id));
                 defaultIds = [...defaultIds, ...otherIds].slice(0, 3);
             }
             const defaults = defaultIds.slice(0, 3);
 
             cols.forEach((col, index) => {
-                const select = col.querySelector('.product-selector');
-                const emptyCard = col.querySelector('.product-card.empty');
-                const filledCard = col.querySelector('.product-card.filled');
+                const select = col.querySelector('.product-selector') as HTMLSelectElement;
+                const emptyCard = col.querySelector('.product-card.empty') as HTMLElement;
+                const filledCard = col.querySelector('.product-card.filled') as HTMLElement;
 
                 // Update UI function
-                const updateCard = (productId) => {
+                const updateCard = (productId: string) => {
                     if (!productId) {
                         emptyCard.style.display = 'flex';
                         filledCard.style.display = 'none';
                         return;
                     }
 
-                    const product = productsData.find(p => String(p.id) === String(productId));
+                    const product = productsData.find((p: any) => String(p.id) === String(productId));
                     if (!product) return;
 
                     emptyCard.style.display = 'none';
                     filledCard.style.display = 'flex';
 
                     // Update Image
-                    const img = filledCard.querySelector('.product-img');
+                    const img = filledCard.querySelector('.product-img') as HTMLImageElement;
                     if (product.image) {
                         img.src = product.image;
                         img.style.display = 'block';
@@ -194,7 +194,7 @@ const productsJson = JSON.stringify(flatOptions);
                     }
 
                     // Update Top Info
-                    const brandTag = filledCard.querySelector('.brand-tag');
+                    const brandTag = filledCard.querySelector('.brand-tag') as HTMLElement;
                     if (product.marque) {
                         brandTag.textContent = product.marque;
                         brandTag.style.opacity = '1';
@@ -203,23 +203,23 @@ const productsJson = JSON.stringify(flatOptions);
                         brandTag.style.opacity = '0'; // Rend invisible
                     }
 
-                    filledCard.querySelector('.product-name').textContent = product.nom;
-                    filledCard.querySelector('.product-price').textContent = product.prix ? `${product.prix} €` : 'Contact';
-                    filledCard.querySelector('.btn-buy').href = `/produits/${product.slug}`;
+                    (filledCard.querySelector('.product-name') as HTMLElement).textContent = product.nom;
+                    (filledCard.querySelector('.product-price') as HTMLElement).textContent = product.prix ? `${product.prix} €` : 'Contact';
+                    (filledCard.querySelector('.btn-buy') as HTMLAnchorElement).href = `/produits/${product.slug}`;
 
                     // Update Specs
-                    filledCard.querySelector('[data-field="poids"]').textContent = product.poids;
-                    filledCard.querySelector('[data-field="autonomie"]').textContent = product.autonomie;
-                    filledCard.querySelector('[data-field="assistance_max"]').textContent = product.assistance_max;
-                    filledCard.querySelector('[data-field="temps_charge"]').textContent = product.temps_charge;
-                    filledCard.querySelector('[data-field="materiaux"]').textContent = product.materiaux;
-                    filledCard.querySelector('[data-field="garantie"]').textContent = product.garantie;
-                    filledCard.querySelector('[data-field="certification"]').textContent = product.certification;
+                    (filledCard.querySelector('[data-field="poids"]') as HTMLElement).textContent = product.poids;
+                    (filledCard.querySelector('[data-field="autonomie"]') as HTMLElement).textContent = product.autonomie;
+                    (filledCard.querySelector('[data-field="assistance_max"]') as HTMLElement).textContent = product.assistance_max;
+                    (filledCard.querySelector('[data-field="temps_charge"]') as HTMLElement).textContent = product.temps_charge;
+                    (filledCard.querySelector('[data-field="materiaux"]') as HTMLElement).textContent = product.materiaux;
+                    (filledCard.querySelector('[data-field="garantie"]') as HTMLElement).textContent = product.garantie;
+                    (filledCard.querySelector('[data-field="certification"]') as HTMLElement).textContent = product.certification;
                 };
 
                 // Listen to select changes
                 select.addEventListener('change', (e) => {
-                    updateCard(e.target.value);
+                    updateCard((e.target as HTMLSelectElement).value);
                 });
 
                 // Apply defaults
