@@ -85,15 +85,23 @@ const productsJson = JSON.stringify(flatOptions);
                 <!-- Les 3 colonnes de comparaison -->
                 {[0, 1, 2].map((colIndex) => (
                     <div class="compare-col" data-col={colIndex}>
-                        <div class="product-selector-wrapper">
-                            <select class="product-selector" aria-label="Choisir un produit">
-                                <option value="">-- Sélectionner un produit --</option>
-                                {flatOptions.map((p) => (
-                                    <option value={p.id}>
-                                        {p.parent_nom ? `${p.parent_nom} - ${p.nom_court}` : (p.nom_court || p.nom)}
-                                    </option>
-                                ))}
-                            </select>
+                        <div class="custom-select-wrapper">
+                            <div class="custom-select" id={`select-col-${colIndex}`}>
+                                <div class="select-trigger">
+                                    <span class="trigger-text">-- Sélectionner un produit --</span>
+                                    <span class="arrow">▼</span>
+                                </div>
+                                <div class="select-options-container">
+                                    <div class="select-options">
+                                        <div class="select-option" data-value="">-- Sélectionner un produit --</div>
+                                        {flatOptions.map((p) => (
+                                            <div class="select-option" data-value={p.id}>
+                                                {p.parent_nom ? `${p.parent_nom} - ${p.nom_court}` : (p.nom_court || p.nom)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="product-card empty">
@@ -167,9 +175,27 @@ const productsJson = JSON.stringify(flatOptions);
             const defaults = defaultIds.slice(0, 3);
 
             cols.forEach((col, index) => {
-                const select = col.querySelector('.product-selector') as HTMLSelectElement;
+                const customSelect = col.querySelector('.custom-select') as HTMLElement;
+                const trigger = customSelect.querySelector('.select-trigger') as HTMLElement;
+                const triggerText = trigger.querySelector('.trigger-text') as HTMLElement;
+                const options = customSelect.querySelectorAll('.select-option');
+                
                 const emptyCard = col.querySelector('.product-card.empty') as HTMLElement;
                 const filledCard = col.querySelector('.product-card.filled') as HTMLElement;
+
+                // Toggle dropdown
+                trigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.custom-select').forEach(s => {
+                        if (s !== customSelect) s.classList.remove('open');
+                    });
+                    customSelect.classList.toggle('open');
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', () => {
+                    customSelect.classList.remove('open');
+                });
 
                 // Update UI function
                 const updateCard = (productId: string) => {
@@ -200,8 +226,8 @@ const productsJson = JSON.stringify(flatOptions);
                         brandTag.textContent = product.marque;
                         brandTag.style.opacity = '1';
                     } else {
-                        brandTag.textContent = 'X'; // Garde la hauteur
-                        brandTag.style.opacity = '0'; // Rend invisible
+                        brandTag.textContent = 'X';
+                        brandTag.style.opacity = '0';
                     }
 
                     (filledCard.querySelector('.product-name') as HTMLElement).textContent = product.nom;
@@ -209,24 +235,41 @@ const productsJson = JSON.stringify(flatOptions);
                     (filledCard.querySelector('.btn-buy') as HTMLAnchorElement).href = `/produits/${product.slug}`;
 
                     // Update Specs
-                    (filledCard.querySelector('[data-field="poids"]') as HTMLElement).textContent = product.poids;
-                    (filledCard.querySelector('[data-field="autonomie"]') as HTMLElement).textContent = product.autonomie;
-                    (filledCard.querySelector('[data-field="assistance_max"]') as HTMLElement).textContent = product.assistance_max;
-                    (filledCard.querySelector('[data-field="temps_charge"]') as HTMLElement).textContent = product.temps_charge;
-                    (filledCard.querySelector('[data-field="materiaux"]') as HTMLElement).textContent = product.materiaux;
-                    (filledCard.querySelector('[data-field="garantie"]') as HTMLElement).textContent = product.garantie;
-                    (filledCard.querySelector('[data-field="certification"]') as HTMLElement).textContent = product.certification;
+                    const setSpec = (field: string, val: string) => {
+                        const el = filledCard.querySelector(`[data-field="${field}"]`) as HTMLElement;
+                        if (el) el.textContent = val || 'N/A';
+                    };
+                    
+                    setSpec('poids', product.poids);
+                    setSpec('autonomie', product.autonomie);
+                    setSpec('assistance_max', product.assistance_max);
+                    setSpec('temps_charge', product.temps_charge);
+                    setSpec('materiaux', product.materiaux);
+                    setSpec('garantie', product.garantie);
+                    setSpec('certification', product.certification);
                 };
 
-                // Listen to select changes
-                select.addEventListener('change', (e) => {
-                    updateCard((e.target as HTMLSelectElement).value);
+                // Handle option selection
+                options.forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        const val = opt.getAttribute('data-value') || '';
+                        triggerText.textContent = opt.textContent;
+                        updateCard(val);
+                        customSelect.classList.remove('open');
+                        
+                        options.forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                    });
                 });
 
                 // Apply defaults
                 if (defaults[index]) {
-                    select.value = defaults[index];
-                    updateCard(defaults[index]);
+                    const defaultOpt = Array.from(options).find(o => o.getAttribute('data-value') === String(defaults[index]));
+                    if (defaultOpt) {
+                        triggerText.textContent = defaultOpt.textContent;
+                        defaultOpt.classList.add('selected');
+                        updateCard(defaults[index]);
+                    }
                 }
             });
         });
@@ -271,42 +314,105 @@ const productsJson = JSON.stringify(flatOptions);
             height: 100%;
         }
 
-        /* SELECTEUR */
-        .product-selector-wrapper {
+        /* CUSTOM SELECT PREMIUM */
+        .custom-select-wrapper {
             position: relative;
+            z-index: 50;
         }
-        .product-selector {
+        .custom-select {
+            position: relative;
             width: 100%;
+        }
+        .select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: 1rem 1.25rem;
-            background: var(--surface);
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border);
             border-radius: 12px;
             color: #fff;
-            font-size: 1rem;
             font-weight: 600;
-            appearance: none;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
         }
-        .product-selector:focus, .product-selector:hover {
-            border-color: #6366f1;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        .custom-select:hover .select-trigger {
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
         }
-        .product-selector-wrapper::after {
-            content: '▼';
-            position: absolute;
-            right: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-            pointer-events: none;
-            font-size: 0.8rem;
-        }
-        .product-selector option {
+        .custom-select.open .select-trigger {
+            border-color: var(--primary);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
             background: var(--surface);
+        }
+        .select-trigger .arrow {
+            font-size: 0.7rem;
+            transition: transform 0.3s ease;
+            color: var(--text-light);
+        }
+        .custom-select.open .arrow {
+            transform: rotate(180deg);
+        }
+
+        .select-options-container {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a2e;
+            border: 1px solid var(--primary);
+            border-top: none;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+        .custom-select.open .select-options-container {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .select-options {
+            max-height: 250px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .select-options::-webkit-scrollbar {
+            width: 6px;
+        }
+        .select-options::-webkit-scrollbar-thumb {
+            background-color: var(--primary);
+            border-radius: 10px;
+        }
+
+        .select-option {
+            padding: 0.9rem 1.25rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            border-left: 3px solid transparent;
+        }
+        .select-option:hover {
+            background: rgba(99, 102, 241, 0.1);
             color: #fff;
+            border-left-color: var(--primary);
+            padding-left: 1.5rem;
+        }
+        .select-option.selected {
+            background: rgba(99, 102, 241, 0.2);
+            color: #fff;
+            font-weight: 700;
+            border-left-color: var(--primary);
         }
 
         /* CARTES PRODUIT */
