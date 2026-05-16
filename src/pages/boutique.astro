@@ -12,7 +12,7 @@ let errorMessage: string | null = null;
 
 try {
     const filterQuery = brandFilter ? `&filter[marque][_eq]=${encodeURIComponent(brandFilter)}` : '';
-    produits = await fetchDirectus(`/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque${filterQuery}`);
+    produits = await fetchDirectus(`/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque,promo,prix_promo${filterQuery}`);
 } catch (error: any) {
     errorMessage = error.message;
 }
@@ -51,32 +51,49 @@ try {
             <div class="empty-box"><p>Aucun produit disponible pour le moment.</p></div>
         ) : (
             <div class="grid">
-                {produits.map((p) => (
-                    <article class="card">
-                        <a href={`/produits/${p.slug || p.id}`} class="card-img-link">
-                            {p.image ? (
-                                <img
-                                    src={`${directusUrl}/assets/${p.image}`}
-                                    alt={p.Nom_du_produit}
-                                    loading="lazy"
-                                />
-                            ) : (
-                                <div class="img-placeholder">🦾</div>
-                            )}
-                        </a>
-                        <div class="card-body">
-                            <div class="card-tag">Exosquelette</div>
-                            <h3>
-                                <a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit}</a>
-                            </h3>
-                            <p class="card-desc">{p.descripton_simple}</p>
-                            <div class="card-footer">
-                                <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
-                                <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
+                {produits.map((p) => {
+                    const isPromoValid = p.promo && p.prix_promo;
+                    const displayPromoPrice = isPromoValid 
+                        ? (String(p.prix_promo).includes('€') ? p.prix_promo : `${p.prix_promo} €`) 
+                        : null;
+
+                    return (
+                        <article class="card">
+                            <a href={`/produits/${p.slug || p.id}`} class="card-img-link">
+                                {p.image ? (
+                                    <img
+                                        src={`${directusUrl}/assets/${p.image}`}
+                                        alt={p.Nom_du_produit}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div class="img-placeholder">🦾</div>
+                                )}
+                                {isPromoValid && (
+                                    <div class="promo-badge">Promo</div>
+                                )}
+                            </a>
+                            <div class="card-body">
+                                <div class="card-tag">Exosquelette</div>
+                                <h3>
+                                    <a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit}</a>
+                                </h3>
+                                <p class="card-desc">{p.descripton_simple}</p>
+                                <div class="card-footer">
+                                    {isPromoValid ? (
+                                        <div class="price-wrapper">
+                                            <span class="price old-price">{p.prix} €</span>
+                                            <span class="price promo-price">{displayPromoPrice}</span>
+                                        </div>
+                                    ) : (
+                                        <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
+                                    )}
+                                    <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
+                                </div>
                             </div>
-                        </div>
-                    </article>
-                ))}
+                        </article>
+                    );
+                })}
             </div>
         )}
     </div>
@@ -185,6 +202,39 @@ try {
     }
     .card-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.25rem; }
     .price { font-size: 1.35rem; font-weight: 800; color: #818cf8; }
+
+    /* PROMO STYLES */
+    .promo-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.4rem 0.8rem;
+        border-radius: 99px;
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        z-index: 10;
+    }
+    .price-wrapper {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+    .old-price {
+        font-size: 0.9rem;
+        text-decoration: line-through;
+        color: var(--text-light);
+        opacity: 0.6;
+        font-weight: 600;
+    }
+    .promo-price {
+        color: #f43f5e;
+    }
+    .card-img-link { position: relative; }
 
     .error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 1.5rem; border-radius: 12px; text-align: center; }
     .empty-box { background: var(--surface); border: 1px dashed var(--border); padding: 3rem; border-radius: 12px; text-align: center; color: var(--text-light); }
