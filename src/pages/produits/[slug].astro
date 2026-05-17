@@ -15,7 +15,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,Lien_devis,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,Lien_devis,texte_attente_sortie,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -226,9 +226,11 @@ const customAlts = produit?.custom_alts
                                     </span>
                                 </>
                             ) : (
-                                <span class="price">
-                                    {produit.prix ? `${produit.prix} €` : 'Nous contacter'}
-                                </span>
+                                produit.prix ? (
+                                    <span class="price">
+                                        {produit.prix} €
+                                    </span>
+                                ) : null
                             )}
                         </div>
 
@@ -251,6 +253,7 @@ const customAlts = produit?.custom_alts
                                         data-image={imageUrl}
                                         data-url={produit.Bouton_acheter || ''}
                                         data-devis={produit.Lien_devis || ''}
+                                        data-attente={produit.texte_attente_sortie || ''}
                                         data-desc-short={produit.descripton_simple || ''}
                                         data-desc-long={produit.description_principale || ''}
                                         data-gallery={JSON.stringify(allImages)}
@@ -278,6 +281,7 @@ const customAlts = produit?.custom_alts
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
                                                 data-devis={v.Lien_devis || produit.Lien_devis || ''}
+                                                data-attente={v.texte_attente_sortie || produit.texte_attente_sortie || ''}
                                                 data-desc-short={v.description_simple || produit.descripton_simple || ''}
                                                 data-desc-long={v.description_principale || produit.description_principale || ''}
                                                 data-gallery={variantGallery.length > 0 ? JSON.stringify(variantGallery) : JSON.stringify(allImages)}
@@ -295,11 +299,11 @@ const customAlts = produit?.custom_alts
                         <!-- CTA -->
                         <div class="cta-group">
                             {produit.prix ? (
-                                <a href={produit.Bouton_acheter || '#'} class="btn btn-buy" target={produit.Bouton_acheter ? "_blank" : "_self"} rel={produit.Bouton_acheter ? "noopener noreferrer" : undefined}>
+                                <a href={produit.Bouton_acheter || '#'} class="btn btn-buy" id="main-cta-btn" target={produit.Bouton_acheter ? "_blank" : "_self"} rel={produit.Bouton_acheter ? "noopener noreferrer" : undefined}>
                                      Acheter le produit
                                 </a>
                             ) : (
-                                <a href={produit.Lien_devis || "/contact"} class="btn btn-buy" target={produit.Lien_devis ? "_blank" : "_self"} rel={produit.Lien_devis ? "noopener noreferrer" : undefined}> Faire un devis</a>
+                                <button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip={produit.texte_attente_sortie || "Bientôt disponible"}>Me notifier à la sortie</button>
                             )}
                             <a href="/boutique" class="btn btn-outline">&larr; Retour boutique</a>
                         </div>
@@ -668,6 +672,45 @@ const customAlts = produit?.custom_alts
         padding: 0.9rem 2rem;
         border-radius: 12px;
         text-align: center;
+    }
+    
+    .btn-disabled {
+        background: #4a5568 !important;
+        color: #a0aec0 !important;
+        cursor: not-allowed;
+        box-shadow: none;
+        position: relative;
+    }
+    
+    .tooltip-btn[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 8px;
+        background: rgba(15, 23, 42, 0.95);
+        color: #fff;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        z-index: 10;
+        pointer-events: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        border: 1px solid var(--border);
+    }
+    .tooltip-btn[data-tooltip]:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;
+        margin-bottom: -4px;
+        z-index: 10;
     }
 
     /* VARIANTES */
@@ -1146,7 +1189,6 @@ const customAlts = produit?.custom_alts
         // --- GESTION DES VARIANTES ---
         const variantBtns = document.querySelectorAll('.variant-btn');
         const priceBlock = document.getElementById('price-block-container');
-        const buyBtn = document.querySelector('.btn-buy') as HTMLAnchorElement;
         const shortDesc = document.querySelector('.short-desc');
         const longDesc = document.querySelector('.rich-content');
         const carouselThumbnails = document.querySelector('.carousel-thumbnails');
@@ -1164,6 +1206,7 @@ const customAlts = produit?.custom_alts
                 const newImage = btn.getAttribute('data-image');
                 const newUrl = btn.getAttribute('data-url');
                 const newDevis = btn.getAttribute('data-devis');
+                const newAttente = btn.getAttribute('data-attente');
                 const newDescShort = btn.getAttribute('data-desc-short');
                 const newDescLong = btn.getAttribute('data-desc-long');
                 const newName = btn.getAttribute('data-name');
@@ -1201,9 +1244,9 @@ const customAlts = produit?.custom_alts
                         `;
                     } else {
                         // Cas sans promo
-                        priceBlock.innerHTML = `
+                        priceBlock.innerHTML = newPrice ? `
                             <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
-                        `;
+                        ` : '';
                     }
                 }
 
@@ -1220,27 +1263,12 @@ const customAlts = produit?.custom_alts
                 }
 
                 // Mise à jour du lien d'achat
-                if (buyBtn) {
+                const currentBuyBtn = document.getElementById('main-cta-btn');
+                if (currentBuyBtn) {
                     if (newPrice) {
-                        buyBtn.href = newUrl || '#';
-                        buyBtn.textContent = ' Acheter le produit';
-                        if (newUrl) {
-                            buyBtn.setAttribute('target', '_blank');
-                            buyBtn.setAttribute('rel', 'noopener noreferrer');
-                        } else {
-                            buyBtn.setAttribute('target', '_self');
-                            buyBtn.removeAttribute('rel');
-                        }
+                        currentBuyBtn.outerHTML = `<a href="${newUrl || '#'}" class="btn btn-buy" id="main-cta-btn" target="${newUrl ? '_blank' : '_self'}" ${newUrl ? 'rel="noopener noreferrer"' : ''}> Acheter le produit</a>`;
                     } else {
-                        buyBtn.href = newDevis || '/contact';
-                        buyBtn.textContent = ' Faire un devis';
-                        if (newDevis) {
-                            buyBtn.setAttribute('target', '_blank');
-                            buyBtn.setAttribute('rel', 'noopener noreferrer');
-                        } else {
-                            buyBtn.setAttribute('target', '_self');
-                            buyBtn.removeAttribute('rel');
-                        }
+                        currentBuyBtn.outerHTML = `<button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip="${newAttente || 'Bientôt disponible'}">Me notifier à la sortie</button>`;
                     }
                 }
 
