@@ -15,7 +15,7 @@ let errorMessage: string | null = null;
 try {
     // On ajoute galerie.* pour récupérer les relations Directus
     const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,Lien_devis,texte_attente_sortie,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
+        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,texte_attente_sortie,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
     );
     produit = Array.isArray(data) ? data[0] : data;
 
@@ -252,7 +252,6 @@ const customAlts = produit?.custom_alts
                                         data-prix-promo={produit.prix_promo || ''}
                                         data-image={imageUrl}
                                         data-url={produit.Bouton_acheter || ''}
-                                        data-devis={produit.Lien_devis || ''}
                                         data-attente={produit.texte_attente_sortie || ''}
                                         data-desc-short={produit.descripton_simple || ''}
                                         data-desc-long={produit.description_principale || ''}
@@ -280,7 +279,6 @@ const customAlts = produit?.custom_alts
                                                 data-prix-promo={v.prix_promo || ''}
                                                 data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
                                                 data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
-                                                data-devis={v.Lien_devis || produit.Lien_devis || ''}
                                                 data-attente={v.texte_attente_sortie || produit.texte_attente_sortie || ''}
                                                 data-desc-short={v.description_simple || produit.descripton_simple || ''}
                                                 data-desc-long={v.description_principale || produit.description_principale || ''}
@@ -1205,7 +1203,6 @@ const customAlts = produit?.custom_alts
                 const newPrixPromo = btn.getAttribute('data-prix-promo');
                 const newImage = btn.getAttribute('data-image');
                 const newUrl = btn.getAttribute('data-url');
-                const newDevis = btn.getAttribute('data-devis');
                 const newAttente = btn.getAttribute('data-attente');
                 const newDescShort = btn.getAttribute('data-desc-short');
                 const newDescLong = btn.getAttribute('data-desc-long');
