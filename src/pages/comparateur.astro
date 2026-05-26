@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { fetchDirectus } from '../lib/directus';
+import { fetchDirectus, fetchPageSEO } from '../lib/directus';
 
 const directusUrl = "https://spirited-squid.pikapod.net";
 
@@ -67,9 +67,14 @@ products.forEach(p => {
 
 const productsJson = JSON.stringify(flatOptions);
 
+const seo = await fetchPageSEO(
+    "comparateur",
+    "Comparateur de produits | NeoSomaTech",
+    "Comparez nos différents exosquelettes pour trouver celui qui correspond à vos besoins."
+);
 ---
 
-<Layout title="Comparateur de produits | NeoSomaTech" description="Comparez nos différents exosquelettes pour trouver celui qui correspond à vos besoins.">
+<Layout title={seo.title} description={seo.description}>
     <div class="page-wrapper container">
         <header class="comparateur-header">
             <h1 class="main-title">Comparateur <span class="gradient-text">de Produits</span></h1>

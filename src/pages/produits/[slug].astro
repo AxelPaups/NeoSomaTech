@@ -1,1478 +1,611 @@
 ---
-// page : /produits/[slug]
-// Layout e-commerce standard : image gauche / infos droite + description + FAQ + avis
 import Layout from '../../layouts/Layout.astro';
-import { fetchDirectus } from '../../lib/directus';
+import { fetchDirectus, directusUrl } from '../../lib/directus';
+import {
+	PRODUCT_FIELDS,
+	getCustomAlts,
+	collectGallery,
+	collectVariantGallery,
+	parsePromo,
+	renderPriceHtml,
+	SPEC_DEFS,
+} from '../../lib/productPage';
+import SpecIcon from '../../components/product/SpecIcon.astro';
+import ProductPrice from '../../components/product/ProductPrice.astro';
+import '../../styles/product-page.css';
 
 const { slug } = Astro.params;
-const directusUrl = "https://spirited-squid.pikapod.net";
 
-let produit: any = null;
-let produitsSimilaires: any[] = [];
-let avis: any[] = [];
+let produit: Record<string, unknown> | null = null;
+let produitsSimilaires: Record<string, unknown>[] = [];
+let avis: Record<string, unknown>[] = [];
 let errorMessage: string | null = null;
 
 try {
-    // On ajoute galerie.* pour récupérer les relations Directus
-    const data = await fetchDirectus(
-        `/items/Produits?filter[slug][_eq]=${slug}&fields=id,Nom_du_produit,nom_court,prix,descripton_simple,description_principale,Bouton_acheter,texte_attente_sortie,image,slug,galerie.*,marque,variantes.*,variantes.galerie.*,promo,prix_promo,faqs.*,seo_description,custom_alts&limit=1`
-    );
-    produit = Array.isArray(data) ? data[0] : data;
+	const data = await fetchDirectus(
+		`/items/Produits?filter[slug][_eq]=${slug}&fields=${PRODUCT_FIELDS}&limit=1`,
+	);
+	produit = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;
 
-    // Récupération des produits similaires (priorité à la même marque si elle existe)
-    if (produit) {
-        // Tentative de récupération des produits de la même marque (excluant le produit actuel)
-        const brandFilter = produit.marque ? `&filter[marque][_eq]=${produit.marque}` : '';
-        const others = await fetchDirectus(
-            `/items/Produits?filter[slug][_neq]=${slug}${brandFilter}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=4`
-        );
-        produitsSimilaires = Array.isArray(others) ? others : [];
+	if (produit) {
+		const brandFilter = produit.marque ? `&filter[marque][_eq]=${produit.marque}` : '';
+		const others = await fetchDirectus(
+			`/items/Produits?filter[slug][_neq]=${slug}${brandFilter}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=4`,
+		);
+		produitsSimilaires = Array.isArray(others) ? others : [];
 
-        if (produitsSimilaires.length < 4) {
-            const excludeSlugs = [slug, ...produitsSimilaires.map(p => p.slug || p.id)];
-            const fallbackQuery = `/items/Produits?filter[slug][_nin]=${excludeSlugs.join(',')}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=${4 - produitsSimilaires.length}`;
-            const more = await fetchDirectus(fallbackQuery);
-            if (Array.isArray(more)) {
-                produitsSimilaires = [...produitsSimilaires, ...more];
-            }
-        }
+		if (produitsSimilaires.length < 4) {
+			const excludeSlugs = [slug, ...produitsSimilaires.map((p) => p.slug || p.id)];
+			const more = await fetchDirectus(
+				`/items/Produits?filter[slug][_nin]=${excludeSlugs.join(',')}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=${4 - produitsSimilaires.length}`,
+			);
+			if (Array.isArray(more)) produitsSimilaires = [...produitsSimilaires, ...more];
+		}
 
-        // Récupération des avis pour ce produit
-        try {
-            const avisData = await fetchDirectus(
-                `/items/Avis?filter[produit_slug][_eq]=${slug}&fields=prenom,note,avis_texte&limit=50`
-            );
-            avis = Array.isArray(avisData) ? avisData : [];
-        } catch (e: any) {
-            console.error(`[Avis Debug] Erreur sur ${slug}:`, e.message);
-            avis = [];
-        }
-    }
-} catch (error: any) {
-    console.error(`Erreur produit ${slug}:`, error);
-    errorMessage = error.message;
+		try {
+			const avisData = await fetchDirectus(
+				`/items/Avis?filter[produit_slug][_eq]=${slug}&fields=prenom,note,avis_texte,date_created&limit=50`,
+			);
+			avis = Array.isArray(avisData) ? avisData : [];
+		} catch {
+			avis = [];
+		}
+	}
+} catch (error: unknown) {
+	errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 }
 
-// Calcul de la note moyenne
-const noteMoyenne = avis.length > 0
-    ? Math.round((avis.reduce((sum: number, a: any) => sum + (a.note || 0), 0) / avis.length) * 10) / 10
-    : null;
+const noteMoyenne =
+	avis.length > 0
+		? Math.round((avis.reduce((sum, a) => sum + (Number(a.note) || 0), 0) / avis.length) * 10) / 10
+		: null;
 
 if (!produit && !errorMessage) {
-    return Astro.redirect('/404');
+	return Astro.redirect('/404');
 }
 
-// Extraction de l'image principale
-const imageUrl = produit?.image
-    ? `${directusUrl}/assets/${produit.image}`
-    : null;
-
-// Extraction des images de la galerie
-let allImages: string[] = [];
-if (imageUrl) allImages.push(imageUrl);
-
-if (produit?.galerie && Array.isArray(produit.galerie)) {
-    produit.galerie.forEach((item: any) => {
-        // La clé dépend de votre config sur Directus. M2M par défaut c'est directus_files_id
-        const fileId = item.directus_files_id || item.image || (typeof item === 'string' ? item : null);
-        if (fileId) {
-            allImages.push(`${directusUrl}/assets/${fileId}`);
-        }
-    });
+const customAlts = getCustomAlts(produit?.custom_alts as string | undefined);
+const allImages = collectGallery(produit?.image as string | undefined, produit?.galerie, directusUrl);
+const imageUrl = allImages[0] || null;
+const { isPromoValid } = parsePromo(
+	Boolean(produit?.promo),
+	produit?.prix_promo as string | undefined,
+);
+const productName = (produit?.Nom_du_produit as string) || 'Produit';
+const specValueByKey: Record<string, string> = {};
+for (const def of SPEC_DEFS) {
+	const raw = produit ? (produit as any)?.[def.field] : null;
+	const s = raw == null ? '' : String(raw).trim();
+	specValueByKey[def.key] = s;
 }
-let isPromoValid = false;
-let displayPromoPrice = '';
+const hasAnySpecsInProduit = Object.values(specValueByKey).some(Boolean);
+const hasVariants = produit?.variantes && Array.isArray(produit.variantes) && produit.variantes.length > 0;
 
-if (produit && produit.promo && produit.prix_promo) {
-    const rawPromo = String(produit.prix_promo).replace(',', '.').replace(/[^\d.-]/g, '');
-    const promoNum = parseFloat(rawPromo);
-    
-    if (!isNaN(promoNum)) {
-        isPromoValid = true;
-        displayPromoPrice = `${promoNum.toFixed(2).replace('.00', '')} €`;
-    } else {
-        isPromoValid = true;
-        displayPromoPrice = String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`;
-    }
-}
+type VariantButtonData = {
+	label: string;
+	name: string;
+	price: string;
+	promo: string;
+	prixPromo: string;
+	image: string | null;
+	url: string;
+	attente: string;
+	descShort: string;
+	descLong: string;
+	gallery: string;
+	specs: string;
+};
 
+const variantItems: VariantButtonData[] = hasVariants && produit
+	? (produit.variantes as Record<string, unknown>[]).map((v) => {
+			const variantGallery = collectVariantGallery(v, allImages, directusUrl);
+			const vPromo = parsePromo(Boolean(v.promo), v.prix_promo as string);
+			const specPayload: Record<string, string> = {};
+			for (const def of SPEC_DEFS) {
+				const raw = (v as any)?.[def.field];
+				specPayload[def.key] = raw == null ? '' : String(raw).trim();
+			}
+			return {
+				label: String(v.nom_court || v.Nom_du_produit || ''),
+				name: (v.Nom_du_produit as string) || productName,
+				price: String(v.prix || produit.prix || ''),
+				promo: vPromo.isPromoValid ? 'true' : 'false',
+				prixPromo: String(v.prix_promo || ''),
+				image: v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl,
+				url: String(v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''),
+				attente: String(v.texte_attente_sortie || produit.texte_attente_sortie || ''),
+				descShort: String(v.description_simple || produit.descripton_simple || ''),
+				descLong: String(v.description_principale || produit.description_principale || ''),
+				gallery: JSON.stringify(variantGallery),
+				specs: JSON.stringify(specPayload),
+			};
+		})
+	: [];
 
-const metaDescription = produit?.seo_description || produit?.descripton_simple || 'Exosquelette NeoSomaTech';
+const hasAnySpecsInVariants = variantItems.some((v) => {
+	try {
+		const payload = JSON.parse(v.specs) as Record<string, string>;
+		return Object.values(payload).some(Boolean);
+	} catch {
+		return false;
+	}
+});
 
-const customAlts = produit?.custom_alts 
-    ? produit.custom_alts.split('\n').map((line: string) => line.trim()).filter((line: string) => line.length > 0)
-    : [];
+const hasAnySpecs = hasAnySpecsInProduit || hasAnySpecsInVariants;
 
+const faqItems: { question: string; reponse: string }[] =
+	produit?.faqs && Array.isArray(produit.faqs)
+		? (produit.faqs as Record<string, unknown>[]).map((f) => ({
+				question: String(f.question ?? ''),
+				reponse: String(f.reponse ?? ''),
+			}))
+		: [];
 
-
+const metaDescription =
+	(produit?.seo_description as string) ||
+	(produit?.descripton_simple as string) ||
+	'Exosquelette NeoSomaTech';
+const titleWords = productName.split(/\s+/);
+const marqueeText = `${productName} — `.repeat(4);
+const heroPriceHtml = renderPriceHtml(
+	String(produit?.prix ?? ''),
+	isPromoValid,
+	String(produit?.prix_promo ?? ''),
+);
 ---
 
 <Layout
-    title={produit ? `${produit.Nom_du_produit} | NeoSomaTech` : 'Produit introuvable'}
-    description={metaDescription}
-    image={imageUrl || '/og-image.png'}
-    type="product"
-    schemaItem={{ ...produit, allImages }}
-    faqs={produit?.faqs}
+	title={produit ? `${productName} | NeoSomaTech` : 'Produit introuvable'}
+	description={metaDescription}
+	image={imageUrl || '/og-image.png'}
+	type="product"
+	schemaItem={{ ...produit, allImages }}
+	faqs={produit?.faqs}
 >
+	<div class="product-page" data-product-page>
+		<div class="pp-ambient" aria-hidden="true">
+			<div class="pp-orb pp-orb-1"></div>
+			<div class="pp-orb pp-orb-2"></div>
+			<div class="pp-orb pp-orb-3"></div>
+			<div class="pp-grain"></div>
+		</div>
 
+		<div class="pp-inner">
+			{errorMessage ? (
+				<div class="pp-error">⚠️ {errorMessage}</div>
+			) : (
+				produit && (
+					<>
+						<nav class="pp-crumb" aria-label="Fil d'Ariane">
+							<a href="/">Accueil</a>
+							<span class="pp-crumb-sep">/</span>
+							<a href="/boutique">Boutique</a>
+							<span class="pp-crumb-sep">/</span>
+							<span id="pp-crumb-name">{productName}</span>
+						</nav>
 
-    <div class="page-wrapper container">
+						<header class="pp-hero-band">
+							<div class="pp-hero-left">
+								{produit.marque && (
+									<div class="pp-marque">
+										<span class="pp-marque-dot"></span>
+										{produit.marque as string}
+									</div>
+								)}
+								<h1 class="pp-title" id="pp-product-title">
+									<span class="pp-title-line">
+										{titleWords.map((word, i) => (
+											<span class="pp-title-word" style={`animation-delay: ${0.35 + i * 0.06}s`}>
+												{word}{' '}
+											</span>
+										))}
+									</span>
+								</h1>
+								{produit.descripton_simple && (
+									<p class="pp-short-desc">{produit.descripton_simple as string}</p>
+								)}
+								{noteMoyenne && (
+									<div class="pp-rating-pill">
+										<strong>{noteMoyenne}</strong>
+										<div class="pp-rating-stars">
+											{[1, 2, 3, 4, 5].map((i) => (
+												<span class={i <= Math.round(noteMoyenne) ? 'star filled' : 'star'}>★</span>
+											))}
+										</div>
+										<span>({avis.length} avis)</span>
+									</div>
+								)}
+							</div>
+							<div class="pp-hero-price">
+								<div class="pp-price-card" id="price-block-container">
+									<div class="pp-price-label">Prix TTC</div>
+									<Fragment set:html={heroPriceHtml} />
+								</div>
+							</div>
+						</header>
 
-        {errorMessage ? (
-            <div class="error-box">⚠️ {errorMessage}</div>
-        ) : produit && (
-            <>
-                <!-- BREADCRUMB -->
-                <nav class="breadcrumb">
-                    <a href="/">Accueil</a>
-                    <span class="sep">/</span>
-                    <a href="/boutique">Boutique</a>
-                    <span class="sep">/</span>
-                    <span>{produit.Nom_du_produit}</span>
-                </nav>
+						<section class="pp-stage" id="pp-stage">
+							<div class="pp-gallery-wrap">
+								{allImages.length > 0 ? (
+									<div class="carousel-container">
+										<div class="pp-gallery-frame">
+											<div class="pp-gallery-inner">
+												<img
+													id="main-carousel-img"
+													class="pp-gallery-img"
+													src={allImages[0]}
+													alt={customAlts[0] || `${productName} — vue 1`}
+													width="900"
+													height="900"
+													fetchpriority="high"
+													loading="eager"
+												/>
+												<div
+													class="pp-gallery-controls carousel-controls"
+													style={allImages.length <= 1 ? 'display:none' : undefined}
+												>
+													<button type="button" id="prev-btn" aria-label="Image précédente">←</button>
+													<button type="button" id="next-btn" aria-label="Image suivante">→</button>
+												</div>
+												<div class="pp-gallery-counter">
+													<span id="gallery-counter-current">01</span> / <span id="gallery-counter-total">{String(allImages.length).padStart(2, '0')}</span>
+												</div>
+											</div>
+										</div>
+										<div
+											class="pp-thumbs carousel-thumbnails"
+											style={allImages.length <= 1 ? 'display:none' : undefined}
+										>
+											{allImages.map((imgUrl, index) => (
+												<button
+													type="button"
+													class={`pp-thumb-btn thumbnail-btn ${index === 0 ? 'active' : ''}`}
+													data-index={index}
+													data-image={imgUrl}
+													aria-label={`Image ${index + 1}`}
+												>
+													<img
+														src={imgUrl}
+														alt={customAlts[index] || `${productName} — vue ${index + 1}`}
+														width="72"
+														height="72"
+														loading="lazy"
+													/>
+												</button>
+											))}
+										</div>
+									</div>
+								) : (
+									<div class="pp-gallery-placeholder">
+										<span>🦾</span>
+										<p>Visuel à venir</p>
+									</div>
+								)}
+							</div>
 
-                <!-- ===== BLOC PRINCIPAL (image gauche / infos droite) ===== -->
-                <style is:inline>
-                    /* CSS CRITIQUE : Fixe la mise en page AVANT le chargement du CSS Astro */
-                    .product-top { 
-                        display: grid !important; 
-                        grid-template-columns: 1fr !important; 
-                        gap: 2rem !important; 
-                        opacity: 0; 
-                        min-width: 0 !important;                    
-                    }
-                    .carousel-main { aspect-ratio: 1/1 !important; width: 100% !important; max-width: 600px !important; background: #1a1a2e; border-radius: 20px; overflow: hidden; }
-                    .product-top.is-ready { opacity: 1; transition: opacity 0.2s ease-in; }
-                    @media (min-width: 769px) { 
-                        .product-top { 
-                            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; 
-                            gap: 3rem !important; 
-                        } 
-                    }
-                </style>
+							<aside class="pp-panel">
+								<p class="pp-panel-title">Configuration</p>
 
-                <section class="product-top" id="main-product-section">
-                    <script is:inline>
-                        // On affiche le contenu dès que la structure est là
-                        (function(){
-                            const el = document.getElementById('main-product-section');
-                            if(el) el.classList.add('is-ready');
-                        })();
-                    </script>
-                    <!-- IMAGE GAUCHE (CARROUSEL) -->
-                    <div class="product-gallery">
-                        {allImages.length > 0 ? (
-                            <div class="carousel-container">
-                                <div class="carousel-main">
-                                    <img 
-                                        id="main-carousel-img" 
-                                        src={allImages[0]} 
-                                        alt={customAlts[0] || `${produit.Nom_du_produit} - vue 1`} 
-                                        width="800" 
-                                        height="800" 
-                                        style="aspect-ratio: 1/1; width: 100%; height: 100%; object-fit: cover; display: block;"
-                                        fetchpriority="high"
-                                        loading="eager"
-                                    />
-                                    
-                                    <div class="carousel-controls" style={allImages.length <= 1 ? "display: none;" : ""}>
-                                        <button id="prev-btn" aria-label="Image précédente">&larr;</button>
-                                        <button id="next-btn" aria-label="Image suivante">&rarr;</button>
-                                    </div>
-                                </div>
-                                <div class="carousel-thumbnails" style={allImages.length <= 1 ? "display: none;" : ""}>
-                                    {allImages.map((imgUrl, index) => (
-                                        <button 
-                                            class={`thumbnail-btn ${index === 0 ? 'active' : ''}`} 
-                                            data-index={index}
-                                            data-image={imgUrl}
-                                            aria-label={`Voir l'image ${index + 1}`}
-                                        >
-                                            <img 
-                                                src={imgUrl} 
-                                                alt={customAlts[index] || `${produit.Nom_du_produit} - vue ${index + 1}`} 
-                                                width="80" 
-                                                height="80" 
-                                                style="aspect-ratio: 1/1; object-fit: cover;"
-                                                loading="lazy"
-                                            />
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <div class="image-placeholder">
-                                <span>🦾</span>
-                                <p>Image à venir</p>
-                            </div>
-                        )}
-                    </div>
+								<div class="pp-panel-price" id="panel-price-block">
+									<ProductPrice
+										prix={produit.prix as string}
+										isPromo={isPromoValid}
+										promoPrice={produit.prix_promo as string}
+									/>
+								</div>
 
-                    <!-- INFOS DROITE -->
-                    <div class="product-details">
-                        <div class="product-tag">Exosquelette</div>
-                        <h1>{produit.Nom_du_produit}</h1>
+								{hasVariants && (
+									<div class="variants-selection">
+										<span class="pp-variants-label">Modèle</span>
+										<div class="pp-variants-grid">
+											<button
+												type="button"
+												class="variant-btn active"
+												data-name={productName}
+												data-price={produit.prix || ''}
+												data-promo={isPromoValid ? 'true' : 'false'}
+												data-prix-promo={produit.prix_promo || ''}
+												data-image={imageUrl}
+												data-url={produit.Bouton_acheter || ''}
+												data-attente={produit.texte_attente_sortie || ''}
+												data-desc-short={produit.descripton_simple || ''}
+												data-desc-long={produit.description_principale || ''}
+												data-gallery={JSON.stringify(allImages)}
+												data-specs={JSON.stringify(specValueByKey)}
+											>
+												<span>{produit.nom_court || 'Modèle principal'}</span>
+												<span class="variant-btn-check" aria-hidden="true"></span>
+											</button>
+											{variantItems.map((v) => (
+												<button
+													type="button"
+													class="variant-btn"
+													data-name={v.name}
+													data-price={v.price}
+													data-promo={v.promo}
+													data-prix-promo={v.prixPromo}
+													data-image={v.image}
+													data-url={v.url}
+													data-attente={v.attente}
+													data-desc-short={v.descShort}
+													data-desc-long={v.descLong}
+													data-gallery={v.gallery}
+													data-specs={v.specs}
+												>
+													<span>{v.label}</span>
+													<span class="variant-btn-check" aria-hidden="true"></span>
+												</button>
+											))}
+										</div>
+									</div>
+								)}
 
-                        <!-- PRIX -->
-                        <div class="price-block" id="price-block-container">
-                            {isPromoValid ? (
-                                <>
-                                    <span class="price original-price">
-                                        {produit.prix ? `${produit.prix} €` : ''}
-                                    </span>
-                                    <span class="price promo-price">
-                                        {displayPromoPrice}
-                                    </span>
-                                </>
-                            ) : (
-                                produit.prix ? (
-                                    <span class="price">
-                                        {produit.prix} €
-                                    </span>
-                                ) : null
-                            )}
-                        </div>
+								<div class="pp-trust-row">
+									<span class="pp-trust-badge">✓ Sélection expert</span>
+									<span class="pp-trust-badge">✓ Conseil NeoSoma</span>
+									{produit.garantie && <span class="pp-trust-badge">🛡 {produit.garantie as string}</span>}
+								</div>
 
-                        <!-- DESCRIPTION COURTE -->
-                        {produit.descripton_simple && (
-                            <p class="short-desc">{produit.descripton_simple}</p>
-                        )}
+								<div class="pp-cta-stack">
+									{produit.prix ? (
+										<a
+											href={(produit.Bouton_acheter as string) || '#'}
+											class="btn btn-buy"
+											id="main-cta-btn"
+											target={produit.Bouton_acheter ? '_blank' : '_self'}
+											rel={produit.Bouton_acheter ? 'noopener noreferrer' : undefined}
+										>
+											Acheter maintenant
+										</a>
+									) : (
+										<button
+											type="button"
+											class="btn btn-buy btn-disabled tooltip-btn"
+											id="main-cta-btn"
+											data-tooltip={(produit.texte_attente_sortie as string) || 'Bientôt disponible'}
+										>
+											Me notifier à la sortie
+										</button>
+									)}
+									<a href="/boutique" class="btn btn-outline">← Retour boutique</a>
+									{hasAnySpecs && (
+										<a href="/comparateur" class="pp-comparateur-link">
+											Comparer avec d'autres modèles →
+										</a>
+									)}
+								</div>
+							</aside>
+						</section>
 
-                        <!-- VARIANTES -->
-                        {produit.variantes && produit.variantes.length > 0 && (
-                            <div class="variants-selection">
-                                <span class="variants-label">Choisir un modèle :</span>
-                                <div class="variants-grid">
-                                    <button 
-                                        class="variant-btn active" 
-                                        data-name={produit.Nom_du_produit}
-                                        data-price={produit.prix || ''}
-                                        data-promo={isPromoValid ? 'true' : 'false'}
-                                        data-prix-promo={produit.prix_promo || ''}
-                                        data-image={imageUrl}
-                                        data-url={produit.Bouton_acheter || ''}
-                                        data-attente={produit.texte_attente_sortie || ''}
-                                        data-desc-short={produit.descripton_simple || ''}
-                                        data-desc-long={produit.description_principale || ''}
-                                        data-gallery={JSON.stringify(allImages)}
-                                    >
-                                        {produit.nom_court || 'Par défaut'}
-                                    </button>
-                                    {produit.variantes.map((v: any) => {
-                                        // Collecte des images de la galerie de la variante
-                                        let variantGallery: string[] = [];
-                                        if (v.Image) variantGallery.push(`${directusUrl}/assets/${v.Image}`);
-                                        if (v.galerie && Array.isArray(v.galerie)) {
-                                            v.galerie.forEach((item: any) => {
-                                                const fileId = item.directus_files_id || item.image || (typeof item === 'string' ? item : null);
-                                                if (fileId) variantGallery.push(`${directusUrl}/assets/${fileId}`);
-                                            });
-                                        }
+						{hasAnySpecs && (
+							<section class="pp-specs-section reveal">
+								<p class="pp-section-eyebrow">Fiche technique</p>
+								<h2 class="pp-section-heading">Caractéristiques clés</h2>
+								<div class="pp-specs-bento">
+									{SPEC_DEFS.map((def, i) => (
+										<article
+											class={`pp-spec-card reveal ${specValueByKey[def.key] ? '' : 'is-hidden'}`}
+											data-spec-key={def.key}
+											style={`transition-delay: ${i * 0.07}s`}
+										>
+											<div class="pp-spec-icon-wrap">
+												<SpecIcon icon={def.icon} />
+											</div>
+											<p class="pp-spec-label">{def.label}</p>
+											<p class="pp-spec-value">{specValueByKey[def.key]}</p>
+										</article>
+									))}
+								</div>
+							</section>
+						)}
 
-                                        return (
-                                            <button 
-                                                class="variant-btn" 
-                                                data-name={v.Nom_du_produit || produit.Nom_du_produit}
-                                                data-price={v.prix || produit.prix || ''}
-                                                data-promo={v.promo ? 'true' : 'false'}
-                                                data-prix-promo={v.prix_promo || ''}
-                                                data-image={v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl}
-                                                data-url={v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''}
-                                                data-attente={v.texte_attente_sortie || produit.texte_attente_sortie || ''}
-                                                data-desc-short={v.description_simple || produit.descripton_simple || ''}
-                                                data-desc-long={v.description_principale || produit.description_principale || ''}
-                                                data-gallery={variantGallery.length > 0 ? JSON.stringify(variantGallery) : JSON.stringify(allImages)}
-                                            >
-                                                {v.nom_court || v.Nom_du_produit}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+						<div class="pp-marquee-wrap" aria-hidden="true">
+							<div class="pp-marquee-track" id="pp-marquee-track">
+								<span class="pp-marquee-text">{marqueeText}</span>
+								<span class="pp-marquee-text">{marqueeText}</span>
+							</div>
+						</div>
 
-                        <hr class="divider" />
+						<div class="pp-content">
+							{produit.description_principale && (
+								<section class="pp-block pp-block--description reveal" id="description">
+									<div class="pp-block-header">
+										<span class="pp-block-num">01</span>
+										<h2 class="pp-block-title">Analyse complète</h2>
+									</div>
+									<header class="pp-description-header">
+										<p class="pp-description-kicker">Dossier produit</p>
+										<p class="pp-description-product">{productName}</p>
+										<div class="pp-description-chips">
+											{produit.marque && <span class="pp-chip">Marque: {produit.marque as string}</span>}
+											{produit.poids && <span class="pp-chip">Poids: {String(produit.poids)}</span>}
+											{produit.autonomie && <span class="pp-chip">Autonomie: {String(produit.autonomie)}</span>}
+											{produit.garantie && <span class="pp-chip">Garantie: {String(produit.garantie)}</span>}
+										</div>
+									</header>
+									<div class="pp-description-body">
+										<div class="pp-rich rich-content" set:html={produit.description_principale as string} />
+									</div>
+								</section>
+							)}
 
-                        <!-- CTA -->
-                        <div class="cta-group">
-                            {produit.prix ? (
-                                <a href={produit.Bouton_acheter || '#'} class="btn btn-buy" id="main-cta-btn" target={produit.Bouton_acheter ? "_blank" : "_self"} rel={produit.Bouton_acheter ? "noopener noreferrer" : undefined}>
-                                     Acheter le produit
-                                </a>
-                            ) : (
-                                <button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip={produit.texte_attente_sortie || "Bientôt disponible"}>Me notifier à la sortie</button>
-                            )}
-                            <a href="/boutique" class="btn btn-outline">&larr; Retour boutique</a>
-                        </div>
-                    </div>
-                </section>
+							<section class="pp-block reveal" id="faq">
+								<div class="pp-block-header">
+									<span class="pp-block-num">02</span>
+									<h2 class="pp-block-title">Questions fréquentes</h2>
+								</div>
+								{faqItems.length > 0 ? (
+									<div class="pp-faq-list faq-accordion">
+										{faqItems.map((f) => (
+											<details class="pp-faq-item faq-item">
+												<summary class="pp-faq-q faq-question">
+													<span>{f.question}</span>
+													<span class="pp-faq-icon" aria-hidden="true">+</span>
+												</summary>
+												<div class="pp-faq-a faq-answer">
+													<div class="pp-rich" set:html={f.reponse} />
+												</div>
+											</details>
+										))}
+									</div>
+								) : (
+									<p style="color: var(--text-light); line-height: 1.7;">
+										FAQ en préparation. <a href="/contact" style="color: #818cf8">Contactez-nous →</a>
+									</p>
+								)}
+							</section>
 
-                <!-- ===== BAS DE PAGE : Description + FAQ + Avis ===== -->
-                <section class="product-bottom">
+							<section class="pp-block reveal" id="avis-section">
+								<div class="pp-block-header">
+									<span class="pp-block-num">03</span>
+									<h2 class="pp-block-title">Avis clients</h2>
+								</div>
 
-                    <!-- DESCRIPTION LONGUE -->
-                    {produit.description_principale && (
-                        <div class="tab-section">
-                            <h2 class="section-title">Description complète</h2>
-                            <div class="rich-content" set:html={produit.description_principale} />
-                        </div>
-                    )}
+								<div class="pp-avis-layout">
+									{noteMoyenne ? (
+										<div class="pp-avis-score-ring">
+											<div class="pp-avis-big-num">{noteMoyenne}</div>
+											<div class="pp-rating-stars" style="justify-content:center; margin: 0.5rem 0;">
+												{[1, 2, 3, 4, 5].map((i) => (
+													<span class={i <= Math.round(noteMoyenne) ? 'star filled' : 'star'}>★</span>
+												))}
+											</div>
+											<p style="font-size: 0.85rem; color: var(--text-light);">{avis.length} avis</p>
+										</div>
+									) : (
+										<div class="pp-avis-score-ring">
+											<p style="color: var(--text-light);">Soyez le premier à noter ce produit</p>
+										</div>
+									)}
 
-                    <!-- FAQ -->
-                    <div class="tab-section faq-section">
-                        <h2 class="section-title">Questions fréquentes</h2>
-                        {produit.faqs && produit.faqs.length > 0 ? (
-                            <div class="faq-accordion">
-                                {produit.faqs.map((f: any) => (
-                                    <details class="faq-item">
-                                        <summary class="faq-question">
-                                            <span>{f.question}</span>
-                                            <span class="faq-icon"></span>
-                                        </summary>
-                                        <div class="faq-answer">
-                                            <div class="rich-content" set:html={f.reponse} />
-                                        </div>
-                                    </details>
-                                ))}
-                            </div>
-                        ) : (
-                            <div class="faq-placeholder">
-                                <p>🔧 Les questions fréquentes seront disponibles prochainement.</p>
-                                <p>Pour toute question, <a href="/contact">contactez-nous &rarr;</a></p>
-                            </div>
-                        )}
-                    </div>
+									<div class="pp-avis-list">
+										{avis.length > 0 ? (
+											avis.map((a) => (
+												<article class="pp-avis-card avis-card">
+													<div class="pp-avis-card-top">
+														<div class="pp-avis-avatar">
+															{a.prenom ? String(a.prenom)[0].toUpperCase() : '?'}
+														</div>
+														<div>
+															<strong style="color:#fff">{a.prenom || 'Anonyme'}</strong>
+															<div class="pp-rating-stars">
+																{[1, 2, 3, 4, 5].map((i) => (
+																	<span class={i <= (Number(a.note) || 0) ? 'star filled' : 'star'}>★</span>
+																))}
+															</div>
+														</div>
+													</div>
+													<p style="color: var(--text-light); line-height: 1.7; margin: 0;">{String(a.avis_texte ?? '')}</p>
+												</article>
+											))
+										) : (
+											<p style="color: var(--text-light);">Aucun avis pour l'instant.</p>
+										)}
+									</div>
+								</div>
 
-                    <!-- AVIS CLIENTS -->
-                    <div class="tab-section" id="avis-section">
-                        <div class="avis-header">
-                            <h2 class="section-title" style="margin-bottom:0; border-bottom:none;">Avis clients</h2>
-                            {noteMoyenne && (
-                                <div class="avis-moyenne">
-                                    <span class="avis-moyenne-note">{noteMoyenne}</span>
-                                    <div class="avis-moyenne-etoiles">
-                                        {[1,2,3,4,5].map(i => (
-                                            <span class={i <= Math.round(noteMoyenne) ? 'star filled' : 'star'}>★</span>
-                                        ))}
-                                    </div>
-                                    <span class="avis-count">({avis.length} avis)</span>
-                                </div>
-                            )}
-                        </div>
-                        <div style="border-bottom: 1px solid var(--border); margin: 1.25rem 0;"></div>
+								<div class="pp-avis-form-wrap avis-form-container">
+									<h3 style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">Laisser un avis</h3>
+									<form id="avis-form" novalidate>
+										<input type="hidden" name="produit_slug" value={slug} />
+										<div class="form-group">
+											<label class="form-label">Note <span class="required">*</span></label>
+											<div class="stars-input" id="stars-input" role="group" aria-label="Note">
+												{[1, 2, 3, 4, 5].map((i) => (
+													<button type="button" class="star-btn" data-value={i} aria-label={`${i} étoiles`}>★</button>
+												))}
+											</div>
+											<input type="hidden" name="note" id="note-value" value="" />
+											<span class="field-error" id="note-error"></span>
+										</div>
+										<div class="form-row">
+											<div class="form-group">
+												<label for="avis-prenom" class="form-label">Prénom <span class="required">*</span></label>
+												<input type="text" id="avis-prenom" name="prenom" class="form-input" autocomplete="given-name" />
+												<span class="field-error" id="prenom-error"></span>
+											</div>
+											<div class="form-group">
+												<label for="avis-email" class="form-label">Email <span class="required">*</span></label>
+												<input type="email" id="avis-email" name="email" class="form-input" autocomplete="email" />
+												<span class="field-error" id="email-error"></span>
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="avis-tel" class="form-label">Téléphone <span style="color:var(--text-light);font-weight:400">(facultatif)</span></label>
+											<input type="tel" id="avis-tel" name="telephone" class="form-input" autocomplete="tel" />
+										</div>
+										<div class="form-group">
+											<label for="avis-texte" class="form-label">Commentaire <span class="required">*</span></label>
+											<textarea id="avis-texte" name="avis_texte" class="form-input" rows={4}></textarea>
+											<span class="field-error" id="avis-texte-error"></span>
+										</div>
+										<div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between;">
+											<span style="font-size:0.8rem;color:var(--text-light)"><span class="required">*</span> Obligatoire</span>
+											<button type="submit" class="btn btn-buy" id="avis-submit">Envoyer mon avis</button>
+										</div>
+										<div id="avis-success" class="avis-success" style="display:none">✅ Merci ! Votre avis a été enregistré.</div>
+										<div id="avis-error-global" class="avis-error-global" style="display:none"></div>
+									</form>
+								</div>
+							</section>
 
-                        <!-- Liste des avis existants -->
-                        {avis.length > 0 ? (
-                            <div class="avis-liste">
-                                {avis.map((a: any) => (
-                                    <div class="avis-card">
-                                        <div class="avis-card-top">
-                                            <div class="avis-avatar">{a.prenom ? a.prenom[0].toUpperCase() : '?'}</div>
-                                            <div class="avis-meta">
-                                                <strong class="avis-prenom">{a.prenom || 'Anonyme'}</strong>
-                                                <div class="avis-etoiles">
-                                                    {[1,2,3,4,5].map(i => (
-                                                        <span class={i <= (a.note || 0) ? 'star filled' : 'star'}>★</span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            {a.date_created && (
-                                                <span class="avis-date">
-                                                    {new Date(a.date_created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p class="avis-commentaire">{a.avis_texte}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p class="avis-empty">Soyez le premier à donner votre avis sur ce produit !</p>
-                        )}
+							{produitsSimilaires.length > 0 && (
+								<section class="pp-block reveal">
+									<div class="pp-block-header">
+										<span class="pp-block-num">04</span>
+										<h2 class="pp-block-title">Vous aimerez aussi</h2>
+									</div>
+									<div class="pp-similar-scroll">
+										{produitsSimilaires.map((p) => (
+											<article class="pp-similar-card">
+												<a href={`/produits/${p.slug || p.id}`} class="pp-similar-img">
+													{p.image ? (
+														<img src={`${directusUrl}/assets/${p.image}`} alt={p.Nom_du_produit as string} loading="lazy" />
+													) : (
+														<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">🦾</span>
+													)}
+												</a>
+												<div class="pp-similar-body">
+													{p.marque && <span class="pp-similar-brand">{p.marque as string}</span>}
+													<h3><a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit as string}</a></h3>
+													<p class="pp-similar-price">{p.prix ? `${p.prix} €` : 'Contact'}</p>
+													<a href={`/produits/${p.slug || p.id}`} class="pp-comparateur-link">Découvrir →</a>
+												</div>
+											</article>
+										))}
+									</div>
+								</section>
+							)}
+						</div>
 
-                        <!-- Formulaire de soumission -->
-                        <div class="avis-form-container">
-                            <h3 class="avis-form-title">Laisser un avis</h3>
-                            <form id="avis-form" novalidate>
-                                <input type="hidden" name="produit_slug" value={slug} />
-
-                                <!-- Note avec étoiles -->
-                                <div class="form-group">
-                                    <label class="form-label">Note <span class="required">*</span></label>
-                                    <div class="stars-input" id="stars-input" role="group" aria-label="Note de 1 à 5">
-                                        {[1,2,3,4,5].map(i => (
-                                            <button type="button" class="star-btn" data-value={i} aria-label={`${i} étoile${i > 1 ? 's' : ''}`}>★</button>
-                                        ))}
-                                    </div>
-                                    <input type="hidden" name="note" id="note-value" value="" />
-                                    <span class="field-error" id="note-error"></span>
-                                </div>
-
-                                <div class="form-row">
-                                    <!-- Prénom -->
-                                    <div class="form-group">
-                                        <label for="avis-prenom" class="form-label">Prénom <span class="required">*</span></label>
-                                        <input type="text" id="avis-prenom" name="prenom" class="form-input" placeholder="Votre prénom" autocomplete="given-name" />
-                                        <span class="field-error" id="prenom-error"></span>
-                                    </div>
-                                    <!-- Email -->
-                                    <div class="form-group">
-                                        <label for="avis-email" class="form-label">Email <span class="required">*</span></label>
-                                        <input type="email" id="avis-email" name="email" class="form-input" placeholder="votre@email.com" autocomplete="email" />
-                                        <span class="field-error" id="email-error"></span>
-                                    </div>
-                                </div>
-
-                                <!-- Téléphone -->
-                                <div class="form-group">
-                                    <label for="avis-tel" class="form-label">Téléphone <span class="optional">(facultatif)</span></label>
-                                    <input type="tel" id="avis-tel" name="telephone" class="form-input" placeholder="+33 6 12 34 56 78" autocomplete="tel" />
-                                </div>
-
-                                <!-- Commentaire -->
-                                <div class="form-group">
-                                    <label for="avis-texte" class="form-label">Commentaire <span class="required">*</span></label>
-                                    <textarea id="avis-texte" name="avis_texte" class="form-input form-textarea" placeholder="Partagez votre expérience avec ce produit..." rows={4}></textarea>
-                                    <span class="field-error" id="avis-texte-error"></span>
-                                </div>
-
-                                <div class="form-footer">
-                                    <span class="form-note"><span class="required">*</span> Champs obligatoires</span>
-                                    <button type="submit" class="btn btn-buy" id="avis-submit">Envoyer mon avis</button>
-                                </div>
-
-                                <div id="avis-success" class="avis-success" style="display:none;">
-                                    ✅ Merci ! Votre avis a bien été enregistré.
-                                </div>
-                                <div id="avis-error-global" class="avis-error-global" style="display:none;">
-                                    ⚠️ Une erreur est survenue. Veuillez réessayer.
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- PRODUITS SIMILAIRES -->
-                    {produitsSimilaires.length > 0 && (
-                        <div class="similar-products">
-                            <h2 class="section-title main-title">Produits <span class="gradient-text">Similaires</span></h2>
-                            <div class="similar-grid">
-                                {produitsSimilaires.map((p: any) => (
-                                    <article class="similar-card">
-                                        <a href={`/produits/${p.slug || p.id}`} class="similar-card-img">
-                                            {p.image ? (
-                                                <img src={`${directusUrl}/assets/${p.image}`} alt={p.Nom_du_produit} />
-                                            ) : (
-                                                <div class="similar-placeholder">🦾</div>
-                                            )}
-                                        </a>
-                                        <div class="similar-card-body">
-                                            {p.marque && <div class="brand-tag">{p.marque}</div>}
-                                            <h3><a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit}</a></h3>
-                                            <p class="similar-price">{p.prix ? `${p.prix} €` : 'Contact'}</p>
-                                            <a href={`/produits/${p.slug || p.id}`} class="similar-btn">Voir &rarr;</a>
-                                        </div>
-                                    </article>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                </section>
-            </>
-        )}
-    </div>
+						<div class="pp-sticky-dock" id="pp-sticky-dock">
+							<div class="pp-sticky-inner">
+								<span class="pp-sticky-name" id="sticky-product-name">{productName}</span>
+								<div class="pp-sticky-price" id="sticky-price-block">
+									<Fragment set:html={heroPriceHtml} />
+								</div>
+								<div class="pp-sticky-cta">
+									{produit.prix ? (
+										<a
+											href={(produit.Bouton_acheter as string) || '#'}
+											class="btn"
+											id="sticky-cta-btn"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											Acheter
+										</a>
+									) : (
+										<button type="button" class="btn btn-disabled" id="sticky-cta-btn" disabled>Bientôt</button>
+									)}
+								</div>
+							</div>
+						</div>
+					</>
+				)
+			)}
+		</div>
+	</div>
 </Layout>
 
-<style>
-    .page-wrapper {
-        padding-top: 2rem;
-        padding-bottom: 5rem;
-    }
-
-    /* BREADCRUMB */
-    .breadcrumb {
-        display: flex; align-items: center; gap: 0.5rem;
-        font-size: 0.82rem; color: var(--text-light);
-        margin-bottom: 2rem; flex-wrap: wrap;
-    }
-    .breadcrumb a { color: #818cf8; text-decoration: none; transition: color 0.2s; }
-    .breadcrumb a:hover { color: #a5b4fc; }
-    .sep { color: #4a5568; }
-
-    /* ===== BLOC PRINCIPAL ===== */
-    .product-top {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 3rem;
-        align-items: flex-start;
-        margin-bottom: 3rem;
-        min-width: 0;
-    }
-
-    /* GALERIE / CARROUSEL */
-    .product-gallery { position: sticky; top: 6rem; min-width: 0; }
-    
-    .carousel-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        min-width: 0;
-    }
-    .carousel-main {
-        position: relative;
-        border-radius: 20px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        background: var(--surface);
-    }
-    .carousel-main img {
-        width: 100%;
-        height: 100%;
-        aspect-ratio: 1 / 1;
-        object-fit: cover;
-        display: block;
-        transition: opacity 0.3s ease-in-out;
-    }
-    
-    /* Boutons de contrôle (flèches) */
-    .carousel-controls {
-        position: absolute;
-        top: 50%;
-        left: 0; right: 0;
-        transform: translateY(-50%);
-        display: flex;
-        justify-content: space-between;
-        padding: 0 1rem;
-        pointer-events: none; /* Laisse cliquer au travers sauf sur les boutons */
-    }
-    .carousel-controls button {
-        pointer-events: auto;
-        background: rgba(15, 23, 42, 0.7);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.2);
-        width: 40px; height: 40px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        cursor: pointer;
-        backdrop-filter: blur(4px);
-        transition: background 0.2s, transform 0.2s;
-    }
-    .carousel-controls button:hover {
-        background: var(--primary, #6366f1);
-        transform: scale(1.1);
-    }
-
-    /* Vignettes (thumbnails) */
-    .carousel-thumbnails {
-        display: flex;
-        gap: 0.75rem;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-        scrollbar-width: thin;
-        scrollbar-color: var(--border) transparent;
-    }
-    .carousel-thumbnails::-webkit-scrollbar {
-        height: 6px;
-    }
-    .carousel-thumbnails::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: 6px;
-    }
-    .thumbnail-btn {
-        flex: 0 0 80px;
-        height: 80px;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 2px solid transparent;
-        cursor: pointer;
-        background: var(--surface);
-        padding: 0;
-        opacity: 0.6;
-        transition: opacity 0.2s, border-color 0.2s;
-    }
-    .thumbnail-btn:hover {
-        opacity: 0.9;
-    }
-    .thumbnail-btn.active {
-        opacity: 1;
-        border-color: #6366f1;
-    }
-    .thumbnail-btn img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover; /* Pareil ici, les vignettes gardent une bonne proportion */
-        display: block;
-    }
-    .image-placeholder {
-        border-radius: 20px;
-        border: 1px dashed var(--border);
-        background: var(--surface);
-        aspect-ratio: 1 / 1;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        gap: 1rem; color: var(--text-light);
-    }
-    .image-placeholder span { font-size: 4rem; }
-
-    /* INFOS DROITE */
-    .product-details {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-        min-width: 0;
-    }
-    .product-tag {
-        font-size: 0.72rem; font-weight: 600;
-        color: #818cf8; text-transform: uppercase; letter-spacing: 1.5px;
-    }
-    h1 {
-        font-size: clamp(1.6rem, 3vw, 2.4rem);
-        font-weight: 900; color: #fff;
-        line-height: 1.2; letter-spacing: -0.5px;
-    }
-    .price-block {
-        display: flex; align-items: baseline; gap: 1rem;
-        flex-wrap: wrap;
-    }
-    :global(.price) {
-        font-size: 2.4rem; font-weight: 900;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    :global(.original-price) {
-        font-size: 1.5rem;
-        text-decoration: line-through;
-        color: #a0aec0;
-        background: none;
-        -webkit-background-clip: unset; -webkit-text-fill-color: unset; background-clip: unset;
-    }
-    :global(.promo-price) {
-        color: #ef4444;
-        background: none;
-        -webkit-background-clip: unset; -webkit-text-fill-color: unset; background-clip: unset;
-    }
-    .price-note {
-        font-size: 0.82rem; color: var(--text-light);
-    }
-    .short-desc {
-        font-size: 1rem; color: var(--text-light);
-        line-height: 1.7;
-    }
-    .divider {
-        border: none; border-top: 1px solid var(--border); margin: 0;
-    }
-    .cta-group {
-        display: flex; flex-direction: column; gap: 0.75rem;
-    }
-    .btn-buy {
-        font-size: 1.05rem;
-        padding: 0.9rem 2rem;
-        border-radius: 12px;
-        text-align: center;
-    }
-    
-    .btn-disabled {
-        background: #4a5568 !important;
-        color: #a0aec0 !important;
-        cursor: not-allowed;
-        box-shadow: none;
-        position: relative;
-    }
-    
-    .tooltip-btn[data-tooltip]:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        margin-bottom: 8px;
-        background: rgba(15, 23, 42, 0.95);
-        color: #fff;
-        padding: 0.6rem 1.2rem;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        white-space: nowrap;
-        z-index: 10;
-        pointer-events: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        border: 1px solid var(--border);
-    }
-    .tooltip-btn[data-tooltip]:hover::before {
-        content: '';
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        border-width: 6px;
-        border-style: solid;
-        border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;
-        margin-bottom: -4px;
-        z-index: 10;
-    }
-
-    /* VARIANTES */
-    .variants-selection { margin-top: 1rem; }
-    .variants-label { font-size: 0.88rem; font-weight: 600; color: #fff; margin-bottom: 0.75rem; display: block; }
-    .variants-grid { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .variant-btn {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: #fff;
-        padding: 0.6rem 1.25rem;
-        border-radius: 10px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .variant-btn:hover { border-color: #818cf8; background: rgba(99, 102, 241, 0.05); }
-    .variant-btn.active {
-        border-color: #6366f1;
-        background: rgba(99, 102, 241, 0.1);
-        box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
-    }
-
-    /* GARANTIES */
-    .trust-badges {
-        display: flex; gap: 0.75rem; flex-wrap: wrap;
-        margin-top: 0.25rem;
-    }
-    .badge {
-        display: flex; align-items: center; gap: 0.4rem;
-        font-size: 0.8rem; color: var(--text-light);
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 8px; padding: 0.4rem 0.75rem;
-    }
-    .badge span { font-size: 1rem; }
-
-    /* ===== BAS DE PAGE ===== */
-    .product-bottom {
-        border-top: 1px solid var(--border);
-        padding-top: 3rem;
-        display: flex;
-        flex-direction: column;
-        gap: 3rem;
-        min-width: 0;
-    }
-    .tab-section {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 2rem 2.5rem;
-        min-width: 0;
-        overflow-wrap: break-word;
-        word-break: break-word;
-    }
-    .section-title {
-        font-size: 1.35rem; font-weight: 800; color: #fff;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border);
-    }
-
-    /* FAQ ACCORDEON */
-    .faq-accordion {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    .faq-item {
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        background: rgba(255,255,255,0.02);
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-    .faq-item[open] {
-        border-color: #6366f1;
-        background: rgba(99, 102, 241, 0.05);
-    }
-    .faq-question {
-        padding: 1.25rem 1.5rem;
-        cursor: pointer;
-        list-style: none; /* Cache la flèche native */
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-weight: 600;
-        color: #fff;
-        user-select: none;
-    }
-    .faq-question::-webkit-details-marker {
-        display: none; /* Cache la flèche sur Chrome/Safari */
-    }
-    .faq-question::placeholder { color: var(--text-light); }
-    .faq-icon {
-        width: 20px;
-        height: 20px;
-        position: relative;
-        transition: transform 0.3s ease;
-    }
-    .faq-icon::before, .faq-icon::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 12px;
-        height: 2px;
-        background: #6366f1;
-        transform: translate(-50%, -50%);
-        transition: all 0.3s ease;
-    }
-    .faq-icon::after {
-        transform: translate(-50%, -50%) rotate(90deg);
-    }
-    .faq-item[open] .faq-icon {
-        transform: rotate(45deg);
-    }
-    .faq-item[open] .faq-icon::after {
-        opacity: 0;
-    }
-    .faq-answer {
-        padding: 0 1.5rem 1.5rem;
-        color: var(--text-light);
-        line-height: 1.7;
-    }
-
-    /* WYSIWYG — :global() requis car set:html échappe au scope Astro */
-    :global(.rich-content) { color: var(--text); line-height: 1.85; font-size: 1rem; font-family: var(--font-description); }
-    :global(.rich-content *) { font-family: var(--font-description) !important; }
-    :global(.rich-content h2) { font-size: 1.3rem; font-weight: 800; color: #fff; margin: 1.75rem 0 0.6rem; }
-    :global(.rich-content h3) { font-size: 1.1rem; font-weight: 700; color: #e2e8f0; margin: 1.25rem 0 0.5rem; }
-    :global(.rich-content h4) { font-size: 1rem; font-weight: 600; color: #cbd5e1; margin: 1rem 0 0.4rem; }
-    :global(.rich-content p) { margin-bottom: 1.1rem; }
-    :global(.rich-content br) { display: block; margin-bottom: 0.5rem; }
-    :global(.rich-content ul) { list-style: disc; margin: 0.75rem 0 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
-    :global(.rich-content ol) { list-style: decimal; margin: 0.75rem 0 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.4rem; }
-    :global(.rich-content li::marker) { color: #6366f1; }
-    :global(.rich-content strong) { color: #e2e8f0; font-weight: 700; }
-    :global(.rich-content em) { font-style: italic; color: #a5b4fc; }
-    :global(.rich-content a) { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
-    :global(.rich-content a:hover) { color: #a5b4fc; }
-    :global(.rich-content blockquote) {
-        border-left: 3px solid #6366f1;
-        padding: 0.75rem 1.25rem; margin: 1.25rem 0;
-        background: rgba(99,102,241,0.08); border-radius: 0 8px 8px 0;
-        color: #a5b4fc; font-style: italic;
-    }
-    :global(.rich-content img) { max-width: 100%; border-radius: 10px; margin: 1.25rem 0; display: block; }
-    :global(.rich-content hr) { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-    :global(.rich-content table) { width: 100%; border-collapse: collapse; margin: 1.5rem 0; display: block; overflow-x: auto; }
-    :global(.rich-content pre) { max-width: 100%; overflow-x: auto; padding: 1rem; background: var(--surface-2); border-radius: 8px; margin: 1.25rem 0; }
-    :global(.rich-content th) { background: rgba(99,102,241,0.1); color: #a5b4fc; padding: 0.75rem 1rem; text-align: left; font-weight: 600; border: 1px solid var(--border); }
-    :global(.rich-content td) { padding: 0.65rem 1rem; border: 1px solid var(--border); color: var(--text); }
-
-    /* FAQ PLACEHOLDER */
-    .faq-placeholder {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-light);
-        font-size: 0.95rem;
-        line-height: 1.7;
-    }
-    .faq-placeholder a { color: #818cf8; text-decoration: underline; }
-
-    /* ===== AVIS CLIENTS ===== */
-    .avis-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    .avis-moyenne {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .avis-moyenne-note {
-        font-size: 2rem;
-        font-weight: 900;
-        color: #f59e0b;
-    }
-    .avis-moyenne-etoiles { display: flex; gap: 2px; }
-    .avis-count { font-size: 0.88rem; color: var(--text-light); }
-    .star { font-size: 1.1rem; color: #4a5568; }
-    .star.filled { color: #f59e0b; }
-
-    /* Liste des avis */
-    .avis-liste {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-        margin-bottom: 2.5rem;
-    }
-    .avis-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.25rem 1.5rem;
-        transition: border-color 0.2s;
-    }
-    .avis-card:hover { border-color: #6366f1; }
-    .avis-card-top {
-        display: flex;
-        align-items: center;
-        gap: 0.85rem;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
-    }
-    .avis-avatar {
-        width: 40px; height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 1rem; color: #fff;
-        flex-shrink: 0;
-    }
-    .avis-meta { flex: 1; }
-    .avis-prenom { font-size: 0.95rem; color: #fff; display: block; }
-    .avis-etoiles { display: flex; gap: 2px; margin-top: 2px; }
-    .avis-date { font-size: 0.78rem; color: var(--text-light); margin-left: auto; }
-    .avis-commentaire { font-size: 0.95rem; color: var(--text-light); line-height: 1.7; margin: 0; }
-    .avis-empty {
-        text-align: center;
-        padding: 2rem;
-        color: var(--text-light);
-        font-size: 0.95rem;
-        margin-bottom: 2rem;
-    }
-
-    /* Formulaire d'avis */
-    .avis-form-container {
-        border-top: 1px solid var(--border);
-        padding-top: 2rem;
-        margin-top: 1rem;
-    }
-    .avis-form-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 1.5rem;
-    }
-    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
-    .form-label { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; }
-    .required { color: #ef4444; }
-    .optional { color: var(--text-light); font-weight: 400; font-size: 0.8rem; }
-    .form-input {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 0.7rem 1rem;
-        font-size: 0.95rem;
-        color: #fff;
-        width: 100%;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        font-family: inherit;
-        outline: none;
-    }
-    .form-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
-    .form-input.error { border-color: #ef4444; }
-    .form-input.valid { border-color: #10b981; }
-    .form-textarea { resize: vertical; min-height: 100px; }
-    .field-error { font-size: 0.8rem; color: #ef4444; min-height: 1.1em; }
-
-    /* Étoiles cliquables */
-    .stars-input { display: flex; gap: 4px; }
-    .star-btn {
-        background: none; border: none; cursor: pointer;
-        font-size: 2rem; color: #4a5568;
-        transition: color 0.15s, transform 0.1s;
-        padding: 0 2px;
-        line-height: 1;
-    }
-    .star-btn:hover, .star-btn.active { color: #f59e0b; }
-    .star-btn.hover-preview { color: #f59e0b; }
-
-    .form-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-top: 0.5rem;
-    }
-    .form-note { font-size: 0.8rem; color: var(--text-light); }
-    .avis-success {
-        margin-top: 1rem;
-        padding: 1rem 1.25rem;
-        background: rgba(16,185,129,0.1);
-        border: 1px solid rgba(16,185,129,0.3);
-        border-radius: 10px;
-        color: #6ee7b7;
-        font-size: 0.95rem;
-    }
-    .avis-error-global {
-        margin-top: 1rem;
-        padding: 1rem 1.25rem;
-        background: rgba(239,68,68,0.1);
-        border: 1px solid rgba(239,68,68,0.3);
-        border-radius: 10px;
-        color: #fca5a5;
-        font-size: 0.95rem;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-        .product-top { grid-template-columns: 1fr; gap: 2rem; }
-        .product-gallery { position: static; }
-        .tab-section { padding: 1.5rem; }
-    }
-
-    .error-box {
-        background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
-        color: #fca5a5; padding: 2rem; border-radius: 12px; text-align: center;
-    }
-
-    /* PRODUITS SIMILAIRES */
-    .similar-products {
-        margin-top: 2rem;
-    }
-    .similar-products .main-title {
-        border-bottom: none;
-        margin-bottom: 2rem;
-        text-align: center;
-        font-size: 2rem;
-    }
-    .gradient-text {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .similar-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 1.5rem;
-    }
-    .similar-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        overflow: hidden;
-        transition: transform 0.2s, border-color 0.2s;
-    }
-    .similar-card:hover {
-        transform: translateY(-5px);
-        border-color: #6366f1;
-    }
-    .similar-card-img {
-        display: block;
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
-        background: var(--surface-2);
-        padding: 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: padding 0.4s ease;
-    }
-    .similar-card-img img {
-        width: 100%; height: 100%;
-        object-fit: contain;
-        border-radius: 20px;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .similar-card:hover .similar-card-img { 
-        padding: 0; 
-    }
-    .similar-card:hover .similar-card-img img { 
-        transform: scale(1.05); 
-    }
-    .similar-placeholder {
-        width: 100%; height: 100%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 2.5rem; background: rgba(99,102,241,0.05);
-    }
-    .similar-card-body {
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-    .brand-tag {
-        font-size: 0.68rem; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 1px;
-    }
-    .similar-card-body h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
-    .similar-card-body h3 a { color: #fff; text-decoration: none; }
-    .similar-card-body h3 a:hover { color: #818cf8; }
-    .similar-price { font-size: 1.1rem; font-weight: 800; color: #818cf8; margin: 0; }
-    .similar-btn {
-        margin-top: 0.5rem;
-        font-size: 0.85rem; font-weight: 600; color: #818cf8;
-        text-decoration: none; display: flex; align-items: center; gap: 0.25rem;
-    }
-    .similar-btn:hover { text-decoration: underline; }
-
-    @media (max-width: 640px) {
-        .similar-grid { grid-template-columns: 1fr; }
-    }
-</style>
-
-<script>
-    // Script exécuté côté client pour gérer le carrousel
-    document.addEventListener('DOMContentLoaded', () => {
-        const mainImg = document.getElementById('main-carousel-img') as HTMLImageElement;
-        const thumbnails = document.querySelectorAll('.thumbnail-btn');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-
-        if (!mainImg || thumbnails.length === 0) return;
-
-        let currentIndex = 0;
-
-        function updateCarousel(index: number) {
-            // On récupère les miniatures actuelles (peuvent avoir changé avec une variante)
-            const currentThumbnails = document.querySelectorAll('.thumbnail-btn');
-            if (currentThumbnails.length === 0) return;
-
-            const newImage = currentThumbnails[index].getAttribute('data-image');
-            if (newImage && mainImg) {
-                // Petit effet de fondu transparent
-                mainImg.style.opacity = '0.5';
-                setTimeout(() => {
-                    mainImg.src = newImage;
-                    const thumbImg = currentThumbnails[index].querySelector('img');
-                    if (thumbImg) mainImg.alt = thumbImg.alt;
-                    mainImg.style.opacity = '1';
-                }, 150);
-            }
-            
-            // Mettre à jour la classe active sur les vignettes
-            currentThumbnails.forEach(t => t.classList.remove('active'));
-            currentThumbnails[index].classList.add('active');
-            
-            // Scroller la vignette pour qu'elle soit visible (désactivé pour éviter que la page ne scrolle)
-            /*
-            (currentThumbnails[index] as HTMLElement).scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
-            });
-            */
-        }
-
-        // Fonction pour attacher les écouteurs aux vignettes
-        function attachThumbnailEvents() {
-            const currentThumbnails = document.querySelectorAll('.thumbnail-btn');
-            currentThumbnails.forEach((thumb, index) => {
-                // On clone pour éviter les doubles écouteurs si nécessaire
-                const newThumb = thumb.cloneNode(true);
-                thumb.parentNode?.replaceChild(newThumb, thumb);
-                newThumb.addEventListener('click', () => {
-                    currentIndex = index;
-                    updateCarousel(currentIndex);
-                });
-            });
-        }
-
-        // Initialisation
-        attachThumbnailEvents();
-
-        // Flèches de navigation
-        if (prevBtn && nextBtn) {
-            prevBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex > 0) ? currentIndex - 1 : thumbnails.length - 1;
-                updateCarousel(currentIndex);
-            });
-
-            nextBtn.addEventListener('click', () => {
-                currentIndex = (currentIndex < thumbnails.length - 1) ? currentIndex + 1 : 0;
-                updateCarousel(currentIndex);
-            });
-        }
-
-        // --- GESTION DES VARIANTES ---
-        const variantBtns = document.querySelectorAll('.variant-btn');
-        const priceBlock = document.getElementById('price-block-container');
-        const shortDesc = document.querySelector('.short-desc');
-        const longDesc = document.querySelector('.rich-content');
-        const carouselThumbnails = document.querySelector('.carousel-thumbnails');
-
-        variantBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Mettre à jour l'état actif
-                variantBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                // Récupérer les données des attributs
-                const newPrice = btn.getAttribute('data-price');
-                const isPromo = btn.getAttribute('data-promo') === 'true';
-                const newPrixPromo = btn.getAttribute('data-prix-promo');
-                const newImage = btn.getAttribute('data-image');
-                const newUrl = btn.getAttribute('data-url');
-                const newAttente = btn.getAttribute('data-attente');
-                const newDescShort = btn.getAttribute('data-desc-short');
-                const newDescLong = btn.getAttribute('data-desc-long');
-                const newName = btn.getAttribute('data-name');
-                const newGalleryStr = btn.getAttribute('data-gallery');
-
-                // Mise à jour du Titre (H1, Document Title, Breadcrumb)
-                if (newName) {
-                    // Update H1
-                    const h1 = document.querySelector('h1');
-                    if (h1) h1.textContent = newName;
-                    
-                    // Update Document Title
-                    document.title = `${newName} | NeoSomaTech`;
-                    
-                    // Update Breadcrumb last span
-                    const breadcrumbLast = document.querySelector('.breadcrumb span:last-child');
-                    if (breadcrumbLast) breadcrumbLast.textContent = newName;
-                }
-
-                // Mise à jour du Prix
-                if (priceBlock && newPrice) {
-                    if (isPromo && newPrixPromo) {
-                        const cleanPromo = newPrixPromo.replace(',', '.').replace(/[^\d.-]/g, '');
-                        const promoVal = parseFloat(cleanPromo);
-                        let finalPromoStr = newPrixPromo;
-                        if (!isNaN(promoVal)) {
-                            finalPromoStr = promoVal.toFixed(2).replace('.00', '') + (newPrixPromo.includes('€') ? '' : ' €');
-                        } else if (!finalPromoStr.includes('€')) {
-                            finalPromoStr += ' €';
-                        }
-                        
-                        priceBlock.innerHTML = `
-                            <span class="price original-price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
-                            <span class="price promo-price">${finalPromoStr}</span>
-                        `;
-                    } else {
-                        // Cas sans promo
-                        priceBlock.innerHTML = newPrice ? `
-                            <span class="price">${newPrice.includes('€') ? newPrice : newPrice + ' €'}</span>
-                        ` : '';
-                    }
-                }
-
-                // Mise à jour de l'image (si on en a une)
-                if (newImage && mainImg) {
-                    mainImg.style.opacity = '0.5';
-                    setTimeout(() => {
-                        mainImg.src = newImage;
-                        // On prend l'alt de la première vignette de la nouvelle galerie
-                        const firstThumb = carouselThumbnails?.querySelector('.thumbnail-btn img') as HTMLImageElement | null;
-                        if (firstThumb) mainImg.alt = firstThumb.alt;
-                        mainImg.style.opacity = '1';
-                    }, 150);
-                }
-
-                // Mise à jour du lien d'achat
-                const currentBuyBtn = document.getElementById('main-cta-btn');
-                if (currentBuyBtn) {
-                    if (newPrice) {
-                        currentBuyBtn.outerHTML = `<a href="${newUrl || '#'}" class="btn btn-buy" id="main-cta-btn" target="${newUrl ? '_blank' : '_self'}" ${newUrl ? 'rel="noopener noreferrer"' : ''}> Acheter le produit</a>`;
-                    } else {
-                        currentBuyBtn.outerHTML = `<button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip="${newAttente || 'Bientôt disponible'}">Me notifier à la sortie</button>`;
-                    }
-                }
-
-                // Mise à jour des descriptions
-                if (shortDesc && newDescShort) {
-                    shortDesc.textContent = newDescShort;
-                }
-                if (longDesc && newDescLong) {
-                    longDesc.innerHTML = newDescLong;
-                }
-
-                // Mise à jour de la Galerie (Vignettes)
-                if (carouselThumbnails && newGalleryStr) {
-                    try {
-                        const gallery = JSON.parse(newGalleryStr);
-                        if (Array.isArray(gallery)) {
-                            // On affiche ou masque les contrôles selon le nombre d'images
-                            const controls = document.querySelector('.carousel-controls') as HTMLElement;
-                            if (controls) {
-                                controls.style.display = gallery.length > 1 ? 'flex' : 'none';
-                            }
-                            if (carouselThumbnails) {
-                                (carouselThumbnails as HTMLElement).style.display = gallery.length > 1 ? 'flex' : 'none';
-                            }
-
-                            if (gallery.length > 0) {
-                                // On récupère le nom du produit pour l'alt
-                                const productName = document.querySelector('h1')?.textContent || 'Produit';
-                                
-                                // On vide et on reconstruit les vignettes
-                                carouselThumbnails.innerHTML = gallery.map((imgUrl, index) => `
-                                    <button 
-                                        class="thumbnail-btn ${index === 0 ? 'active' : ''}" 
-                                        data-index="${index}"
-                                        data-image="${imgUrl}"
-                                        aria-label="Voir l'image ${index + 1}"
-                                        style="flex: 0 0 80px; width: 80px; height: 80px; padding: 0; overflow: hidden; border-radius: 12px; border: 2px solid transparent; background: var(--surface);"
-                                    >
-                                        <img src="${imgUrl}" alt="${productName} - vue ${index + 1}" style="width: 100%; height: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;" />
-                                    </button>
-                                `).join('');
-
-                                // Ré-attacher les écouteurs de clics
-                                attachThumbnailEvents();
-                                
-                                // Reset l'index à 0 pour la nouvelle galerie
-                                currentIndex = 0;
-                            }
-                        }
-                    } catch (e) { console.error("Erreur parsing galerie:", e); }
-                }
-            });
-        });
-
-        // ===== GESTION DU FORMULAIRE D'AVIS =====
-        const avisForm = document.getElementById('avis-form') as HTMLFormElement | null;
-        if (avisForm) {
-            const starBtns = avisForm.querySelectorAll('.star-btn');
-            const noteInput = document.getElementById('note-value') as HTMLInputElement | null;
-            const prenomInput = document.getElementById('avis-prenom') as HTMLInputElement | null;
-            const emailInput = document.getElementById('avis-email') as HTMLInputElement | null;
-            const avisTexteInput = document.getElementById('avis-texte') as HTMLTextAreaElement | null;
-            const submitBtn = document.getElementById('avis-submit') as HTMLButtonElement | null;
-            const successMsg = document.getElementById('avis-success');
-            const errorGlobal = document.getElementById('avis-error-global');
-
-            let selectedNote = 0;
-
-            // Gestion des étoiles cliquables
-            starBtns.forEach((btn) => {
-                const val = parseInt(btn.getAttribute('data-value') || '0');
-
-                btn.addEventListener('mouseenter', () => {
-                    starBtns.forEach((b) => {
-                        const bVal = parseInt(b.getAttribute('data-value') || '0');
-                        b.classList.toggle('hover-preview', bVal <= val);
-                    });
-                });
-
-                btn.addEventListener('mouseleave', () => {
-                    starBtns.forEach((b) => {
-                        b.classList.remove('hover-preview');
-                        const bVal = parseInt(b.getAttribute('data-value') || '0');
-                        b.classList.toggle('active', bVal <= selectedNote);
-                    });
-                });
-
-                btn.addEventListener('click', () => {
-                    selectedNote = val;
-                    if (noteInput) noteInput.value = String(selectedNote);
-                    starBtns.forEach((b) => {
-                        const bVal = parseInt(b.getAttribute('data-value') || '0');
-                        b.classList.toggle('active', bVal <= selectedNote);
-                    });
-                    const noteError = document.getElementById('note-error');
-                    if (noteError) noteError.textContent = '';
-                });
-            });
-
-            // Validation d'un champ
-            function validateField(input: HTMLInputElement | HTMLTextAreaElement, errorId: string, rules: { required?: boolean; email?: boolean }): boolean {
-                const errorEl = document.getElementById(errorId);
-                const val = input.value.trim();
-                input.classList.remove('error', 'valid');
-
-                if (rules.required && !val) {
-                    input.classList.add('error');
-                    if (errorEl) errorEl.textContent = 'Ce champ est obligatoire.';
-                    return false;
-                }
-                if (rules.email && val) {
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(val)) {
-                        input.classList.add('error');
-                        if (errorEl) errorEl.textContent = 'Veuillez entrer une adresse email valide.';
-                        return false;
-                    }
-                }
-                input.classList.add('valid');
-                if (errorEl) errorEl.textContent = '';
-                return true;
-            }
-
-            // Validation en temps réel au départ du champ
-            prenomInput?.addEventListener('blur', () => prenomInput && validateField(prenomInput, 'prenom-error', { required: true }));
-            emailInput?.addEventListener('blur', () => emailInput && validateField(emailInput, 'email-error', { required: true, email: true }));
-            avisTexteInput?.addEventListener('blur', () => avisTexteInput && validateField(avisTexteInput, 'avis-texte-error', { required: true }));
-
-            // Soumission du formulaire
-            avisForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-
-                // Validation complète avant envoi
-                let valid = true;
-                if (selectedNote === 0) {
-                    const noteError = document.getElementById('note-error');
-                    if (noteError) noteError.textContent = 'Veuillez sélectionner une note.';
-                    valid = false;
-                }
-                if (prenomInput && !validateField(prenomInput, 'prenom-error', { required: true })) valid = false;
-                if (emailInput && !validateField(emailInput, 'email-error', { required: true, email: true })) valid = false;
-                if (avisTexteInput && !validateField(avisTexteInput, 'avis-texte-error', { required: true })) valid = false;
-
-                if (!valid) return;
-
-                // Désactiver le bouton pendant l'envoi
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Envoi en cours...';
-                }
-                if (successMsg) successMsg.style.display = 'none';
-                if (errorGlobal) errorGlobal.style.display = 'none';
-
-                // Construction du payload
-                const formData = new FormData(avisForm);
-                const payload: Record<string, any> = {};
-                formData.forEach((value, key) => {
-                    if (key === 'note') {
-                        payload[key] = parseInt(value as string);
-                    } else if ((value as string).trim() !== '') {
-                        payload[key] = value;
-                    }
-                });
-
-                try {
-                    const response = await fetch('/api/avis', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.message || `Erreur ${response.status}`);
-                    }
-
-                    // Succès : reset du formulaire
-                    avisForm.reset();
-                    selectedNote = 0;
-                    starBtns.forEach((b) => b.classList.remove('active', 'hover-preview'));
-                    if (noteInput) noteInput.value = '';
-                    prenomInput?.classList.remove('valid');
-                    emailInput?.classList.remove('valid');
-                    avisTexteInput?.classList.remove('valid');
-                    if (successMsg) {
-                        successMsg.style.display = 'block';
-                        // Rechargement automatique après 2 secondes pour afficher le nouvel avis
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    }
-
-                } catch (err: any) {
-                    console.error('Erreur envoi avis:', err);
-                    if (errorGlobal) {
-                        errorGlobal.textContent = `⚠️ Une erreur est survenue (${err.message}). Veuillez vérifier les permissions de la collection Avis dans Directus.`;
-                        errorGlobal.style.display = 'block';
-                    }
-                } finally {
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Envoyer mon avis';
-                    }
-                }
-            });
-        }
-    });
-</script>
+<script src="../../scripts/product-page.client.ts"></script>

@@ -1,8 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { fetchPageSEO } from '../lib/directus';
+
+const seo = await fetchPageSEO(
+    "contact",
+    "Contact | NeoSomaTech",
+    "Contactez l'équipe NeoSomaTech pour toute question sur nos exosquelettes."
+);
 ---
 
-<Layout title="Contact | NeoSomaTech" description="Contactez l'équipe NeoSomaTech pour toute question sur nos exosquelettes.">
+<Layout title={seo.title} description={seo.description}>
     <div class="page container">
         <div class="breadcrumb"><a href="/">Accueil</a> / Contact</div>
         <h1>Nous <span class="gradient-text">Contacter</span></h1>

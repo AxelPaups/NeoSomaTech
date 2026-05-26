@@ -1,0 +1,14 @@
+---
+import { renderPriceHtml } from '../../lib/productPage';
+
+interface Props {
+	prix?: string | number | null;
+	isPromo?: boolean;
+	promoPrice?: string | number | null;
+}
+
+const { prix = '', isPromo = false, promoPrice = '' } = Astro.props;
+const html = renderPriceHtml(String(prix ?? ''), isPromo, String(promoPrice ?? ''));
+---
+
+<div set:html={html} />

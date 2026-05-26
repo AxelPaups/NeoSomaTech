@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { fetchDirectus } from "../lib/directus";
+import { fetchDirectus, fetchPageSEO } from "../lib/directus";
 
 let produits: any[] = [];
 let articles: any[] = [];
@@ -44,11 +44,17 @@ const formatDate = (date: string) => {
 		return date;
 	}
 };
+
+const seo = await fetchPageSEO(
+	"accueil",
+	"NeoSomaTech - Expert Exosquelettes Médicaux, Sportifs et Industriels",
+	"NeoSomaTech, référence francophone des exosquelettes sportifs et médicaux. Découvrez nos sélections, comparatifs et guides d'achat : Ski-Mojo, Hypershell, Stoko. Livraison France."
+);
 ---
 
 <Layout
-	title="NeoSomaTech - Expert Exosquelettes Médicaux, Sportifs et Industriels"
-	description="NeoSomaTech, référence francophone des exosquelettes sportifs et médicaux. Découvrez nos sélections, comparatifs et guides d'achat : Ski-Mojo, Hypershell, Stoko. Livraison France."
+	title={seo.title}
+	description={seo.description}
 >
 	<!-- ===== HERO ===== -->
 	<section class="hero">

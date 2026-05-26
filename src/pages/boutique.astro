@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { fetchDirectus } from '../lib/directus';
+import { fetchDirectus, fetchPageSEO } from '../lib/directus';
 
 const directusUrl = "https://spirited-squid.pikapod.net";
 
@@ -16,9 +16,15 @@ try {
 } catch (error: any) {
     errorMessage = error.message;
 }
+
+const seo = await fetchPageSEO(
+    "boutique",
+    "Boutique Exosquelettes | NeoSomaTech",
+    "Découvrez notre sélection complète d'exosquelettes pour le ski, le travail et la rééducation."
+);
 ---
 
-<Layout title="Boutique Exosquelettes | NeoSomaTech" description="Découvrez notre sélection complète d'exosquelettes pour le ski, le travail et la rééducation.">
+<Layout title={seo.title} description={seo.description}>
     <header class="page-header container">
         <div class="breadcrumb"><a href="/">Accueil</a> / <a href="/boutique">Boutique</a></div>
         <h1>

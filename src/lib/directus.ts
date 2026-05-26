@@ -23,3 +23,30 @@ export async function fetchDirectus(path: string) {
     const json = await response.json();
     return json.data;
 }
+
+/**
+ * Fonction utilitaire pour récupérer le SEO d'une page fixe depuis Directus.
+ * @param pageSlug L'identifiant de la page (ex: 'accueil', 'contact')
+ * @param defaultTitle Titre de secours si Directus échoue
+ * @param defaultDescription Description de secours si Directus échoue
+ */
+export async function fetchPageSEO(pageSlug: string, defaultTitle: string, defaultDescription: string) {
+    try {
+        const data = await fetchDirectus(`/items/SEO_Pages?filter[slug][_eq]=${pageSlug}&limit=1`);
+        if (data && data.length > 0) {
+            const seo = data[0];
+            return {
+                title: seo.meta_title || defaultTitle,
+                description: seo.meta_description || defaultDescription
+            };
+        }
+    } catch (error) {
+        console.warn(`Impossible de récupérer le SEO pour la page ${pageSlug} depuis Directus:`, error);
+    }
+    
+    // Fallback si la collection n'existe pas ou s'il y a une erreur
+    return {
+        title: defaultTitle,
+        description: defaultDescription
+    };
+}
