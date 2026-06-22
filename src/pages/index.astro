@@ -16,12 +16,11 @@ try {
 		),
 	]);
 
-	// Tri manuel pour garantir le classement antéchronologique (le plus récent en haut)
 	if (Array.isArray(articles)) {
 		articles.sort((a, b) => {
 			const dateA = a.date_publication ? new Date(a.date_publication).getTime() : 0;
 			const dateB = b.date_publication ? new Date(b.date_publication).getTime() : 0;
-			return dateB - dateA; // Décroissant
+			return dateB - dateA;
 		});
 	}
 } catch (error: any) {
@@ -50,767 +49,1307 @@ const seo = await fetchPageSEO(
 	"NeoSomaTech - Expert Exosquelettes Médicaux, Sportifs et Industriels",
 	"NeoSomaTech, référence francophone des exosquelettes sportifs et médicaux. Découvrez nos sélections, comparatifs et guides d'achat : Ski-Mojo, Hypershell, Stoko. Livraison France."
 );
+
+const featuredArticle = articles[0] ?? null;
+const sideArticles = articles.slice(1, 3);
+
+const marques = ["Ski-Mojo", "Hypershell", "Stoko"];
+
+const chiffres = [
+	{ value: "120+", label: "Exosquelettes analysés" },
+	{ value: "15", label: "Marques référencées" },
+	{ value: "98%", label: "Lecteurs satisfaits" },
+	{ value: "2019", label: "Notre première veille" },
+];
 ---
 
 <Layout
 	title={seo.title}
 	description={seo.description}
 >
+
 	<!-- ===== HERO ===== -->
 	<section class="hero">
-		<div class="hero-bg"></div>
-		<div class="container hero-content">
-			<div class="hero-badge">✦ Spécialiste Exosquelettes</div>
-			<h1>
-				L'avenir du corps<br /><span class="gradient-text"
-					>commence ici</span
-				>
-			</h1>
-			<p class="hero-sub">
-				Découvrez une sélection d'exosquelettes de pointe et lisez nos
-				analyses approfondies pour faire le meilleur choix.
-			</p>
-			<div class="hero-actions">
-				<a href="/boutique" class="btn">Voir les produits &rarr;</a>
-				<a href="/articles" class="btn btn-outline">Lire nos articles</a
-				>
+		<div class="hero-mesh" aria-hidden="true"></div>
+		<div class="hero-grid-bg" aria-hidden="true"></div>
+		<div class="container hero-inner">
+			<div class="hero-left">
+				<p class="hero-label">
+					<span class="hero-dot"></span>
+					Référence francophone exosquelettes
+				</p>
+				<h1>
+					<span class="hero-line">L'avenir du corps</span>
+					<span class="hero-highlight hero-line">commence ici</span>
+				</h1>
+				<p class="hero-sub">
+					Analyses indépendantes, comparatifs détaillés et sélection experte
+					des meilleurs exosquelettes médicaux, industriels et sportifs du marché.
+				</p>
+				<div class="hero-actions">
+					<a href="/boutique" class="btn btn-glow">Voir la boutique</a>
+					<a href="/articles" class="btn btn-ghost">Lire nos articles &rarr;</a>
+				</div>
 			</div>
-		</div>
-	</section>
 
-	<!-- ===== MISSION ===== -->
-	<section class="mission-section">
-		<div class="container mission-inner">
-			<div class="mission-text">
-				<span class="section-label">Notre mission</span>
-				<h2>L'exosquelette accessible à tous</h2>
-				<p>
-					NeoSomaTech est la référence francophone dédiée aux <strong
-						>exosquelettes médicaux, industriels et sportifs</strong
-					>. Notre équipe d'experts analyse, compare et sélectionne
-					les meilleures solutions pour augmenter les capacités
-					humaines — que vous soyez professionnel de santé, industriel
-					ou sportif en quête de mobilité retrouvée.
-				</p>
-				<p>
-					Chaque produit référencé sur notre boutique est
-					soigneusement évalué selon des critères de <strong
-						>performance, sécurité et ergonomie</strong
-					>. Nos guides et comparatifs approfondis vous permettent de
-					choisir en toute confiance.
-				</p>
-			</div>
-			<div class="mission-pillars">
-				<div class="pillar-card">
-					<div class="pillar-icon-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-microscope"><path d="M6 18h8"/><path d="M3 22h18"/><path d="m14 22-4-4 4-4"/><path d="m9 14 2 2"/><path d="M12 21a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/><path d="M18 12.2V7a5 5 0 0 0-5-5"/><path d="M11 5a4 4 0 0 1 4 4v2"/></svg>
+			<div class="hero-right">
+				<div class="orb-wrapper">
+					<div class="orb-ring orb-ring--outer"></div>
+					<div class="orb-ring orb-ring--inner"></div>
+					<div class="orb-core">
+						<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--ns-cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="12" cy="12" r="10"/>
+							<path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+							<path d="M2 12h20"/>
+						</svg>
 					</div>
-					<div class="pillar-content">
-						<h3>Expertise technique</h3>
-						<p>Des analyses détaillées rédigées par des spécialistes en robotique et biomécanique.</p>
+					<div class="chip chip--top">
+						<span class="chip-dot chip-dot--cyan"></span>Ski-Mojo
 					</div>
-				</div>
-				<div class="pillar-card">
-					<div class="pillar-icon-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap"><path d="m13 2-2 10h3L11 22l2-10h-3z"/></svg>
+					<div class="chip chip--right">
+						<span class="chip-dot chip-dot--magenta"></span>Hypershell
 					</div>
-					<div class="pillar-content">
-						<h3>Innovation continue</h3>
-						<p>Veille technologique permanente sur les dernières avancées du marché mondial.</p>
-					</div>
-				</div>
-				<div class="pillar-card">
-					<div class="pillar-icon-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handshake"><path d="m11 17 2 2 6-6"/><path d="m18 14 2.5 2.5a3.3 3.3 0 0 1 0 4.7 3.3 3.3 0 0 1-4.7 0L13.5 19"/><path d="M18 14 14.4 7.1a3.3 3.3 0 0 0-4.7 0L4.2 12.6a3.3 3.3 0 0 0 0 4.7l4.2 4.2a3.3 3.3 0 0 0 4.7 0l1.9-1.9"/><path d="M8 11v.01"/><path d="M16 15v.01"/></svg>
-					</div>
-					<div class="pillar-content">
-						<h3>Accompagnement</h3>
-						<p>Conseils personnalisés pour identifier l'exosquelette le plus adapté à vos besoins.</p>
+					<div class="chip chip--left">
+						<span class="chip-dot chip-dot--lime"></span>Stoko
 					</div>
 				</div>
 			</div>
 		</div>
+		<div class="scroll-cue" aria-hidden="true"><span></span></div>
 	</section>
 
-	<!-- ===== ORIGINE DU NOM ===== -->
-	<section class="section meaning-section">
-		<div class="container">
-			<div class="section-header">
-				<span class="section-label">Notre ADN</span>
-				<h2>Pourquoi NeoSomaTech ?</h2>
-				<p>Un nom qui incarne notre vision : repousser les limites physiques grâce à l'innovation.</p>
+	<!-- ===== MARQUEE MARQUES ===== -->
+	<section class="marquee-section" aria-label="Marques référencées">
+		<div class="marquee-track">
+			<div class="marquee-group">
+				{marques.map((m) => <span class="marquee-item">{m}</span>)}
 			</div>
-			
-			<div class="meaning-grid">
-				<div class="meaning-card">
-					<div class="meaning-word gradient-text">Neo</div>
-					<h3>Nouveau</h3>
-					<p>L'innovation constante, le renouveau de nos capacités et l'adoption des technologies de demain.</p>
-				</div>
-				<div class="meaning-card">
-					<div class="meaning-word gradient-text">Soma</div>
-					<h3>Le Corps</h3>
-					<p>Du grec <em>sôma</em>, l'humain reste au centre. La machine doit s'adapter à notre biologie, et non l'inverse.</p>
-				</div>
-				<div class="meaning-card">
-					<div class="meaning-word gradient-text">Tech</div>
-					<h3>Technologie</h3>
-					<p>L'outil de pointe, la robotique et la biomécanique qui rendent l'augmentation physique possible.</p>
-				</div>
+			<div class="marquee-group" aria-hidden="true">
+				{marques.map((m) => <span class="marquee-item">{m}</span>)}
 			</div>
+		</div>
+	</section>
+
+	<!-- ===== NEO · SOMA · TECH ===== -->
+	<section class="nst-section">
+		<div class="nst-grid">
+			<div class="nst-col nst-col--border reveal">
+				<div class="nst-word nst-word--cyan">Neo</div>
+				<div class="nst-subtitle">Nouveau</div>
+				<p class="nst-desc">
+					L'innovation constante et le renouveau de nos capacités humaines
+					grâce aux technologies de demain.
+				</p>
+			</div>
+			<div class="nst-col nst-col--border reveal" style="--delay:0.1s">
+				<div class="nst-word nst-word--magenta">Soma</div>
+				<div class="nst-subtitle">Le corps</div>
+				<p class="nst-desc">
+					Du grec <em>sôma</em> — l'humain reste au centre. La machine
+					s'adapte à notre biologie, jamais l'inverse.
+				</p>
+			</div>
+			<div class="nst-col reveal" style="--delay:0.2s">
+				<div class="nst-word nst-word--lime">Tech</div>
+				<div class="nst-subtitle">Technologie</div>
+				<p class="nst-desc">
+					Robotique et biomécanique de pointe qui rendent l'augmentation
+					physique possible et accessible.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- ===== CHIFFRES CLÉS ===== -->
+	<section class="section-stats">
+		<div class="container stats-grid">
+			{chiffres.map((c, i) => (
+				<div class="stat-card reveal" style={`--delay:${i * 0.08}s`}>
+					<div class="stat-value">{c.value}</div>
+					<div class="stat-label">{c.label}</div>
+				</div>
+			))}
 		</div>
 	</section>
 
 	<!-- ===== PRODUITS ===== -->
-	<section class="section container">
-		<div class="section-header">
-			<span class="section-label">Sélection Exclusive</span>
-			<h2>Nos Exosquelettes</h2>
-			<p>L'alliance parfaite de la technologie et du mouvement.</p>
+	<section class="section-produits">
+		<div class="section-mesh section-mesh--produits" aria-hidden="true"></div>
+		<div class="container">
+			<div class="section-head reveal">
+				<div>
+					<p class="section-num">Sélection</p>
+					<h2 class="section-title">Nos<br />Exosquelettes</h2>
+				</div>
+				<a href="/boutique" class="link-underline">Boutique complète &rarr;</a>
+			</div>
 		</div>
 
-		{
-			errorMessage ? (
-				<div class="error-box">
-					<strong>⚠️</strong> {errorMessage}
-				</div>
-			) : produits.length === 0 ? (
-				<div class="empty-box">
-					<p>Aucun produit pour le moment.</p>
-				</div>
-			) : (
-				<div class="products-grid">
-					{produits.map((produit) => {
+		{errorMessage ? (
+			<div class="container">
+				<div class="error-box"><strong>⚠</strong> {errorMessage}</div>
+			</div>
+		) : produits.length === 0 ? (
+			<div class="container">
+				<div class="empty-box">Aucun produit pour le moment.</div>
+			</div>
+		) : (
+			<div class="container">
+				<div class="produits-bento">
+					{produits.map((produit, i) => {
 						const isPromoValid = produit.promo && produit.prix_promo;
-						const displayPromoPrice = isPromoValid 
-							? (String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`) 
+						const displayPromoPrice = isPromoValid
+							? (String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`)
 							: null;
+						const isFeatured = i === 0;
 						return (
-						<article class="product-card">
-							<div class="product-img-wrapper">
-								{produit.image ? (
-									<img
-										src={`${directusUrl}/assets/${produit.image}`}
-										alt={produit.Nom_du_produit}
-										loading="lazy"
-									/>
-								) : (
-									<div class="img-placeholder">🦾</div>
-								)}
-								{isPromoValid ? (
-									<div class="product-badge promo-badge">Promo</div>
-								) : (
-									<div class="product-badge">Top Product</div>
-								)}
-							</div>
-							<div class="product-info">
-								<div class="product-tag">Exosquelette</div>
-								<h3>{produit.Nom_du_produit}</h3>
-								<p class="product-desc">
-									{produit.descripton_simple}
-								</p>
-								<div class="product-footer">
-									<div class="price-container">
-										<span class="price-label">À partir de</span>
-										{isPromoValid ? (
-											<div class="promo-price-wrapper">
-												<span class="price old-price">{produit.prix} €</span>
-												<span class="price promo-price">{displayPromoPrice}</span>
+							<article
+								class:list={["produit-card", "reveal", { "produit-card--featured": isFeatured }]}
+								style={`--delay:${i * 0.1}s`}
+							>
+								<div class="produit-img">
+									{produit.image ? (
+										<img
+											src={`${directusUrl}/assets/${produit.image}`}
+											alt={produit.Nom_du_produit}
+											loading="lazy"
+										/>
+									) : (
+										<div class="produit-img-placeholder">
+											<svg xmlns="http://www.w3.org/2000/svg" width={isFeatured ? "84" : "56"} height={isFeatured ? "84" : "56"} viewBox="0 0 24 24" fill="none" stroke="rgba(0,229,255,0.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><circle cx="12" cy="12" r="10"/></svg>
+										</div>
+									)}
+									<div class="produit-img-fade" aria-hidden="true"></div>
+									{isPromoValid ? (
+										<div class="produit-badge produit-badge--promo">Promo</div>
+									) : (
+										<div class="produit-badge">Top</div>
+									)}
+									{isFeatured && (
+										<div class="produit-overlay">
+											<h3>{produit.Nom_du_produit}</h3>
+											<p class="produit-desc produit-desc--overlay">{produit.descripton_simple}</p>
+											<div class="produit-footer">
+												<div>
+													<div class="produit-from">À partir de</div>
+													{isPromoValid ? (
+														<div class="produit-prices">
+															<span class="produit-price produit-price--old">{produit.prix} €</span>
+															<span class="produit-price produit-price--promo">{displayPromoPrice}</span>
+														</div>
+													) : (
+														<div class="produit-price">
+															{produit.prix ? `${produit.prix} €` : "Sur devis"}
+														</div>
+													)}
+												</div>
+												<a
+													href={`/produits/${produit.slug || produit.id}`}
+													class="produit-arrow"
+													aria-label={`Voir ${produit.Nom_du_produit}`}
+												>&rarr;</a>
 											</div>
-										) : (
-											<span class="price">
-												{produit.prix
-													? `${produit.prix} €`
-													: "Sur devis"}
-											</span>
-										)}
-									</div>
-									<a
-										href={`/produits/${produit.slug || produit.id}`}
-										class="btn-icon"
-										aria-label={`Voir ${produit.Nom_du_produit}`}
-									>
-										&rarr;
-									</a>
+										</div>
+									)}
 								</div>
-							</div>
-						</article>
+								{!isFeatured && (
+									<div class="produit-body">
+										<h3>{produit.Nom_du_produit}</h3>
+										<p class="produit-desc">{produit.descripton_simple}</p>
+										<div class="produit-footer">
+											<div>
+												<div class="produit-from">À partir de</div>
+												{isPromoValid ? (
+													<div class="produit-prices">
+														<span class="produit-price produit-price--old">{produit.prix} €</span>
+														<span class="produit-price produit-price--promo">{displayPromoPrice}</span>
+													</div>
+												) : (
+													<div class="produit-price">
+														{produit.prix ? `${produit.prix} €` : "Sur devis"}
+													</div>
+												)}
+											</div>
+											<a
+												href={`/produits/${produit.slug || produit.id}`}
+												class="produit-arrow"
+												aria-label={`Voir ${produit.Nom_du_produit}`}
+											>&rarr;</a>
+										</div>
+									</div>
+								)}
+							</article>
 						);
 					})}
 				</div>
-			)
-		}
-		<div class="section-footer">
-			<a href="/boutique" class="btn btn-outline">Découvrir toute la boutique &rarr;</a>
+			</div>
+		)}
+	</section>
+
+	<!-- ===== MISSION ===== -->
+	<section class="section-mission">
+		<div class="section-mesh section-mesh--mission" aria-hidden="true"></div>
+		<div class="container mission-inner">
+			<div class="mission-text reveal">
+				<div class="mission-accent-bar">
+					<div class="mission-line"></div>
+					<div>
+						<p class="section-num">Mission</p>
+						<h2 class="section-title">L'exosquelette<br />accessible à tous</h2>
+					</div>
+				</div>
+				<p>
+					NeoSomaTech est la référence francophone dédiée aux
+					<strong>exosquelettes médicaux, industriels et sportifs</strong>.
+					Notre équipe analyse, compare et sélectionne les meilleures solutions
+					pour augmenter les capacités humaines.
+				</p>
+				<p>
+					Chaque produit est évalué selon des critères stricts de
+					<strong>performance, sécurité et ergonomie</strong>.
+				</p>
+			</div>
+			<div class="piliers reveal" style="--delay:0.1s">
+				<div class="pilier">
+					<div class="pilier-icon pilier-icon--cyan">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#05050a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18h8"/><path d="M3 22h18"/><path d="m14 22-4-4 4-4"/><path d="m9 14 2 2"/><path d="M12 21a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/><path d="M18 12.2V7a5 5 0 0 0-5-5"/><path d="M11 5a4 4 0 0 1 4 4v2"/></svg>
+					</div>
+					<div class="pilier-content">
+						<h3>Expertise technique</h3>
+						<p>Analyses par des spécialistes en robotique et biomécanique.</p>
+					</div>
+					<div class="pilier-arrow">&rarr;</div>
+				</div>
+				<div class="pilier">
+					<div class="pilier-icon pilier-icon--magenta">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#05050a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+					</div>
+					<div class="pilier-content">
+						<h3>Veille permanente</h3>
+						<p>Suivi en temps réel des avancées du marché mondial.</p>
+					</div>
+					<div class="pilier-arrow">&rarr;</div>
+				</div>
+				<div class="pilier">
+					<div class="pilier-icon pilier-icon--lime">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#05050a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+					</div>
+					<div class="pilier-content">
+						<h3>Accompagnement</h3>
+						<p>Conseils personnalisés pour choisir votre exosquelette idéal.</p>
+					</div>
+					<div class="pilier-arrow">&rarr;</div>
+				</div>
+			</div>
 		</div>
 	</section>
 
 	<!-- ===== ARTICLES ===== -->
-	{
-		articles.length > 0 && (
-			<section class="section articles-section">
-				<div class="container">
-					<div class="section-header">
-						<h2>Derniers Articles</h2>
-						<p>
-							Guides, comparatifs et actualités sur les
-							exosquelettes.
-						</p>
-						<a href="/articles" class="see-all">
-							Voir tous les articles &rarr;
-						</a>
+	{articles.length > 0 && (
+		<section class="section-articles">
+			<div class="section-mesh section-mesh--articles" aria-hidden="true"></div>
+			<div class="container">
+				<div class="section-head reveal">
+					<div>
+						<p class="section-num">Savoir</p>
+						<h2 class="section-title">Derniers<br />Articles</h2>
 					</div>
-					<div class="articles-grid">
-						{articles.map((article) => (
-							<article class="article-card">
-								{article.image_principale && (
-									<a
-										href={`/articles/${article.slug}`}
-										class="article-img"
-									>
-										<img
-											src={`${directusUrl}/assets/${article.image_principale}`}
-											alt={article.titre}
-											loading="lazy"
-										/>
-									</a>
-								)}
-								<div class="article-body">
-									<div class="article-meta">
-										{article.date_publication && (
-											<time>
-												{formatDate(
-													article.date_publication,
-												)}
-											</time>
-										)}
-										{article.auteur && (
-											<span>· {article.auteur}</span>
-										)}
-									</div>
-									<h3>
-										<a href={`/articles/${article.slug}`}>
-											{article.titre}
-										</a>
-									</h3>
-									{article.description_seo && (
-										<p class="article-excerpt">
-											{article.description_seo}
-										</p>
-									)}
-									<a
-										href={`/articles/${article.slug}`}
-										class="read-link"
-									>
-										Lire la suite &rarr;
-									</a>
-								</div>
-							</article>
-						))}
-					</div>
+					<a href="/articles" class="link-underline">Tous les articles &rarr;</a>
 				</div>
-			</section>
-		)
-	}
 
-	<!-- ===== CTA FINAL ===== -->
-	<section class="cta-section container">
-		<div class="cta-box">
-			<h2>Une question sur les exosquelettes ?</h2>
-			<p>
-				Notre équipe est disponible pour vous conseiller dans votre
-				choix.
+				<div class="articles-layout">
+					{featuredArticle && (
+						<article class="article-featured reveal">
+							{featuredArticle.image_principale ? (
+								<a href={`/articles/${featuredArticle.slug}`} class="article-img-wrap">
+									<img
+										src={`${directusUrl}/assets/${featuredArticle.image_principale}`}
+										alt={featuredArticle.titre}
+										loading="lazy"
+									/>
+								</a>
+							) : (
+								<div class="article-img-placeholder article-img-placeholder--large"></div>
+							)}
+							<div class="article-body">
+								<div class="article-meta">
+									{featuredArticle.date_publication && (
+										<time>{formatDate(featuredArticle.date_publication)}</time>
+									)}
+									{featuredArticle.auteur && <span>&middot; {featuredArticle.auteur}</span>}
+								</div>
+								<h3>
+									<a href={`/articles/${featuredArticle.slug}`}>{featuredArticle.titre}</a>
+								</h3>
+								{featuredArticle.description_seo && (
+									<p class="article-excerpt">{featuredArticle.description_seo}</p>
+								)}
+								<a href={`/articles/${featuredArticle.slug}`} class="read-link read-link--accent">
+									Lire la suite &rarr;
+								</a>
+							</div>
+						</article>
+					)}
+
+					{sideArticles.length > 0 && (
+						<div class="articles-side">
+							{sideArticles.map((article, i) => (
+								<article class="article-small reveal" style={`--delay:${0.1 + i * 0.08}s`}>
+									{article.image_principale ? (
+										<a href={`/articles/${article.slug}`} class="article-img-wrap article-img-wrap--small">
+											<img
+												src={`${directusUrl}/assets/${article.image_principale}`}
+												alt={article.titre}
+												loading="lazy"
+											/>
+										</a>
+									) : (
+										<div class="article-img-placeholder article-img-placeholder--small"></div>
+									)}
+									<div class="article-body">
+										<div class="article-meta">
+											{article.date_publication && (
+												<time>{formatDate(article.date_publication)}</time>
+											)}
+										</div>
+										<h3>
+											<a href={`/articles/${article.slug}`}>{article.titre}</a>
+										</h3>
+										<a href={`/articles/${article.slug}`} class="read-link">Lire &rarr;</a>
+									</div>
+								</article>
+							))}
+						</div>
+					)}
+				</div>
+			</div>
+		</section>
+	)}
+
+	<!-- ===== CTA ===== -->
+	<section class="section-cta">
+		<div class="cta-mesh" aria-hidden="true"></div>
+		<div class="container cta-inner reveal">
+			<p class="section-num">Parlons-en</p>
+			<h2 class="cta-title">Une question ?</h2>
+			<p class="cta-sub">
+				Notre équipe est disponible pour vous conseiller dans votre choix
+				d'exosquelette.
 			</p>
-			<a href="/contact" class="btn">Nous contacter &rarr;</a>
+			<a href="/contact" class="btn btn-glow">
+				Nous contacter
+				<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+			</a>
 		</div>
 	</section>
+
 </Layout>
 
+<script>
+	const els = document.querySelectorAll(".reveal");
+	if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+		const io = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add("is-visible");
+						io.unobserve(entry.target);
+					}
+				}
+			},
+			{ threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+		);
+		els.forEach((el) => io.observe(el));
+	} else {
+		els.forEach((el) => el.classList.add("is-visible"));
+	}
+</script>
+
 <style>
-	/* HERO */
+	:global(.container) { max-width: 1440px; }
+
+	/* ── Nouvelle palette NeoSomaTech ── */
+	:root {
+		--ns-cyan: #00e5ff;
+		--ns-magenta: #ff2e8a;
+		--ns-lime: #c6ff3e;
+		--ns-violet: #7c3aed;
+		--ns-ink: #05050a;
+		--ns-surface: #0b0b16;
+		--ns-surface-2: #0f0f1f;
+		--ns-border: #1c1c33;
+		--ns-text-dim: #7b85a3;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.reveal {
+			opacity: 0;
+			transform: translateY(28px);
+			transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+			transition-delay: var(--delay, 0s);
+		}
+		.reveal.is-visible {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		.hero-line {
+			display: block;
+			opacity: 0;
+			transform: translateY(0.4em);
+			animation: line-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+		}
+		.hero-line:nth-of-type(1) { animation-delay: 0.05s; }
+		.hero-line:nth-of-type(2) { animation-delay: 0.2s; }
+	}
+	@keyframes line-in {
+		to { opacity: 1; transform: translateY(0); }
+	}
+	.hero-line {
+		display: block;
+	}
+
+	/* ── HERO ── */
 	.hero {
 		position: relative;
 		overflow: hidden;
-		padding: 8rem 0 5rem;
-		text-align: center;
+		background: var(--ns-ink);
+		min-height: calc(100dvh - 65px);
+		display: flex;
+		align-items: center;
 	}
-	.hero-bg {
+	.hero-mesh {
 		position: absolute;
-		inset: 0;
-		background: radial-gradient(
-			ellipse 100% 70% at 50% 0%,
-			rgba(99, 102, 241, 0.22) 0%,
-			transparent 70%
-		);
+		inset: -20%;
+		background:
+			radial-gradient(38% 38% at 18% 22%, rgba(0, 229, 255, 0.22), transparent 70%),
+			radial-gradient(42% 42% at 82% 18%, rgba(124, 58, 237, 0.22), transparent 70%),
+			radial-gradient(45% 45% at 65% 85%, rgba(255, 46, 138, 0.16), transparent 70%);
+		filter: blur(10px);
+		animation: mesh-drift 18s ease-in-out infinite alternate;
 		pointer-events: none;
 	}
-	.hero-content {
+	@keyframes mesh-drift {
+		0%   { transform: translate(0, 0) scale(1); }
+		100% { transform: translate(2%, -3%) scale(1.08); }
+	}
+	.hero-grid-bg {
+		position: absolute;
+		inset: 0;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M 48 0 L 0 0 0 48' fill='none' stroke='rgba(0%2C229%2C255%2C0.06)' stroke-width='1'/%3E%3C/svg%3E");
+		pointer-events: none;
+	}
+	.hero-inner {
 		position: relative;
 		z-index: 1;
-		display: flex;
-		flex-direction: column;
+		width: 100%;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: clamp(2rem, 5vw, 6rem);
 		align-items: center;
-		gap: 1.5rem;
+		padding: 5rem 0;
 	}
-	.hero-badge {
-		display: inline-block;
-		background: rgba(99, 102, 241, 0.15);
-		border: 1px solid rgba(99, 102, 241, 0.4);
-		color: #a5b4fc;
-		font-size: 0.78rem;
-		font-weight: 600;
-		padding: 0.3rem 0.9rem;
-		border-radius: 99px;
-		letter-spacing: 1px;
+	.hero-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--ns-cyan);
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 3px;
 		text-transform: uppercase;
+		margin-bottom: 1.75rem;
+	}
+	.hero-dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--ns-cyan);
+		box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.6);
+		animation: pulse-dot 2.2s ease-out infinite;
+	}
+	@keyframes pulse-dot {
+		0%   { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.55); }
+		70%  { box-shadow: 0 0 0 8px rgba(0, 229, 255, 0); }
+		100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
 	}
 	.hero h1 {
-		font-size: clamp(2.5rem, 6vw, 4.5rem);
+		font-size: clamp(2.6rem, 4.2vw, 5.5rem);
 		font-weight: 900;
-		color: #fff;
-		line-height: 1.1;
-		letter-spacing: -2px;
+		color: #f4f6fb;
+		line-height: 1.04;
+		letter-spacing: clamp(-2px, -0.3vw, -4px);
+		margin-bottom: 1.5rem;
 	}
-	.gradient-text {
-		background: linear-gradient(
-			135deg,
-			#6366f1 0%,
-			#8b5cf6 50%,
-			#ec4899 100%
-		);
+	.hero-highlight {
+		background: linear-gradient(100deg, var(--ns-cyan), var(--ns-violet) 55%, var(--ns-magenta));
+		background-size: 200% auto;
 		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
 		background-clip: text;
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		animation: gradient-shift 6s ease infinite;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.hero-highlight {
+			/* Combine la révélation de la ligne (line-in) avec le dégradé animé : */
+			/* sans cette fusion, déclarer "animation" deux fois écrase line-in et le texte reste invisible. */
+			animation: line-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards, gradient-shift 6s ease infinite;
+		}
+	}
+	@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+		.hero-highlight {
+			color: var(--ns-cyan);
+			-webkit-text-fill-color: unset;
+			background: none;
+		}
+	}
+	@keyframes gradient-shift {
+		0%, 100% { background-position: 0% 50%; }
+		50% { background-position: 100% 50%; }
 	}
 	.hero-sub {
-		font-size: 1.15rem;
-		color: var(--text-light);
-		max-width: 560px;
-		line-height: 1.65;
+		color: var(--ns-text-dim);
+		font-size: clamp(1.05rem, 1.3vw, 1.25rem);
+		line-height: 1.75;
+		max-width: 480px;
+		margin-bottom: 2.5rem;
 	}
 	.hero-actions {
 		display: flex;
 		gap: 1rem;
 		flex-wrap: wrap;
-		justify-content: center;
+	}
+	.btn-glow {
+		background: linear-gradient(120deg, var(--ns-cyan), var(--ns-violet));
+		color: #05050a;
+		font-weight: 700;
+		box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.0);
+		transition: transform 0.2s, box-shadow 0.3s;
+	}
+	.btn-glow:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 30px -6px rgba(0, 229, 255, 0.45);
+		opacity: 1;
+	}
+	.btn-ghost {
+		background: transparent !important;
+		border: 1px solid var(--ns-border);
+		color: #cdd3ea;
+	}
+	.btn-ghost:hover {
+		background: rgba(0, 229, 255, 0.08) !important;
+		border-color: var(--ns-cyan);
+		opacity: 1;
 	}
 
-	/* MISSION */
-	.mission-section {
-		padding: 8rem 0;
+	.hero-right {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.orb-wrapper {
+		position: relative;
+		width: clamp(260px, 32vw, 500px);
+		height: clamp(260px, 32vw, 500px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.orb-ring {
+		position: absolute;
+		border-radius: 50%;
+		border: 1px solid rgba(0, 229, 255, 0.18);
+	}
+	.orb-ring--outer { width: 93%; height: 93%; animation: spin-slow 26s linear infinite; }
+	.orb-ring--inner {
+		width: 70%; height: 70%;
+		border-style: dashed;
+		border-color: rgba(124, 58, 237, 0.25);
+		animation: spin-slow 18s linear infinite reverse;
+	}
+	@keyframes spin-slow {
+		to { transform: rotate(360deg); }
+	}
+	.orb-core {
+		width: 42%; height: 42%;
+		background: var(--ns-surface-2);
+		border: 1px solid rgba(0, 229, 255, 0.3);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		z-index: 1;
+		animation: float-soft 5s ease-in-out infinite;
+		box-shadow: 0 0 50px -10px rgba(0, 229, 255, 0.35);
+	}
+	@keyframes float-soft {
+		0%, 100% { transform: translateY(0); }
+		50% { transform: translateY(-10px); }
+	}
+	.chip {
+		position: absolute;
+		background: var(--ns-surface-2);
+		border: 1px solid var(--ns-border);
+		padding: 6px 14px;
+		border-radius: 999px;
+		font-size: clamp(12px, 1vw, 15px);
+		font-weight: 600;
+		color: #e2e8f0;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		white-space: nowrap;
+		z-index: 2;
+		animation: float-soft 6s ease-in-out infinite;
+	}
+	.chip--top   { top: 6%;   right: 2%; animation-delay: 0.3s; }
+	.chip--right { bottom: 18%; right: -2%; animation-delay: 0.9s; }
+	.chip--left  { top: 36%;  left: -2%; animation-delay: 1.5s; }
+	.chip-dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+	.chip-dot--cyan    { background: var(--ns-cyan); }
+	.chip-dot--magenta { background: var(--ns-magenta); }
+	.chip-dot--lime    { background: var(--ns-lime); }
+
+	.scroll-cue {
+		position: absolute;
+		bottom: 22px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 22px;
+		height: 36px;
+		border: 1.5px solid var(--ns-border);
+		border-radius: 14px;
+		z-index: 1;
+	}
+	.scroll-cue span {
+		position: absolute;
+		top: 7px;
+		left: 50%;
+		width: 4px;
+		height: 8px;
+		margin-left: -2px;
+		background: var(--ns-cyan);
+		border-radius: 2px;
+		animation: scroll-cue-move 1.8s ease-in-out infinite;
+	}
+	@keyframes scroll-cue-move {
+		0% { opacity: 1; top: 7px; }
+		70% { opacity: 0; top: 18px; }
+		100% { opacity: 0; top: 7px; }
+	}
+
+	/* ── MARQUEE ── */
+	.marquee-section {
+		background: var(--ns-surface);
+		border-top: 1px solid var(--ns-border);
+		border-bottom: 1px solid var(--ns-border);
+		padding: 1.5rem 0;
+		overflow: hidden;
+	}
+	.marquee-track {
+		display: flex;
+		width: max-content;
+		animation: marquee-scroll 26s linear infinite;
+	}
+	.marquee-group {
+		display: flex;
+		align-items: center;
+		gap: 5rem;
+		padding-right: 5rem;
+	}
+	.marquee-item {
+		font-size: 1.4rem;
+		font-weight: 800;
+		letter-spacing: -0.5px;
+		color: var(--ns-text-dim);
+		white-space: nowrap;
+		transition: color 0.3s;
+	}
+	.marquee-section:hover .marquee-track { animation-play-state: paused; }
+	@keyframes marquee-scroll {
+		from { transform: translateX(0); }
+		to { transform: translateX(-50%); }
+	}
+
+	/* ── NEO · SOMA · TECH ── */
+	.nst-section {
+		border-bottom: 1px solid var(--ns-border);
+		background: var(--ns-surface);
+	}
+	.nst-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+	}
+	.nst-col {
+		padding: clamp(2rem, 3vw, 3.5rem) clamp(1.5rem, 2.5vw, 3rem);
+		position: relative;
+		overflow: hidden;
+		transition: background 0.3s;
+	}
+	.nst-col:hover { background: rgba(255, 255, 255, 0.015); }
+	.nst-col--border {
+		border-right: 1px solid var(--ns-border);
+	}
+	.nst-word {
+		font-size: clamp(2rem, 2.8vw, 3.2rem);
+		font-weight: 900;
+		letter-spacing: -2px;
+		margin-bottom: 0.5rem;
+		position: relative;
+	}
+	.nst-word--cyan    { color: var(--ns-cyan); }
+	.nst-word--magenta { color: var(--ns-magenta); }
+	.nst-word--lime    { color: var(--ns-lime); }
+	.nst-subtitle {
+		font-size: 0.8rem;
+		color: #6b7693;
+		font-weight: 700;
+		letter-spacing: 3px;
+		text-transform: uppercase;
+		margin-bottom: 1rem;
+		position: relative;
+	}
+	.nst-desc {
+		color: var(--ns-text-dim);
+		font-size: 1.05rem;
+		line-height: 1.65;
+		position: relative;
+	}
+
+	/* ── STATS ── */
+	.section-stats {
+		background: var(--ns-ink);
+		padding: 3.5rem 0;
+		border-bottom: 1px solid var(--ns-border);
+	}
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 1.5rem;
+	}
+	.stat-card {
+		text-align: center;
+		padding: 1.5rem 1rem;
+		border: 1px solid var(--ns-border);
+		border-radius: 16px;
+		background: var(--ns-surface-2);
+		transition: border-color 0.3s, transform 0.3s;
+	}
+	.stat-card:hover {
+		border-color: rgba(0, 229, 255, 0.4);
+		transform: translateY(-4px);
+	}
+	.stat-value {
+		font-size: clamp(1.8rem, 3vw, 2.6rem);
+		font-weight: 900;
+		letter-spacing: -1px;
+		background: linear-gradient(120deg, var(--ns-cyan), var(--ns-violet));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+	.stat-label {
+		margin-top: 0.4rem;
+		font-size: 0.92rem;
+		color: var(--ns-text-dim);
+		font-weight: 600;
+	}
+
+	/* ── MESH PARTAGÉ (unifie le thème entre sections) ── */
+	.section-mesh {
+		position: absolute;
+		inset: -25%;
+		filter: blur(10px);
+		pointer-events: none;
+		z-index: 0;
+	}
+	.section-mesh--produits {
+		background:
+			radial-gradient(36% 36% at 85% 10%, rgba(0, 229, 255, 0.1), transparent 70%),
+			radial-gradient(40% 40% at 5% 90%, rgba(124, 58, 237, 0.1), transparent 70%);
+	}
+	.section-mesh--mission {
+		background:
+			radial-gradient(38% 38% at 10% 15%, rgba(255, 46, 138, 0.09), transparent 70%),
+			radial-gradient(42% 42% at 90% 85%, rgba(0, 229, 255, 0.1), transparent 70%);
+	}
+	.section-mesh--articles {
+		background:
+			radial-gradient(36% 36% at 90% 20%, rgba(198, 255, 62, 0.07), transparent 70%),
+			radial-gradient(40% 40% at 8% 80%, rgba(124, 58, 237, 0.11), transparent 70%);
+	}
+
+	/* ── PRODUITS ── */
+	.section-produits {
+		padding: 4.5rem 0;
+		background: var(--ns-ink);
 		position: relative;
 		overflow: hidden;
 	}
-	.mission-section::before {
-		content: "";
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		width: 80%;
-		height: 80%;
-		background: radial-gradient(
-			circle at center,
-			rgba(99, 102, 241, 0.05) 0%,
-			transparent 70%
-		);
-		pointer-events: none;
-	}
-	.mission-inner {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 5rem;
-		align-items: center;
-	}
-	.section-label {
-		display: inline-block;
-		color: #818cf8;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 2px;
-		font-size: 0.8rem;
-		margin-bottom: 1rem;
-		padding: 0.4rem 1rem;
-		background: rgba(99, 102, 241, 0.1);
-		border-radius: 99px;
-		border: 1px solid rgba(99, 102, 241, 0.2);
-	}
-	.mission-text h2 {
-		font-size: clamp(2rem, 4vw, 3rem);
-		font-weight: 900;
-		color: #fff;
-		line-height: 1.1;
-		margin-bottom: 2rem;
-		letter-spacing: -1px;
-	}
-	.mission-text p {
-		color: var(--text-light);
-		font-size: 1.15rem;
-		line-height: 1.7;
-		margin-bottom: 1.5rem;
-	}
-	.mission-pillars {
+	.section-head {
+		position: relative;
+		z-index: 1;
 		display: flex;
-		flex-direction: column;
-		gap: 1.5rem;
-	}
-	.pillar-card {
-		display: flex;
-		gap: 1.5rem;
-		align-items: center;
-		padding: 1.5rem;
-		background: rgba(255, 255, 255, 0.03);
-		backdrop-filter: blur(10px);
-		border: 1px solid rgba(255, 255, 255, 0.05);
-		border-radius: 20px;
-		transition: all 0.3s ease;
-	}
-	.pillar-card:hover {
-		background: rgba(99, 102, 241, 0.05);
-		border-color: rgba(99, 102, 241, 0.3);
-		transform: translateX(10px);
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-	}
-	.pillar-icon-wrapper {
-		width: 56px;
-		height: 56px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--gradient);
-		color: #fff;
-		border-radius: 14px;
-		flex-shrink: 0;
-		box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
-	}
-	.pillar-content h3 {
-		font-size: 1.1rem;
-		font-weight: 700;
-		color: #fff;
-		margin-bottom: 0.3rem;
-	}
-	.pillar-content p {
-		color: var(--text-light);
-		font-size: 0.95rem;
-		line-height: 1.5;
-	}
-
-	@media (max-width: 992px) {
-		.mission-inner {
-			grid-template-columns: 1fr;
-			gap: 4rem;
-		}
-		.mission-text {
-			text-align: center;
-		}
-		.pillar-card:hover {
-			transform: translateY(-5px);
-		}
-	}
-
-	/* MEANING */
-	.meaning-section {
-		padding-top: 1rem;
-	}
-	.meaning-grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 2rem;
-		margin-bottom: 3rem;
-	}
-	.meaning-card {
-		background: rgba(255, 255, 255, 0.02);
-		border: 1px solid rgba(99, 102, 241, 0.1);
-		border-radius: 20px;
-		padding: 2.5rem 2rem;
-		text-align: center;
-		transition: all 0.3s ease;
-	}
-	.meaning-card:hover {
-		background: rgba(99, 102, 241, 0.05);
-		border-color: rgba(99, 102, 241, 0.3);
-		transform: translateY(-5px);
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-	}
-	.meaning-word {
-		font-size: 2.5rem;
-		font-weight: 900;
-		margin-bottom: 1rem;
-		display: inline-block;
-	}
-	.meaning-card h3 {
-		font-size: 1.2rem;
-		color: #fff;
-		margin-bottom: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 2px;
-	}
-	.meaning-card p {
-		color: var(--text-light);
-		font-size: 0.95rem;
-		line-height: 1.6;
-	}
-
-	/* SECTIONS */
-	.section {
-		padding: 4rem 0;
-	}
-	.articles-section {
-		background: var(--surface-2);
-	}
-	.section-header {
-		text-align: center;
+		align-items: flex-end;
+		justify-content: space-between;
 		margin-bottom: 2.5rem;
 	}
-	.section-header h2 {
-		font-size: 2rem;
-		font-weight: 800;
-		color: #fff;
-		margin-bottom: 0.4rem;
-	}
-	.section-header p {
-		color: var(--text-light);
-		font-size: 1rem;
+	.section-num {
+		color: var(--ns-cyan);
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 4px;
+		text-transform: uppercase;
 		margin-bottom: 0.75rem;
 	}
-	.see-all {
-		font-size: 0.9rem;
-		font-weight: 600;
-		color: #818cf8;
-		text-decoration: none;
-		transition: color 0.2s;
+	.section-title {
+		font-size: clamp(2rem, 3vw, 3.2rem);
+		font-weight: 900;
+		color: #f4f6fb;
+		letter-spacing: clamp(-1px, -0.2vw, -3px);
+		line-height: 1.05;
+		margin: 0;
 	}
-	.see-all:hover {
-		color: #a5b4fc;
+	.link-underline {
+		color: var(--ns-text-dim);
+		text-decoration: none;
+		font-size: 0.92rem;
+		font-weight: 600;
+		padding-bottom: 3px;
+		border-bottom: 1px solid var(--ns-border);
+		transition: color 0.2s, border-color 0.2s;
+		white-space: nowrap;
+	}
+	.link-underline:hover {
+		color: var(--ns-cyan);
+		border-color: var(--ns-cyan);
 	}
 
-	/* PRODUCTS */
-	.products-grid {
+	/* ── Bento : 1 vedette + 2 compactes ── */
+	.produits-bento {
+		position: relative;
+		z-index: 1;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-		gap: 2rem;
-		margin-bottom: 3rem;
+		grid-template-columns: 1.3fr 1fr;
+		grid-template-rows: repeat(2, minmax(230px, 1fr));
+		gap: 1.5rem;
+		padding-bottom: 1rem;
 	}
-	.product-card {
-		background: rgba(26, 26, 46, 0.6);
-		backdrop-filter: blur(10px);
-		border: 1px solid rgba(99, 102, 241, 0.2);
-		border-radius: 24px;
+
+	.produit-card {
+		position: relative;
+		background: var(--ns-surface-2);
+		border: 1px solid var(--ns-border);
+		border-radius: 22px;
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
-		transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		transition: border-color 0.35s, transform 0.35s, box-shadow 0.35s;
 	}
-	.product-card:hover {
-		transform: translateY(-12px) scale(1.02);
-		border-color: rgba(99, 102, 241, 0.6);
-		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(99, 102, 241, 0.2);
+	.produit-card:hover {
+		border-color: rgba(0, 229, 255, 0.5);
+		transform: translateY(-6px);
+		box-shadow: 0 20px 50px -18px rgba(0, 229, 255, 0.3);
 	}
-	.product-img-wrapper {
+	.produit-card--featured {
+		grid-row: 1 / 3;
+	}
+
+	/* Carte vedette : image plein cadre, panneau opaque dédié pour le texte */
+	.produit-card--featured .produit-img {
+		flex: 1;
+		min-height: 100%;
+	}
+
+	/* Cartes compactes : image à gauche, texte à droite (jamais superposés) */
+	.produit-card:not(.produit-card--featured) {
+		flex-direction: row;
+	}
+	.produit-card:not(.produit-card--featured) .produit-img {
+		width: 42%;
+		flex-shrink: 0;
+	}
+	.produit-card:not(.produit-card--featured) .produit-body {
+		flex: 1;
+		min-width: 0;
+		padding: 1.1rem 1.4rem;
+	}
+
+	.produit-img {
 		position: relative;
-		aspect-ratio: 1/1;
 		overflow: hidden;
-		background: #000;
+		background: var(--ns-surface);
+		min-height: 200px;
 	}
-	.product-img-wrapper img {
+	.produit-img img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.6s ease;
+		position: absolute;
+		inset: 0;
+		transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 	}
-	.product-card:hover .product-img-wrapper img {
-		transform: scale(1.1);
+	.produit-card:hover .produit-img img {
+		transform: scale(1.08);
 	}
-	.img-placeholder {
+	.produit-img-placeholder {
 		width: 100%;
 		height: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 4rem;
-		background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-		color: rgba(99, 102, 241, 0.3);
 	}
-	.product-badge {
+	/* Voile sombre uniquement sur la vedette : garantit le contraste du texte quelle que soit la photo */
+	.produit-card--featured .produit-img-fade {
 		position: absolute;
-		top: 1rem;
-		right: 1rem;
-		background: var(--gradient);
+		inset: 0;
+		background: linear-gradient(180deg, rgba(5, 5, 10, 0.05) 0%, rgba(5, 5, 10, 0.35) 45%, rgba(5, 5, 10, 0.97) 88%);
+		pointer-events: none;
+	}
+	.produit-badge {
+		position: absolute;
+		top: 14px;
+		left: 14px;
+		z-index: 2;
+		background: var(--ns-violet);
 		color: #fff;
-		font-size: 0.7rem;
+		font-size: 10px;
 		font-weight: 700;
-		padding: 0.4rem 0.8rem;
-		border-radius: 99px;
-		box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+		padding: 5px 12px;
+		border-radius: 999px;
+		letter-spacing: 1.5px;
 		text-transform: uppercase;
-		letter-spacing: 1px;
+		box-shadow: 0 4px 16px -4px rgba(124, 58, 237, 0.6);
 	}
-	.promo-badge {
-		background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
-		box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4);
+	.produit-badge--promo {
+		background: var(--ns-magenta);
+		box-shadow: 0 4px 16px -4px rgba(255, 46, 138, 0.6);
 	}
-	.product-info {
-		padding: 1.75rem;
+
+	/* Panneau de texte de la carte vedette, posé sur le voile sombre */
+	.produit-overlay {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 2;
+		padding: 1.75rem 2rem 2rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.8rem;
-		flex: 1;
 	}
-	.product-tag {
-		font-size: 0.7rem;
-		font-weight: 700;
-		color: #818cf8;
-		text-transform: uppercase;
-		letter-spacing: 1.5px;
-	}
-	.product-card h3 {
-		font-size: 1.4rem;
-		font-weight: 800;
+	.produit-overlay h3,
+	.produit-body h3 {
 		color: #fff;
-		line-height: 1.25;
+		font-weight: 800;
+		letter-spacing: -0.5px;
+		line-height: 1.2;
 	}
-	.product-desc {
-		color: var(--text-light);
+	.produit-body h3 {
+		font-size: 1.15rem;
+		color: #f4f6fb;
+		margin-bottom: 0.4rem;
+	}
+	.produit-overlay h3 {
+		font-size: 2rem;
+		font-weight: 900;
+		letter-spacing: -0.8px;
+		line-height: 1.1;
+		text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+	}
+	.produit-desc--overlay {
+		margin-top: 0.6rem;
+		max-width: 480px;
+		color: #e4e7f2;
+		text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
+	}
+	.produit-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.produit-desc {
+		color: var(--ns-text-dim);
 		font-size: 0.95rem;
-		line-height: 1.6;
+		line-height: 1.55;
 		flex: 1;
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
-	.product-footer {
+	.produit-footer {
 		display: flex;
 		align-items: flex-end;
 		justify-content: space-between;
-		margin-top: 1rem;
-		padding-top: 1.25rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		padding-top: 1rem;
+		margin-top: auto;
 	}
-	.price-container {
-		display: flex;
-		flex-direction: column;
+	.produit-overlay .produit-footer {
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
+		margin-top: 1.25rem;
 	}
-	.price-label {
-		font-size: 0.75rem;
-		color: var(--text-light);
-		font-weight: 500;
+	.produit-body .produit-footer {
+		border-top: 1px solid var(--ns-border);
 	}
-	.price {
+	.produit-from {
+		font-size: 0.78rem;
+		color: #6b7693;
+	}
+	.produit-overlay .produit-from {
+		color: #c2c7de;
+	}
+	.produit-price {
 		font-size: 1.6rem;
 		font-weight: 900;
-		color: #fff;
-		background: var(--gradient);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
+		color: var(--ns-cyan);
+		letter-spacing: -1px;
 	}
-	.promo-price-wrapper {
+	.produit-overlay .produit-price {
+		font-size: 2rem;
+	}
+	.produit-prices {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 	}
-	.old-price {
-		font-size: 1.1rem;
+	.produit-price--old {
+		font-size: 1rem;
 		text-decoration: line-through;
-		color: var(--text-light);
-		opacity: 0.6;
-		background: none;
-		-webkit-text-fill-color: var(--text-light);
+		color: #8d96b3;
 	}
-	.promo-price {
-		background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
+	.produit-price--promo {
+		color: var(--ns-magenta);
 	}
-	.btn-icon {
-		width: 48px;
-		height: 48px;
+	.produit-arrow {
+		width: 42px;
+		height: 42px;
+		border: 1px solid var(--ns-border);
+		border-radius: 11px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(99, 102, 241, 0.1);
-		color: #fff;
-		border-radius: 12px;
+		color: var(--ns-cyan);
+		font-size: 1.2rem;
 		text-decoration: none;
-		font-size: 1.5rem;
-		transition: all 0.3s ease;
-		border: 1px solid rgba(99, 102, 241, 0.2);
+		flex-shrink: 0;
+		transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
+		background: rgba(0, 229, 255, 0.06);
 	}
-	.product-card:hover .btn-icon {
-		background: var(--gradient);
-		transform: rotate(-45deg);
-		box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+	.produit-overlay .produit-arrow {
+		border-color: rgba(255, 255, 255, 0.25);
+		background: rgba(255, 255, 255, 0.08);
 	}
-	.section-footer {
-		text-align: center;
-		margin-top: 1rem;
+	.produit-card:hover .produit-arrow {
+		background: var(--ns-cyan);
+		color: #05050a;
+		border-color: var(--ns-cyan);
+		transform: scale(1.08);
 	}
 
-	/* ARTICLES */
-	.articles-grid {
+	/* ── MISSION ── */
+	.section-mission {
+		padding: 6.5rem 0;
+		background: var(--ns-surface);
+		position: relative;
+		overflow: hidden;
+	}
+	.mission-inner {
+		position: relative;
+		z-index: 2;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+		grid-template-columns: 1fr 1.2fr;
+		gap: clamp(3rem, 6vw, 8rem);
+		align-items: center;
+	}
+	.mission-accent-bar {
+		display: flex;
+		gap: 1.5rem;
+		align-items: stretch;
+		margin-bottom: 1.75rem;
+	}
+	.mission-line {
+		width: 4px;
+		flex-shrink: 0;
+		border-radius: 0 3px 3px 0;
+		background: linear-gradient(180deg, var(--ns-cyan), var(--ns-violet) 60%, var(--ns-magenta));
+		box-shadow: 0 0 24px -2px rgba(0, 229, 255, 0.5);
+	}
+	.mission-text .section-title {
+		font-size: clamp(2.4rem, 3.6vw, 3.6rem);
+		margin-top: 0.6rem;
+	}
+	.mission-text p {
+		color: var(--ns-text-dim);
+		font-size: 1.1rem;
+		line-height: 1.85;
+		margin-bottom: 1.4rem;
+	}
+	.mission-text strong {
+		color: #fff;
+		font-weight: 700;
+		background: linear-gradient(transparent 65%, rgba(0, 229, 255, 0.22) 65%);
+	}
+
+	.piliers {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	.pilier {
+		background: var(--ns-surface-2);
+		border: 1px solid var(--ns-border);
+		border-radius: 18px;
+		padding: 1.5rem 1.75rem;
+		display: flex;
+		gap: 1.25rem;
+		align-items: center;
+		transition: background 0.25s, border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+	}
+	.pilier:hover {
+		border-color: rgba(0, 229, 255, 0.45);
+		transform: translateX(6px);
+		box-shadow: 0 14px 36px -16px rgba(0, 229, 255, 0.28);
+	}
+	.pilier-icon {
+		width: 50px;
+		height: 50px;
+		flex-shrink: 0;
+		border-radius: 13px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.4);
+	}
+	.pilier-icon--cyan    { background: linear-gradient(135deg, var(--ns-cyan), #1ec8d8); }
+	.pilier-icon--magenta { background: linear-gradient(135deg, var(--ns-magenta), #ff6ab0); }
+	.pilier-icon--lime    { background: linear-gradient(135deg, var(--ns-lime), #8fe028); }
+	.pilier-content { flex: 1; }
+	.pilier-content h3 {
+		color: #f4f6fb;
+		font-size: 1.1rem;
+		font-weight: 800;
+		letter-spacing: -0.2px;
+		margin-bottom: 3px;
+	}
+	.pilier-content p {
+		color: var(--ns-text-dim);
+		font-size: 0.92rem;
+		line-height: 1.5;
+		margin: 0;
+	}
+	.pilier-arrow {
+		color: var(--ns-text-dim);
+		font-size: 1.1rem;
+		transition: color 0.25s, transform 0.25s;
+	}
+	.pilier:hover .pilier-arrow {
+		color: var(--ns-cyan);
+		transform: translateX(4px);
+	}
+
+	/* ── ARTICLES ── */
+	.section-articles {
+		padding: 4.5rem 0;
+		background: var(--ns-ink);
+		position: relative;
+		overflow: hidden;
+	}
+	.articles-layout {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		grid-template-columns: 1.5fr 1fr;
 		gap: 1.5rem;
 	}
-	.article-card {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 16px;
+	.article-featured,
+	.article-small {
+		background: var(--ns-surface-2);
+		border: 1px solid var(--ns-border);
+		border-radius: 20px;
 		overflow: hidden;
 		display: flex;
 		flex-direction: column;
-		transition:
-			transform 0.2s,
-			border-color 0.2s;
+		transition: border-color 0.2s, transform 0.2s;
 	}
-	.article-card:hover {
-		transform: translateY(-5px);
-		border-color: var(--primary);
+	.article-featured:hover,
+	.article-small:hover {
+		border-color: rgba(0, 229, 255, 0.4);
+		transform: translateY(-4px);
 	}
-	.article-img {
+	.articles-side {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+	.article-small { flex: 1; }
+
+	.article-img-wrap {
 		display: block;
-		aspect-ratio: 16/9;
 		overflow: hidden;
+		aspect-ratio: 16/9;
 	}
-	.article-img img {
+	.article-img-wrap--small { aspect-ratio: 16/7; }
+	.article-img-wrap img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		transition: transform 0.3s;
+		transition: transform 0.4s ease;
 	}
-	.article-card:hover .article-img img {
+	.article-featured:hover .article-img-wrap img,
+	.article-small:hover .article-img-wrap img {
 		transform: scale(1.04);
 	}
+	.article-img-placeholder {
+		background: var(--ns-surface);
+	}
+	.article-img-placeholder--large { aspect-ratio: 16/9; }
+	.article-img-placeholder--small { aspect-ratio: 16/7; }
+
 	.article-body {
 		padding: 1.5rem;
 		display: flex;
 		flex-direction: column;
-		gap: 0.7rem;
+		gap: 0.6rem;
 		flex: 1;
 	}
+	.article-small .article-body { padding: 1rem 1.25rem; }
 	.article-meta {
-		font-size: 0.8rem;
-		color: var(--text-light);
+		font-size: 0.85rem;
+		color: #6b7693;
 		display: flex;
 		gap: 0.4rem;
 	}
-	.article-body h3 {
-		font-size: 1.1rem;
-		font-weight: 700;
-		color: #fff;
-		line-height: 1.35;
+	.article-featured h3 {
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: #f4f6fb;
+		line-height: 1.3;
+		letter-spacing: -0.5px;
 	}
-	.article-body h3 a {
+	.article-small h3 {
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: #f4f6fb;
+		line-height: 1.4;
+		letter-spacing: -0.3px;
+	}
+	.article-featured h3 a,
+	.article-small h3 a {
 		color: inherit;
 		text-decoration: none;
 		transition: color 0.2s;
 	}
-	.article-body h3 a:hover {
-		color: #a5b4fc;
-	}
+	.article-featured h3 a:hover,
+	.article-small h3 a:hover { color: var(--ns-cyan); }
 	.article-excerpt {
-		color: var(--text-light);
-		font-size: 0.88rem;
+		color: var(--ns-text-dim);
+		font-size: 1rem;
 		line-height: 1.6;
 		flex: 1;
 		display: -webkit-box;
@@ -819,43 +1358,55 @@ const seo = await fetchPageSEO(
 		overflow: hidden;
 	}
 	.read-link {
-		font-size: 0.88rem;
+		font-size: 0.92rem;
 		font-weight: 600;
-		color: #818cf8;
+		color: var(--ns-violet);
 		text-decoration: none;
 		transition: color 0.2s;
 	}
-	.read-link:hover {
-		color: #a5b4fc;
-	}
+	.read-link:hover { color: var(--ns-cyan); }
+	.read-link--accent { color: var(--ns-cyan); }
+	.read-link--accent:hover { color: var(--ns-lime); }
 
-	/* CTA */
-	.cta-section {
-		padding: 4rem 1.5rem 6rem;
-	}
-	.cta-box {
-		background: linear-gradient(
-			135deg,
-			rgba(99, 102, 241, 0.15) 0%,
-			rgba(139, 92, 246, 0.15) 100%
-		);
-		border: 1px solid rgba(99, 102, 241, 0.3);
-		border-radius: 20px;
-		padding: 3.5rem 2rem;
+	/* ── CTA ── */
+	.section-cta {
+		padding: 5rem 0 4.5rem;
+		background: var(--ns-surface);
 		text-align: center;
+		position: relative;
+		overflow: hidden;
 	}
-	.cta-box h2 {
-		font-size: 1.8rem;
-		font-weight: 800;
-		color: #fff;
-		margin-bottom: 0.75rem;
+	.cta-mesh {
+		position: absolute;
+		inset: -30%;
+		background:
+			radial-gradient(40% 40% at 30% 50%, rgba(0, 229, 255, 0.18), transparent 70%),
+			radial-gradient(40% 40% at 70% 50%, rgba(255, 46, 138, 0.16), transparent 70%);
+		filter: blur(10px);
+		animation: mesh-drift 16s ease-in-out infinite alternate;
+		pointer-events: none;
 	}
-	.cta-box p {
-		color: var(--text-light);
-		margin-bottom: 1.5rem;
+	.cta-inner {
+		position: relative;
+		z-index: 1;
+	}
+	.cta-title {
+		font-size: clamp(3rem, 7vw, 6rem);
+		font-weight: 900;
+		color: #f4f6fb;
+		letter-spacing: clamp(-2px, -0.4vw, -5px);
+		line-height: 1;
+		margin-bottom: 1.25rem;
+	}
+	.cta-sub {
+		color: var(--ns-text-dim);
 		font-size: 1.05rem;
+		max-width: 400px;
+		margin: 0 auto 2.5rem;
+		line-height: 1.7;
 	}
 
+	/* ── UTILITAIRES ── */
 	.error-box {
 		background: rgba(239, 68, 68, 0.1);
 		border: 1px solid rgba(239, 68, 68, 0.3);
@@ -865,30 +1416,64 @@ const seo = await fetchPageSEO(
 		text-align: center;
 	}
 	.empty-box {
-		background: var(--surface);
-		border: 1px dashed var(--border);
+		background: var(--ns-surface);
+		border: 1px dashed var(--ns-border);
 		padding: 3rem;
 		border-radius: 12px;
 		text-align: center;
-		color: var(--text-light);
+		color: var(--ns-text-dim);
 	}
 
-	/* Responsive Adjustments */
-	@media (max-width: 768px) {
-		.hero {
-			padding: 5rem 0 3rem;
-		}
-		.mission-section {
-			padding: 4rem 0;
-		}
-		.cta-section {
-			padding: 2rem 1rem 4rem;
-		}
-		.cta-box {
-			padding: 2rem 1.5rem;
-		}
-		.meaning-grid {
-			grid-template-columns: 1fr;
-		}
+	/* ── RESPONSIVE ── */
+	@media (max-width: 1100px) and (min-width: 901px) {
+		.hero-inner { grid-template-columns: 1.1fr 0.9fr; gap: 2rem; }
+		.mission-inner { gap: 3rem; }
+		.articles-layout { grid-template-columns: 1.3fr 1fr; }
+	}
+
+	@media (max-width: 900px) {
+		.hero { min-height: auto; }
+		.hero-inner { grid-template-columns: 1fr; padding: 4rem 0 3rem; }
+		.hero-right { display: none; }
+
+		.nst-grid { grid-template-columns: 1fr; }
+		.nst-col--border { border-right: none; border-bottom: 1px solid var(--ns-border); }
+
+		.stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+		.produits-bento { grid-template-columns: 1fr; grid-template-rows: none; }
+		.produit-card--featured { grid-row: auto; min-height: 360px; }
+		.produit-card:not(.produit-card--featured) { flex-direction: column; }
+		.produit-card:not(.produit-card--featured) .produit-img { width: 100%; height: 200px; }
+
+		.mission-inner { grid-template-columns: 1fr; gap: 3rem; }
+
+		.articles-layout { grid-template-columns: 1fr; }
+
+		.section-head { flex-direction: column; align-items: flex-start; gap: 1rem; }
+	}
+
+	@media (max-width: 600px) {
+		.hero-inner { padding: 3rem 0 2.5rem; }
+		.hero-actions { flex-direction: column; }
+
+		.nst-col { padding: 1.75rem 1.25rem; }
+		.nst-word { font-size: 1.9rem; }
+
+		.stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+
+		.produits-bento { gap: 1rem; }
+		.produit-card--featured { min-height: 300px; }
+		.produit-card--featured h3 { font-size: 1.5rem; }
+		.produit-card--featured .produit-price { font-size: 1.6rem; }
+
+		.pilier-icon { width: 40px; height: 40px; }
+		.article-body { padding: 1.25rem; }
+
+		.cta-title { letter-spacing: -2px; }
+	}
+
+	@media (max-width: 380px) {
+		.stats-grid { grid-template-columns: 1fr 1fr; }
 	}
 </style>
