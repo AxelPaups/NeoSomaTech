@@ -42,6 +42,21 @@ const formatDate = (date: string) => {
     title="Articles sur les Exosquelettes | NeoSomaTech"
     description="Découvrez nos articles de fond sur les exosquelettes : ski, travail, médical, innovations. Restez informé des dernières avancées."
 >
+    {articles.length > 0 && (
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Articles sur les exosquelettes — NeoSomaTech",
+            "url": "https://neosomatech.com/articles",
+            "numberOfItems": articles.length,
+            "itemListElement": articles.map((a: any, i: number) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "url": `https://neosomatech.com/articles/${a.slug}`,
+                "name": a.titre
+            }))
+        })} is:inline />
+    )}
     <div class="page-wrapper">
         <!-- EN-TÊTE DE PAGE -->
         <header class="page-header container">
@@ -70,6 +85,8 @@ const formatDate = (date: string) => {
                                         src={`https://spirited-squid.pikapod.net/assets/${article.image_principale}`}
                                         alt={article.titre}
                                         loading={i === 0 ? 'eager' : 'lazy'}
+                                        width="800"
+                                        height="450"
                                     />
                                 </div>
                             )}

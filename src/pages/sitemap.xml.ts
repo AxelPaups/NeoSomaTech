@@ -16,7 +16,7 @@ export async function GET() {
     // 2. Récupération des données dynamiques depuis Directus
     const [articles, produits] = await Promise.all([
       fetchDirectus('/items/Articles?fields=slug,date_publication'),
-      fetchDirectus('/items/Produits?fields=slug'),
+      fetchDirectus('/items/Produits?fields=slug,date_updated'),
     ]);
 
     // Fonction pour tenter de parser la date (ou retourner la date du jour en repli)
@@ -61,6 +61,7 @@ export async function GET() {
       (produit: any) => `
   <url>
     <loc>${baseUrl}/produits/${produit.slug}</loc>
+    ${produit.date_updated ? `<lastmod>${formatDate(produit.date_updated)}</lastmod>` : ''}
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>`

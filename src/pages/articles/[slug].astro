@@ -14,7 +14,7 @@ let productsForLinking: { name: string, slug: string }[] = [];
 try {
     // 1. Récupérer l'article
     const data = await fetchDirectus(
-        `/items/Articles?filter[slug][_eq]=${slug}&fields=id,titre,slug,description_seo,meta_description,contenu,date_publication,auteur,image_principale&limit=1`
+        `/items/Articles?filter[slug][_eq]=${slug}&fields=id,titre,slug,description_seo,meta_description,contenu,date_publication,date_updated,auteur,image_principale&limit=1`
     );
     article = Array.isArray(data) ? data[0] : data;
 

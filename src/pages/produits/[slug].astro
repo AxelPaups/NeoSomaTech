@@ -19,6 +19,7 @@ const { slug } = Astro.params;
 let produit: Record<string, unknown> | null = null;
 let produitsSimilaires: Record<string, unknown>[] = [];
 let avis: Record<string, unknown>[] = [];
+let articlesLies: Record<string, unknown>[] = [];
 let errorMessage: string | null = null;
 
 try {
@@ -49,6 +50,19 @@ try {
 			avis = Array.isArray(avisData) ? avisData : [];
 		} catch {
 			avis = [];
+		}
+
+		// Articles liés : cherche par nom du produit ou marque dans le contenu
+		try {
+			const nomProduit = (produit.Nom_du_produit as string) || '';
+			const marque = (produit.marque as string) || '';
+			const searchTerm = encodeURIComponent(marque || nomProduit);
+			const articlesData = await fetchDirectus(
+				`/items/Articles?filter[contenu][_contains]=${searchTerm}&fields=titre,slug,description_seo,image_principale,date_publication&limit=3`,
+			);
+			articlesLies = Array.isArray(articlesData) ? articlesData : [];
+		} catch {
+			articlesLies = [];
 		}
 	}
 } catch (error: unknown) {
@@ -161,6 +175,7 @@ const heroPriceHtml = renderPriceHtml(
 	type="product"
 	schemaItem={{ ...produit, allImages }}
 	faqs={produit?.faqs}
+	aggregateRating={noteMoyenne && avis.length > 0 ? { ratingValue: noteMoyenne, reviewCount: avis.length } : undefined}
 >
 	<div class="product-page" data-product-page>
 		<div class="pp-ambient" aria-hidden="true">
@@ -549,10 +564,37 @@ const heroPriceHtml = renderPriceHtml(
 								</div>
 							</section>
 
-							{produitsSimilaires.length > 0 && (
+							{articlesLies.length > 0 && (
 								<section class="pp-block reveal">
 									<div class="pp-block-header">
 										<span class="pp-block-num">04</span>
+										<h2 class="pp-block-title">Articles sur ce produit</h2>
+									</div>
+									<div class="pp-similar-scroll">
+										{articlesLies.map((a) => (
+											<article class="pp-similar-card">
+												<a href={`/articles/${a.slug}`} class="pp-similar-img">
+													{a.image_principale ? (
+														<img src={`${directusUrl}/assets/${a.image_principale}`} alt={a.titre as string} loading="lazy" width="280" height="280" />
+													) : (
+														<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">📝</span>
+													)}
+												</a>
+												<div class="pp-similar-body">
+													<h3><a href={`/articles/${a.slug}`}>{a.titre as string}</a></h3>
+													{a.description_seo && <p class="pp-similar-price" style="font-size:0.85rem;color:var(--text-light);font-weight:400">{a.description_seo as string}</p>}
+													<a href={`/articles/${a.slug}`} class="pp-comparateur-link">Lire l'article →</a>
+												</div>
+											</article>
+										))}
+									</div>
+								</section>
+							)}
+
+							{produitsSimilaires.length > 0 && (
+								<section class="pp-block reveal">
+									<div class="pp-block-header">
+										<span class="pp-block-num">{articlesLies.length > 0 ? '05' : '04'}</span>
 										<h2 class="pp-block-title">Vous aimerez aussi</h2>
 									</div>
 									<div class="pp-similar-scroll">

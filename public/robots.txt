@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
 
+# Bloquer les URLs avec paramètres de filtre (évite le contenu dupliqué)
+Disallow: /boutique?*
+Disallow: /articles?*
+
+# Bloquer les routes API internes
+Disallow: /api/
+
 Sitemap: https://neosomatech.com/sitemap.xml

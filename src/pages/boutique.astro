@@ -25,6 +25,21 @@ const seo = await fetchPageSEO(
 ---
 
 <Layout title={seo.title} description={seo.description}>
+    {produits.length > 0 && (
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Boutique Exosquelettes NeoSomaTech",
+            "url": "https://neosomatech.com/boutique",
+            "numberOfItems": produits.length,
+            "itemListElement": produits.map((p: any, i: number) => ({
+                "@type": "ListItem",
+                "position": i + 1,
+                "url": `https://neosomatech.com/produits/${p.slug || p.id}`,
+                "name": p.Nom_du_produit
+            }))
+        })} is:inline />
+    )}
     <header class="page-header container">
         <div class="breadcrumb"><a href="/">Accueil</a> / <a href="/boutique">Boutique</a></div>
         <h1>
@@ -71,6 +86,8 @@ const seo = await fetchPageSEO(
                                         src={`${directusUrl}/assets/${p.image}`}
                                         alt={p.Nom_du_produit}
                                         loading="lazy"
+                                        width="400"
+                                        height="400"
                                     />
                                 ) : (
                                     <div class="img-placeholder">🦾</div>
