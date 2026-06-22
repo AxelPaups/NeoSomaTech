@@ -108,6 +108,8 @@ type VariantButtonData = {
 	descLong: string;
 	gallery: string;
 	specs: string;
+	modele: string;
+	taille: string;
 };
 
 const variantItems: VariantButtonData[] = hasVariants && produit
@@ -132,8 +134,20 @@ const variantItems: VariantButtonData[] = hasVariants && produit
 				descLong: String(v.description_principale || produit.description_principale || ''),
 				gallery: JSON.stringify(variantGallery),
 				specs: JSON.stringify(specPayload),
+				modele: v.modele != null ? String(v.modele) : '',
+				taille: v.taille != null ? String(v.taille) : '',
 			};
 		})
+	: [];
+
+// CAS 1 (modele + taille) vs CAS 2 (sélecteur classique) — détecté sur la première variante
+const hasModeleTaille =
+	hasVariants &&
+	Array.isArray(produit?.variantes) &&
+	(produit!.variantes as Record<string, unknown>[])[0]?.modele != null;
+
+const modeleOptions: string[] = hasModeleTaille
+	? [...new Set(variantItems.map((v) => v.modele).filter(Boolean))]
 	: [];
 
 const hasAnySpecsInVariants = variantItems.some((v) => {
@@ -309,8 +323,50 @@ const heroPriceHtml = renderPriceHtml(
 									/>
 								</div>
 
-								{hasVariants && (
-									<div class="variants-selection">
+								{hasVariants && hasModeleTaille && (
+									<div class="variants-selection" data-variants-mode="modele-taille">
+										<div class="pp-variants-selectors">
+											<label class="pp-variants-field">
+												<span class="pp-variants-label">Modèle</span>
+												<select id="pp-modele-select" class="pp-variants-select">
+													{modeleOptions.map((m) => (
+														<option value={m}>{m}</option>
+													))}
+												</select>
+											</label>
+											<label class="pp-variants-field">
+												<span class="pp-variants-label">Taille</span>
+												<select id="pp-taille-select" class="pp-variants-select"></select>
+											</label>
+										</div>
+										<div class="pp-variants-grid" hidden>
+											{variantItems.map((v, i) => (
+												<button
+													type="button"
+													class={`variant-btn ${i === 0 ? 'active' : ''}`}
+													data-name={v.name}
+													data-price={v.price}
+													data-promo={v.promo}
+													data-prix-promo={v.prixPromo}
+													data-image={v.image}
+													data-url={v.url}
+													data-attente={v.attente}
+													data-desc-short={v.descShort}
+													data-desc-long={v.descLong}
+													data-gallery={v.gallery}
+													data-specs={v.specs}
+													data-modele={v.modele}
+													data-taille={v.taille}
+												>
+													<span>{v.label}</span>
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+
+								{hasVariants && !hasModeleTaille && (
+									<div class="variants-selection" data-variants-mode="simple">
 										<span class="pp-variants-label">Modèle</span>
 										<div class="pp-variants-grid">
 											<button

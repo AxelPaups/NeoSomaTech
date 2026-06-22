@@ -169,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	// Variantes
 	const variantBtns = document.querySelectorAll('.variant-btn');
-	variantBtns.forEach((btn) => {
-		btn.addEventListener('click', () => {
+
+	function selectVariant(btn: Element) {
 			variantBtns.forEach((b) => b.classList.remove('active'));
 			btn.classList.add('active');
 
@@ -261,8 +261,52 @@ document.addEventListener('DOMContentLoaded', () => {
 					console.error('Specs payload:', e);
 				}
 			}
-		});
+	}
+
+	variantBtns.forEach((btn) => {
+		btn.addEventListener('click', () => selectVariant(btn));
 	});
+
+	// Sélecteurs Modèle / Taille (CAS 1)
+	const modeleSelect = document.getElementById('pp-modele-select') as HTMLSelectElement | null;
+	const tailleSelect = document.getElementById('pp-taille-select') as HTMLSelectElement | null;
+	const TAILLE_ORDER = ['S', 'M', 'L'];
+
+	if (modeleSelect && tailleSelect) {
+		const variantData = Array.from(variantBtns).map((b) => ({
+			el: b,
+			modele: b.getAttribute('data-modele') || '',
+			taille: b.getAttribute('data-taille') || '',
+		}));
+
+		function findVariant(modele: string, taille: string) {
+			return variantData.find((v) => v.modele === modele && v.taille === taille)?.el;
+		}
+
+		function populateTailleOptions(modele: string, preferredTaille?: string) {
+			const tailles = [...new Set(variantData.filter((v) => v.modele === modele).map((v) => v.taille))].sort(
+				(a, b) => TAILLE_ORDER.indexOf(a) - TAILLE_ORDER.indexOf(b),
+			);
+			tailleSelect!.innerHTML = tailles.map((t) => `<option value="${t}">${t}</option>`).join('');
+			tailleSelect!.value = preferredTaille && tailles.includes(preferredTaille) ? preferredTaille : tailles[0];
+		}
+
+		modeleSelect.addEventListener('change', () => {
+			populateTailleOptions(modeleSelect.value);
+			const match = findVariant(modeleSelect.value, tailleSelect.value);
+			if (match) selectVariant(match);
+		});
+
+		tailleSelect.addEventListener('change', () => {
+			const match = findVariant(modeleSelect.value, tailleSelect.value);
+			if (match) selectVariant(match);
+		});
+
+		// État initial : première variante
+		populateTailleOptions(modeleSelect.value);
+		const initial = findVariant(modeleSelect.value, tailleSelect.value);
+		if (initial) selectVariant(initial);
+	}
 
 	// Formulaire avis
 	const avisForm = document.getElementById('avis-form') as HTMLFormElement | null;

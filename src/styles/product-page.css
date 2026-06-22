@@ -579,6 +579,9 @@
 	flex-direction: column;
 	gap: 0.6rem;
 }
+.pp-variants-grid[hidden] {
+	display: none;
+}
 .variant-btn {
 	display: flex;
 	align-items: center;
@@ -638,6 +641,32 @@
 	border-color: var(--pp-accent);
 	background: var(--pp-accent);
 	box-shadow: inset 0 0 0 3px var(--surface);
+}
+
+.pp-variants-selectors {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+.pp-variants-field {
+	display: block;
+}
+.pp-variants-select {
+	width: 100%;
+	background: rgba(255, 255, 255, 0.03);
+	border: 1px solid var(--border);
+	color: #fff;
+	padding: 0.85rem 1.1rem;
+	border-radius: 14px;
+	font-size: 0.92rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: border-color 0.25s, background 0.25s;
+}
+.pp-variants-select:hover,
+.pp-variants-select:focus {
+	border-color: #818cf8;
+	outline: none;
 }
 
 .pp-trust-row {

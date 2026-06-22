@@ -4,17 +4,22 @@ import { fetchDirectus, fetchPageSEO } from "../lib/directus";
 
 let produits: any[] = [];
 let articles: any[] = [];
+let marques: string[] = [];
 let errorMessage: string | null = null;
 
 try {
-	[produits, articles] = await Promise.all([
+	const [produitsData, articlesData, marquesData] = await Promise.all([
 		fetchDirectus(
 			"/items/Produits?limit=3&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,promo,prix_promo",
 		),
 		fetchDirectus(
 			"/items/Articles?limit=3&sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale",
 		),
+		fetchDirectus("/items/Produits?fields=marque&limit=100"),
 	]);
+	produits = produitsData;
+	articles = articlesData;
+	marques = [...new Set((marquesData ?? []).map((p: any) => p.marque).filter(Boolean))].sort() as string[];
 
 	if (Array.isArray(articles)) {
 		articles.sort((a, b) => {
@@ -27,6 +32,28 @@ try {
 	console.error("Erreur Directus:", error);
 	errorMessage = error.message;
 }
+
+if (marques.length === 0) {
+	marques = ["Ski-Mojo", "Hypershell", "Stoko"];
+}
+const chipColors = ["cyan", "magenta", "lime"];
+
+// Place chaque marque autour de l'orbe : l'angle se répartit automatiquement
+// selon le nombre total de marques, donc toute marque ajoutée trouve sa place.
+const radius = 50; // % du rayon du cercle de positionnement
+const heroChips = marques.map((marque, i) => {
+	const angle = (360 / marques.length) * i - 90; // -90° pour démarrer en haut
+	const rad = (angle * Math.PI) / 180;
+	const left = 50 + radius * Math.cos(rad);
+	const top = 50 + radius * Math.sin(rad);
+	return {
+		marque,
+		left: left.toFixed(2),
+		top: top.toFixed(2),
+		color: chipColors[i % chipColors.length],
+		delay: (i * 0.25).toFixed(2),
+	};
+});
 
 const directusUrl = "https://spirited-squid.pikapod.net";
 const formatDate = (date: string) => {
@@ -52,8 +79,6 @@ const seo = await fetchPageSEO(
 
 const featuredArticle = articles[0] ?? null;
 const sideArticles = articles.slice(1, 3);
-
-const marques = ["Ski-Mojo", "Hypershell", "Stoko"];
 
 const chiffres = [
 	{ value: "120+", label: "Exosquelettes analysés" },
@@ -103,15 +128,14 @@ const chiffres = [
 							<path d="M2 12h20"/>
 						</svg>
 					</div>
-					<div class="chip chip--top">
-						<span class="chip-dot chip-dot--cyan"></span>Ski-Mojo
-					</div>
-					<div class="chip chip--right">
-						<span class="chip-dot chip-dot--magenta"></span>Hypershell
-					</div>
-					<div class="chip chip--left">
-						<span class="chip-dot chip-dot--lime"></span>Stoko
-					</div>
+					{heroChips.map((c) => (
+						<div
+							class="chip"
+							style={`left:${c.left}%; top:${c.top}%; animation-delay:${c.delay}s`}
+						>
+							<span class:list={["chip-dot", `chip-dot--${c.color}`]}></span>{c.marque}
+						</div>
+					))}
 				</div>
 			</div>
 		</div>
@@ -689,6 +713,7 @@ const chiffres = [
 	}
 	.chip {
 		position: absolute;
+		transform: translate(-50%, -50%);
 		background: var(--ns-surface-2);
 		border: 1px solid var(--ns-border);
 		padding: 6px 14px;
@@ -701,11 +726,12 @@ const chiffres = [
 		gap: 6px;
 		white-space: nowrap;
 		z-index: 2;
-		animation: float-soft 6s ease-in-out infinite;
+		animation: float-chip 6s ease-in-out infinite;
 	}
-	.chip--top   { top: 6%;   right: 2%; animation-delay: 0.3s; }
-	.chip--right { bottom: 18%; right: -2%; animation-delay: 0.9s; }
-	.chip--left  { top: 36%;  left: -2%; animation-delay: 1.5s; }
+	@keyframes float-chip {
+		0%, 100% { transform: translate(-50%, -50%); }
+		50% { transform: translate(-50%, calc(-50% - 10px)); }
+	}
 	.chip-dot {
 		width: 7px;
 		height: 7px;
