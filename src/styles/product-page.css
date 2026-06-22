@@ -668,6 +668,10 @@
 	border-color: #818cf8;
 	outline: none;
 }
+.pp-variants-select option {
+	background-color: var(--surface);
+	color: #fff;
+}
 
 .pp-trust-row {
 	display: flex;
