@@ -79,8 +79,8 @@ if (!produit && !errorMessage) {
 }
 
 const customAlts = getCustomAlts(produit?.custom_alts as string | undefined);
-const allImages = collectGallery(produit?.image as string | undefined, produit?.galerie, directusUrl);
-const imageUrl = allImages[0] || null;
+let allImages = collectGallery(produit?.image as string | undefined, produit?.galerie, directusUrl);
+let imageUrl = allImages[0] || null;
 const { isPromoValid } = parsePromo(
 	Boolean(produit?.promo),
 	produit?.prix_promo as string | undefined,
@@ -139,6 +139,21 @@ const variantItems: VariantButtonData[] = hasVariants && produit
 			};
 		})
 	: [];
+
+// Produit sans visuel propre : on retombe sur la galerie de la première variante illustrée
+if (allImages.length === 0) {
+	const firstVariantWithGallery = variantItems.find((v) => {
+		try {
+			return (JSON.parse(v.gallery) as string[]).length > 0;
+		} catch {
+			return false;
+		}
+	});
+	if (firstVariantWithGallery) {
+		allImages = JSON.parse(firstVariantWithGallery.gallery) as string[];
+		imageUrl = allImages[0] || null;
+	}
+}
 
 // CAS 1 (modele + taille) vs CAS 2 (sélecteur classique) — détecté sur la première variante
 const hasModeleTaille =
