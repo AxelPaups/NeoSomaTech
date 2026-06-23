@@ -110,7 +110,34 @@ type VariantButtonData = {
 	specs: string;
 	modele: string;
 	taille: string;
+	faq: string;
 };
+
+// FAQ par variante : GET /items/Variantes/{id}?fields=FAQ.FAQ_id.question,FAQ.FAQ_id.reponse
+const variantFaqsById: Record<string, { question: string; reponse: string }[]> = {};
+if (hasVariants && produit) {
+	const variantesArr = produit.variantes as Record<string, unknown>[];
+	await Promise.all(
+		variantesArr.map(async (v) => {
+			const vid = v.id;
+			if (vid == null) return;
+			try {
+				const vData = await fetchDirectus(
+					`/items/Variantes/${vid}?fields=FAQ.FAQ_id.question,FAQ.FAQ_id.reponse`,
+				);
+				const rawFaq = Array.isArray((vData as any)?.FAQ) ? (vData as any).FAQ : [];
+				variantFaqsById[String(vid)] = rawFaq
+					.map((f: any) => ({
+						question: String(f?.FAQ_id?.question ?? ''),
+						reponse: String(f?.FAQ_id?.reponse ?? ''),
+					}))
+					.filter((f: { question: string }) => f.question);
+			} catch {
+				variantFaqsById[String(vid)] = [];
+			}
+		}),
+	);
+}
 
 const variantItems: VariantButtonData[] = hasVariants && produit
 	? (produit.variantes as Record<string, unknown>[]).map((v) => {
@@ -136,6 +163,7 @@ const variantItems: VariantButtonData[] = hasVariants && produit
 				specs: JSON.stringify(specPayload),
 				modele: v.modele != null ? String(v.modele) : '',
 				taille: v.taille != null ? String(v.taille) : '',
+				faq: JSON.stringify(variantFaqsById[String(v.id)] || []),
 			};
 		})
 	: [];
@@ -372,6 +400,7 @@ const heroPriceHtml = renderPriceHtml(
 													data-specs={v.specs}
 													data-modele={v.modele}
 													data-taille={v.taille}
+													data-faq={v.faq}
 												>
 													<span>{v.label}</span>
 												</button>
@@ -398,6 +427,7 @@ const heroPriceHtml = renderPriceHtml(
 												data-desc-long={produit.description_principale || ''}
 												data-gallery={JSON.stringify(allImages)}
 												data-specs={JSON.stringify(specValueByKey)}
+												data-faq={JSON.stringify(faqItems)}
 											>
 												<span>{produit.nom_court || 'Modèle principal'}</span>
 												<span class="variant-btn-check" aria-hidden="true"></span>
@@ -417,6 +447,7 @@ const heroPriceHtml = renderPriceHtml(
 													data-desc-long={v.descLong}
 													data-gallery={v.gallery}
 													data-specs={v.specs}
+													data-faq={v.faq}
 												>
 													<span>{v.label}</span>
 													<span class="variant-btn-check" aria-hidden="true"></span>
@@ -520,25 +551,27 @@ const heroPriceHtml = renderPriceHtml(
 									<span class="pp-block-num">02</span>
 									<h2 class="pp-block-title">Questions fréquentes</h2>
 								</div>
-								{faqItems.length > 0 ? (
-									<div class="pp-faq-list faq-accordion">
-										{faqItems.map((f) => (
-											<details class="pp-faq-item faq-item">
-												<summary class="pp-faq-q faq-question">
-													<span>{f.question}</span>
-													<span class="pp-faq-icon" aria-hidden="true">+</span>
-												</summary>
-												<div class="pp-faq-a faq-answer">
-													<div class="pp-rich" set:html={f.reponse} />
-												</div>
-											</details>
-										))}
-									</div>
-								) : (
-									<p style="color: var(--text-light); line-height: 1.7;">
-										FAQ en préparation. <a href="/contact" style="color: #818cf8">Contactez-nous →</a>
-									</p>
-								)}
+								<div id="pp-faq-content">
+									{faqItems.length > 0 ? (
+										<div class="pp-faq-list faq-accordion">
+											{faqItems.map((f) => (
+												<details class="pp-faq-item faq-item">
+													<summary class="pp-faq-q faq-question">
+														<span>{f.question}</span>
+														<span class="pp-faq-icon" aria-hidden="true">+</span>
+													</summary>
+													<div class="pp-faq-a faq-answer">
+														<div class="pp-rich" set:html={f.reponse} />
+													</div>
+												</details>
+											))}
+										</div>
+									) : (
+										<p style="color: var(--text-light); line-height: 1.7;">
+											FAQ en préparation. <a href="/contact" style="color: #818cf8">Contactez-nous →</a>
+										</p>
+									)}
+								</div>
 							</section>
 
 							<section class="pp-block reveal" id="avis-section">

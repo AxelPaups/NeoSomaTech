@@ -151,6 +151,32 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
+	function renderFaqHtml(items: { question: string; reponse: string }[]): string {
+		if (!items || items.length === 0) {
+			return `<p style="color: var(--text-light); line-height: 1.7;">FAQ en préparation. <a href="/contact" style="color: #818cf8">Contactez-nous →</a></p>`;
+		}
+		return `<div class="pp-faq-list faq-accordion">${items
+			.map(
+				(f) => `
+			<details class="pp-faq-item faq-item">
+				<summary class="pp-faq-q faq-question"><span>${f.question}</span><span class="pp-faq-icon" aria-hidden="true">+</span></summary>
+				<div class="pp-faq-a faq-answer"><div class="pp-rich">${f.reponse}</div></div>
+			</details>`,
+			)
+			.join('')}</div>`;
+	}
+
+	function updateFaqFromPayload(faqStr: string | null) {
+		const faqContent = document.getElementById('pp-faq-content');
+		if (!faqContent || faqStr == null) return;
+		try {
+			const items = JSON.parse(faqStr) as { question: string; reponse: string }[];
+			faqContent.innerHTML = renderFaqHtml(items);
+		} catch (e) {
+			console.error('FAQ payload:', e);
+		}
+	}
+
 	function updateProductTitle(name: string) {
 		const h1 = document.getElementById('pp-product-title');
 		if (h1) h1.innerHTML = renderTitleHtml(name);
@@ -185,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const newName = btn.getAttribute('data-name');
 			const newGalleryStr = btn.getAttribute('data-gallery');
 			const newSpecsStr = btn.getAttribute('data-specs');
+			const newFaqStr = btn.getAttribute('data-faq');
 
 			if (newName) updateProductTitle(newName);
 
@@ -261,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
 					console.error('Specs payload:', e);
 				}
 			}
+
+			updateFaqFromPayload(newFaqStr);
 	}
 
 	variantBtns.forEach((btn) => {
