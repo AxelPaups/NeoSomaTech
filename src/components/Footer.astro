@@ -4,7 +4,7 @@
  * Design: Dark Tech / Ultra Premium
  * Dynamique : Données récupérées depuis Directus
  */
-import { fetchDirectus } from "../lib/directus";
+import { fetchDirectus, slugifyBrand } from "../lib/directus";
 
 const currentYear = new Date().getFullYear();
 
@@ -60,13 +60,13 @@ const cleanTitle = (title: string) => {
         <ul>
           {marques.map((marque) => (
             <li>
-              <a href={`/boutique?marque=${encodeURIComponent(marque)}`}>{marque}</a>
+              <a href={`/boutique/${slugifyBrand(marque)}`}>{marque}</a>
             </li>
           ))}
           {marques.length === 0 && (
             <>
-              <li><a href="/boutique?marque=Ski-Mojo">Ski-Mojo</a></li>
-              <li><a href="/boutique?marque=Hypershell">Hypershell</a></li>
+              <li><a href="/boutique/ski-mojo">Ski-Mojo</a></li>
+              <li><a href="/boutique/hypershell">Hypershell</a></li>
             </>
           )}
         </ul>

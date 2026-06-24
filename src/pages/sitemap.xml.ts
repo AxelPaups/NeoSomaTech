@@ -1,4 +1,4 @@
-import { fetchDirectus } from '../lib/directus';
+import { fetchDirectus, slugifyBrand } from '../lib/directus';
 
 export async function GET() {
   const baseUrl = 'https://neosomatech.com';
@@ -16,8 +16,18 @@ export async function GET() {
     // 2. Récupération des données dynamiques depuis Directus
     const [articles, produits] = await Promise.all([
       fetchDirectus('/items/Articles?fields=slug,date_publication'),
-      fetchDirectus('/items/Produits?fields=slug'),
+      fetchDirectus('/items/Produits?fields=slug,marque'),
     ]);
+
+    // Slugs de marque uniques pour les pages /boutique/[marque]
+    const brandSlugs = [
+      ...new Set(
+        (produits || [])
+          .map((p: any) => p.marque)
+          .filter(Boolean)
+          .map((m: string) => slugifyBrand(m))
+      ),
+    ];
 
     // Fonction pour tenter de parser la date (ou retourner la date du jour en repli)
     const formatDate = (dateStr: string) => {
@@ -64,6 +74,16 @@ export async function GET() {
     ${produit.date_updated ? `<lastmod>${formatDate(produit.date_updated)}</lastmod>` : ''}
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>`
+    )
+    .join('')}
+  ${brandSlugs
+    .map(
+      (brandSlug: string) => `
+  <url>
+    <loc>${baseUrl}/boutique/${brandSlug}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>`
     )
     .join('')}

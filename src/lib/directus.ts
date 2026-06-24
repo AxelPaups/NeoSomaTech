@@ -4,6 +4,19 @@ export const directusUrl = "https://spirited-squid.pikapod.net";
 export const directusToken = "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ";
 
 /**
+ * Transforme un nom de marque en slug d'URL propre (minuscules, sans accents).
+ * Ex : "Ski-Mojo" -> "ski-mojo", "Hypershell" -> "hypershell".
+ * Sert pour les pages de marque indexables /boutique/[marque].
+ */
+export function slugifyBrand(brand: string): string {
+    return (brand || '')
+        .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+        .toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+/**
  * Requête Fetch basique et universelle pour Cloudflare Workers/Pages
  * (Remplace le SDK lourd de Directus qui faisait crasher l'environnement Node.js de Cloudflare)
  */
