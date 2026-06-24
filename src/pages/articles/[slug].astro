@@ -11,6 +11,9 @@ const { slug } = Astro.params;
 // Préserve le référencement des URLs déjà indexées après normalisation des slugs.
 const SLUG_REDIRECTS: Record<string, string> = {
     'Exosquelette-de-Randonnée-Révolution-ou-Gadget-Sentiers': 'exosquelette-randonnee-revolution-ou-gadget-sentiers',
+    // Consolidation du pilier ski (suppression du doublon) vers le slug propre
+    'articles-exosquelette-ski-genou': 'exosquelette-ski-genou-guide-complet',
+    'exosquelette-ski-guide-complet': 'exosquelette-ski-genou-guide-complet',
 };
 const decodedSlug = slug ? decodeURIComponent(slug) : '';
 const redirectTarget = (slug && SLUG_REDIRECTS[slug]) || (decodedSlug && SLUG_REDIRECTS[decodedSlug]);
