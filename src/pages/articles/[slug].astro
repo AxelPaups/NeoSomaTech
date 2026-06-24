@@ -7,6 +7,17 @@ import { linkifyProducts } from '../../lib/linkifyProducts';
 
 const { slug } = Astro.params;
 
+// Redirections 301 d'anciens slugs (majuscules/accents) vers leur version propre.
+// Préserve le référencement des URLs déjà indexées après normalisation des slugs.
+const SLUG_REDIRECTS: Record<string, string> = {
+    'Exosquelette-de-Randonnée-Révolution-ou-Gadget-Sentiers': 'exosquelette-randonnee-revolution-ou-gadget-sentiers',
+};
+const decodedSlug = slug ? decodeURIComponent(slug) : '';
+const redirectTarget = (slug && SLUG_REDIRECTS[slug]) || (decodedSlug && SLUG_REDIRECTS[decodedSlug]);
+if (redirectTarget) {
+    return Astro.redirect(`/articles/${redirectTarget}`, 301);
+}
+
 let article: any = null;
 let errorMessage: string | null = null;
 let productsForLinking: { name: string, slug: string }[] = [];
@@ -100,7 +111,7 @@ const formatDate = (date: string) => {
             <!-- HERO IMAGE -->
             {imageUrl && (
                 <div class="article-hero">
-                    <img src={imageUrl} alt={article.titre} />
+                    <img src={`${imageUrl}?width=1200&format=webp&quality=82`} alt={article.titre} loading="eager" fetchpriority="high" decoding="async" />
                     <div class="article-hero-overlay"></div>
                 </div>
             )}

@@ -234,9 +234,10 @@ const chiffres = [
 								<div class="produit-img">
 									{produit.image ? (
 										<img
-											src={`${directusUrl}/assets/${produit.image}`}
+											src={`${directusUrl}/assets/${produit.image}?width=640&format=webp&quality=82`}
 											alt={produit.Nom_du_produit}
 											loading="lazy"
+											decoding="async"
 										/>
 									) : (
 										<div class="produit-img-placeholder">
@@ -387,9 +388,10 @@ const chiffres = [
 							{featuredArticle.image_principale ? (
 								<a href={`/articles/${featuredArticle.slug}`} class="article-img-wrap">
 									<img
-										src={`${directusUrl}/assets/${featuredArticle.image_principale}`}
+										src={`${directusUrl}/assets/${featuredArticle.image_principale}?width=800&format=webp&quality=82`}
 										alt={featuredArticle.titre}
 										loading="lazy"
+										decoding="async"
 									/>
 								</a>
 							) : (
@@ -422,9 +424,10 @@ const chiffres = [
 									{article.image_principale ? (
 										<a href={`/articles/${article.slug}`} class="article-img-wrap article-img-wrap--small">
 											<img
-												src={`${directusUrl}/assets/${article.image_principale}`}
+												src={`${directusUrl}/assets/${article.image_principale}?width=400&format=webp&quality=82`}
 												alt={article.titre}
 												loading="lazy"
+												decoding="async"
 											/>
 										</a>
 									) : (

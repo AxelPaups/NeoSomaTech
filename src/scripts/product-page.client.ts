@@ -265,8 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
 						carouselThumbnails.innerHTML = gallery
 							.map(
 								(imgUrl: string, index: number) => `
-							<button class="pp-thumb-btn thumbnail-btn ${index === 0 ? 'active' : ''}" data-index="${index}" data-image="${imgUrl}" aria-label="Image ${index + 1}">
-								<img src="${imgUrl}" alt="${productName} — vue ${index + 1}" width="72" height="72" loading="lazy" />
+							<button class="pp-thumb-btn thumbnail-btn ${index === 0 ? 'active' : ''}" data-index="${index}" data-image="${imgUrl}?width=900&format=webp&quality=82" aria-label="Image ${index + 1}">
+								<img src="${imgUrl}?width=150&format=webp&quality=82" alt="${productName} — vue ${index + 1}" width="72" height="72" loading="lazy" decoding="async" />
 							</button>`,
 							)
 							.join('');

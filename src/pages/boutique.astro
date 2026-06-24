@@ -83,9 +83,10 @@ const seo = await fetchPageSEO(
                             <a href={`/produits/${p.slug || p.id}`} class="card-img-link">
                                 {p.image ? (
                                     <img
-                                        src={`${directusUrl}/assets/${p.image}`}
+                                        src={`${directusUrl}/assets/${p.image}?width=400&format=webp&quality=82`}
                                         alt={p.Nom_du_produit}
                                         loading="lazy"
+                                        decoding="async"
                                         width="400"
                                         height="400"
                                     />

@@ -311,7 +311,7 @@ const heroPriceHtml = renderPriceHtml(
 												<img
 													id="main-carousel-img"
 													class="pp-gallery-img"
-													src={allImages[0]}
+													src={`${allImages[0]}?width=900&format=webp&quality=82`}
 													alt={customAlts[0] || `${productName} — vue 1`}
 													width="900"
 													height="900"
@@ -339,15 +339,16 @@ const heroPriceHtml = renderPriceHtml(
 													type="button"
 													class={`pp-thumb-btn thumbnail-btn ${index === 0 ? 'active' : ''}`}
 													data-index={index}
-													data-image={imgUrl}
+													data-image={`${imgUrl}?width=900&format=webp&quality=82`}
 													aria-label={`Image ${index + 1}`}
 												>
 													<img
-														src={imgUrl}
+														src={`${imgUrl}?width=150&format=webp&quality=82`}
 														alt={customAlts[index] || `${productName} — vue ${index + 1}`}
 														width="72"
 														height="72"
 														loading="lazy"
+														decoding="async"
 													/>
 												</button>
 											))}
@@ -685,7 +686,7 @@ const heroPriceHtml = renderPriceHtml(
 											<article class="pp-similar-card">
 												<a href={`/articles/${a.slug}`} class="pp-similar-img">
 													{a.image_principale ? (
-														<img src={`${directusUrl}/assets/${a.image_principale}`} alt={a.titre as string} loading="lazy" width="280" height="280" />
+														<img src={`${directusUrl}/assets/${a.image_principale}?width=320&format=webp&quality=82`} alt={a.titre as string} loading="lazy" decoding="async" width="280" height="280" />
 													) : (
 														<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">📝</span>
 													)}
@@ -712,7 +713,7 @@ const heroPriceHtml = renderPriceHtml(
 											<article class="pp-similar-card">
 												<a href={`/produits/${p.slug || p.id}`} class="pp-similar-img">
 													{p.image ? (
-														<img src={`${directusUrl}/assets/${p.image}`} alt={p.Nom_du_produit as string} loading="lazy" />
+														<img src={`${directusUrl}/assets/${p.image}?width=320&format=webp&quality=82`} alt={p.Nom_du_produit as string} loading="lazy" decoding="async" width="280" height="280" />
 													) : (
 														<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">🦾</span>
 													)}

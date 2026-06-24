@@ -82,9 +82,10 @@ const formatDate = (date: string) => {
                             {article.image_principale && (
                                 <div class="card-img">
                                     <img
-                                        src={`https://spirited-squid.pikapod.net/assets/${article.image_principale}`}
+                                        src={`https://spirited-squid.pikapod.net/assets/${article.image_principale}?width=800&format=webp&quality=82`}
                                         alt={article.titre}
                                         loading={i === 0 ? 'eager' : 'lazy'}
+                                        decoding="async"
                                         width="800"
                                         height="450"
                                     />
