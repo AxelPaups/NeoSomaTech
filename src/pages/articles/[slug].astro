@@ -55,6 +55,12 @@ if (!article && !errorMessage) {
     return Astro.redirect('/404');
 }
 
+// Si l'article est introuvable ou en erreur : renvoyer un vrai 404 (et noindex)
+// pour éviter que Google indexe une page d'erreur servie en 200.
+if (!article || errorMessage) {
+    Astro.response.status = 404;
+}
+
 // Application du linkify sur le contenu
 const linkifiedContent = article?.contenu ? linkifyProducts(article.contenu, productsForLinking) : '';
 
@@ -82,6 +88,7 @@ const formatDate = (date: string) => {
     image={imageUrl || '/favicon.png'}
     type="article"
     schemaItem={article}
+    noindex={!article || !!errorMessage}
 >
 
     {errorMessage ? (

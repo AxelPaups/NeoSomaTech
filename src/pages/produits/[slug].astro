@@ -78,6 +78,11 @@ if (!produit && !errorMessage) {
 	return Astro.redirect('/404');
 }
 
+// Produit introuvable ou en erreur : vrai 404 + noindex (évite l'indexation d'une page d'erreur en 200)
+if (!produit || errorMessage) {
+	Astro.response.status = 404;
+}
+
 const customAlts = getCustomAlts(produit?.custom_alts as string | undefined);
 let allImages = collectGallery(produit?.image as string | undefined, produit?.galerie, directusUrl);
 let imageUrl = allImages[0] || null;
@@ -233,6 +238,7 @@ const heroPriceHtml = renderPriceHtml(
 	schemaItem={{ ...produit, allImages }}
 	faqs={produit?.faqs}
 	aggregateRating={noteMoyenne && avis.length > 0 ? { ratingValue: noteMoyenne, reviewCount: avis.length } : undefined}
+	noindex={!produit || !!errorMessage}
 >
 	<div class="product-page" data-product-page>
 		<div class="pp-ambient" aria-hidden="true">
@@ -470,7 +476,7 @@ const heroPriceHtml = renderPriceHtml(
 											class="btn btn-buy"
 											id="main-cta-btn"
 											target={produit.Bouton_acheter ? '_blank' : '_self'}
-											rel={produit.Bouton_acheter ? 'noopener noreferrer' : undefined}
+											rel={produit.Bouton_acheter ? 'sponsored nofollow noopener noreferrer' : undefined}
 										>
 											Acheter maintenant
 										</a>
@@ -737,7 +743,7 @@ const heroPriceHtml = renderPriceHtml(
 											class="btn"
 											id="sticky-cta-btn"
 											target="_blank"
-											rel="noopener noreferrer"
+											rel="sponsored nofollow noopener noreferrer"
 										>
 											Acheter
 										</a>

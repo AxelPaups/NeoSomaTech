@@ -238,9 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
 			const stickyCta = document.getElementById('sticky-cta-btn');
 			if (currentBuyBtn) {
 				if (newPrice) {
-					currentBuyBtn.outerHTML = `<a href="${newUrl || '#'}" class="btn btn-buy" id="main-cta-btn" target="${newUrl ? '_blank' : '_self'}" ${newUrl ? 'rel="noopener noreferrer"' : ''}>Acheter maintenant</a>`;
+					currentBuyBtn.outerHTML = `<a href="${newUrl || '#'}" class="btn btn-buy" id="main-cta-btn" target="${newUrl ? '_blank' : '_self'}" ${newUrl ? 'rel="sponsored nofollow noopener noreferrer"' : ''}>Acheter maintenant</a>`;
 					if (stickyCta) {
-						stickyCta.outerHTML = `<a href="${newUrl || '#'}" class="btn" id="sticky-cta-btn" target="_blank" rel="noopener noreferrer">Acheter</a>`;
+						stickyCta.outerHTML = `<a href="${newUrl || '#'}" class="btn" id="sticky-cta-btn" target="_blank" rel="sponsored nofollow noopener noreferrer">Acheter</a>`;
 					}
 				} else {
 					currentBuyBtn.outerHTML = `<button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip="${newAttente || 'Bientôt disponible'}">Me notifier</button>`;
