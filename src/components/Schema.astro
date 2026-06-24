@@ -137,7 +137,14 @@ if (type === 'product' && item) {
         "description": item.description_seo || item.meta_description,
         "datePublished": item.date_publication,
         "dateModified": item.date_updated || item.date_publication,
-        "author": { "@type": "Person", "name": item.auteur || "NeoSomaTech" },
+        "author": {
+            "@type": "Person",
+            "name": item.auteur || "NeoSomaTech",
+            ...(item.auteur === 'Axel Paupier' ? {
+                "@id": `${siteUrl}/auteur/axel-paupier#person`,
+                "url": `${siteUrl}/auteur/axel-paupier`
+            } : {})
+        },
         "image": item.image_principale ? `${directusUrl}/assets/${item.image_principale}` : undefined,
         "publisher": { "@id": `${siteUrl}/#organization` },
         "mainEntityOfPage": {

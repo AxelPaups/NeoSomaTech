@@ -9,6 +9,7 @@ export async function GET() {
     '/boutique',
     '/articles',
     '/a-propos',
+    '/auteur/axel-paupier',
     '/contact',
   ];
 

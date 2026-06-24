@@ -402,7 +402,11 @@ const chiffres = [
 									{featuredArticle.date_publication && (
 										<time>{formatDate(featuredArticle.date_publication)}</time>
 									)}
-									{featuredArticle.auteur && <span>&middot; {featuredArticle.auteur}</span>}
+									{featuredArticle.auteur && (
+									<span>&middot; {featuredArticle.auteur === 'Axel Paupier'
+										? <a href="/auteur/axel-paupier" rel="author">{featuredArticle.auteur}</a>
+										: featuredArticle.auteur}</span>
+								)}
 								</div>
 								<h3>
 									<a href={`/articles/${featuredArticle.slug}`}>{featuredArticle.titre}</a>

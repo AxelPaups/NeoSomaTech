@@ -1,0 +1,125 @@
+---
+// page : /auteur/axel-paupier — page auteur (E-E-A-T)
+import Layout from '../../layouts/Layout.astro';
+
+const personSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': 'https://neosomatech.com/auteur/axel-paupier#person',
+    name: 'Axel Paupier',
+    url: 'https://neosomatech.com/auteur/axel-paupier',
+    jobTitle: 'Fondateur de NeoSomaTech',
+    description:
+        "Axel Paupier est le fondateur de NeoSomaTech, la référence francophone indépendante dédiée aux exosquelettes médicaux, sportifs et industriels. Passionné de biomécanique et de technologies d'augmentation humaine, il analyse et compare les exosquelettes du marché.",
+    worksFor: {
+        '@type': 'Organization',
+        name: 'NeoSomaTech',
+        url: 'https://neosomatech.com',
+    },
+    knowsAbout: [
+        'Exosquelettes',
+        'Exosquelettes de ski',
+        'Exosquelettes de randonnée',
+        'Exosquelettes médicaux',
+        'Biomécanique',
+        'Assistance à la marche',
+    ],
+    // sameAs : à compléter le jour où des profils sociaux actifs existent
+    // ex : "https://www.linkedin.com/in/...", "https://www.youtube.com/@..."
+    sameAs: [],
+};
+
+const title = 'Axel Paupier — Fondateur de NeoSomaTech';
+const description =
+    "Axel Paupier, fondateur de NeoSomaTech : passionné d'exosquelettes, il teste, compare et décrypte les solutions d'augmentation humaine de façon indépendante.";
+---
+
+<Layout title={title} description={description} type="page" schemaItem={personSchema}>
+    <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
+
+    <article class="author-page container">
+        <nav class="breadcrumb">
+            <a href="/">Accueil</a> / <a href="/a-propos">À propos</a> / <span>Axel Paupier</span>
+        </nav>
+
+        <header class="author-head">
+            <div class="author-avatar" aria-hidden="true">AP</div>
+            <div>
+                <h1>Axel Paupier</h1>
+                <p class="author-role">Fondateur de NeoSomaTech</p>
+            </div>
+        </header>
+
+        <div class="author-body">
+            <p>
+                J'ai fondé <strong>NeoSomaTech</strong> en 2026 avec une conviction simple : les
+                <strong>exosquelettes</strong> vont transformer notre rapport au corps, au sport et à la santé —
+                et le public francophone mérite une source claire, honnête et indépendante pour s'y retrouver.
+            </p>
+
+            <p>
+                Je ne viens pas d'un grand groupe industriel. Je suis avant tout un <strong>passionné</strong>,
+                un jeune entrepreneur breton qui a transformé une obsession pour la biomécanique et la robotique
+                portable en une véritable veille quotidienne. C'est précisément cette indépendance qui fait la
+                valeur de NeoSomaTech : je ne fabrique aucun de ces produits, je n'ai donc aucune raison d'en
+                survendre un plutôt qu'un autre.
+            </p>
+
+            <h2>Ma méthode</h2>
+            <p>
+                Chaque exosquelette présenté sur le site est étudié selon des critères constants :
+                <strong>performance réelle</strong> (gain mesurable, autonomie, puissance), <strong>sécurité et
+                protection articulaire</strong>, <strong>ergonomie et confort</strong> au porté, et
+                <strong>rapport qualité-prix</strong>. Je recoupe les données techniques des fabricants, les
+                retours d'utilisateurs et les principes biomécaniques pour proposer des comparatifs et des guides
+                d'achat utiles, pas du copier-coller de fiches commerciales.
+            </p>
+
+            <h2>Transparence</h2>
+            <p>
+                NeoSomaTech propose des <strong>analyses indépendantes</strong>, pas des conseils médicaux.
+                Les chiffres liés à la santé (réduction de charge, protection des articulations…) proviennent
+                des fabricants ou d'études citées : en cas de douleur, de blessure ou de besoin de rééducation,
+                consultez un professionnel de santé. Certains liens vers les boutiques des fabricants peuvent
+                être des liens d'affiliation, signalés comme tels et sans surcoût pour vous.
+            </p>
+
+            <div class="author-cta">
+                <a href="/articles" class="btn">Lire mes articles</a>
+                <a href="/contact" class="btn btn-outline">Me contacter</a>
+            </div>
+        </div>
+    </article>
+</Layout>
+
+<style>
+    .author-page { max-width: 820px; padding: 4rem 1.5rem 5rem; }
+    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 2rem; }
+    .breadcrumb a { color: #818cf8; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .author-head { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; }
+    .author-avatar {
+        flex: none;
+        width: 88px; height: 88px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem; font-weight: 900; color: #fff; letter-spacing: -1px;
+        background: var(--gradient);
+        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.35);
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 900; color: #fff; letter-spacing: -1px; }
+    .author-role { color: #a5b4fc; font-weight: 600; margin-top: 0.35rem; }
+
+    .author-body p { color: var(--text); line-height: 1.8; margin-bottom: 1.25rem; font-size: 1.05rem; }
+    .author-body strong { color: #fff; }
+    .author-body h2 {
+        color: #fff; font-size: 1.4rem; font-weight: 800;
+        margin: 2.25rem 0 0.85rem; letter-spacing: -0.5px;
+    }
+
+    .author-cta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.5rem; }
+
+    @media (max-width: 560px) {
+        .author-head { flex-direction: column; text-align: center; gap: 1rem; }
+    }
+</style>

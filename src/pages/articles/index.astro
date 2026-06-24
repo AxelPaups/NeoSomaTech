@@ -98,7 +98,11 @@ const formatDate = (date: string) => {
                                             {formatDate(article.date_publication)}
                                         </time>
                                     )}
-                                    {article.auteur && <span class="author">par {article.auteur}</span>}
+                                    {article.auteur && (
+                                        <span class="author">par {article.auteur === 'Axel Paupier'
+                                            ? <a href="/auteur/axel-paupier" rel="author">{article.auteur}</a>
+                                            : article.auteur}</span>
+                                    )}
                                 </div>
                                 <h2><a href={`/articles/${article.slug}`}>{article.titre}</a></h2>
                                 {article.description_seo && (
