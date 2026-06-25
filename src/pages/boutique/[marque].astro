@@ -162,9 +162,10 @@ const itemListSchema = {
         transition: transform 0.2s, border-color 0.2s;
     }
     .card:hover { transform: translateY(-4px); border-color: var(--primary); }
-    .card-img-link { position: relative; display: block; aspect-ratio: 1 / 1; background: #0b0b16; }
-    .card-img-link img { width: 100%; height: 100%; object-fit: cover; }
-    .img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+    .card-img-link { display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15)); padding: 2rem; overflow: hidden; }
+    .card-img-link img { width: 100%; height: 100%; object-fit: contain; background: #F5F2EB; border-radius: 6px; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card:hover .card-img-link img { transform: scale(1.3); }
+    .img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #F5F2EB; border-radius: 6px; }
     .promo-badge {
         position: absolute; top: 0.75rem; left: 0.75rem;
         background: linear-gradient(135deg, #ec4899, #8b5cf6);
