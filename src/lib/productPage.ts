@@ -204,4 +204,7 @@ export const PRODUCT_FIELDS = [
 	'materiaux',
 	'garantie',
 	'certification',
+	'note_externe',
+	'nb_avis_externe',
+	'date_analyse',
 ].join(',');

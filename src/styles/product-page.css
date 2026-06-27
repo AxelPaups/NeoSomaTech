@@ -1002,6 +1002,16 @@
 	border-radius: 999px;
 }
 
+.pp-byline {
+	margin-top: 0.85rem;
+	font-size: 0.82rem;
+	color: var(--text-light);
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0.25rem;
+}
+
 .pp-description-body {
 	min-width: 0;
 	padding: 0.5rem 0 0;

@@ -222,7 +222,16 @@ const metaDescription =
 	(produit?.descripton_simple as string) ||
 	'Exosquelette NeoSomaTech';
 const titleWords = productName.split(/\s+/);
-const marqueeText = `${productName} — `.repeat(4);
+// Marquee varié avec features du produit (évite la répétition SEO du nom)
+const marqueeFeats = [
+	productName,
+	...(specValueByKey['poids'] ? [specValueByKey['poids']] : []),
+	...(specValueByKey['assist'] ? [`Assistance ${specValueByKey['assist']}`] : []),
+	...(specValueByKey['warranty'] ? [`Garantie ${specValueByKey['warranty']}`] : []),
+	...(specValueByKey['autonomie'] ? [specValueByKey['autonomie']] : []),
+	...(produit?.marque ? [produit.marque as string] : []),
+].filter(Boolean);
+const marqueeText = (marqueeFeats.length >= 3 ? marqueeFeats : [productName, productName, productName, productName]).map(t => `${t} — `).join('');
 const heroPriceHtml = renderPriceHtml(
 	String(produit?.prix ?? ''),
 	isPromoValid,
@@ -237,7 +246,13 @@ const heroPriceHtml = renderPriceHtml(
 	type="product"
 	schemaItem={{ ...produit, allImages }}
 	faqs={produit?.faqs}
-	aggregateRating={noteMoyenne && avis.length > 0 ? { ratingValue: noteMoyenne, reviewCount: avis.length } : undefined}
+	aggregateRating={
+		noteMoyenne && avis.length > 0
+			? { ratingValue: noteMoyenne, reviewCount: avis.length }
+			: (produit?.note_externe && produit?.nb_avis_externe)
+				? { ratingValue: Number(produit.note_externe), reviewCount: Number(produit.nb_avis_externe) }
+				: undefined
+	}
 	noindex={!produit || !!errorMessage}
 >
 	<div class="product-page" data-product-page>
@@ -546,6 +561,15 @@ const heroPriceHtml = renderPriceHtml(
 											{produit.autonomie && <span class="pp-chip">Autonomie: {String(produit.autonomie)}</span>}
 											{produit.garantie && <span class="pp-chip">Garantie: {String(produit.garantie)}</span>}
 										</div>
+										<p class="pp-byline">
+											Analysé par&nbsp;<a href="/auteur/axel-paupier" class="author-link">Axel Paupier</a>
+											{produit.date_analyse && (
+												<>
+													&nbsp;·&nbsp;Mis à jour le&nbsp;
+													{new Date(produit.date_analyse as string).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+												</>
+											)}
+										</p>
 									</header>
 									<div class="pp-description-body">
 										<div class="pp-rich rich-content" set:html={produit.description_principale as string} />

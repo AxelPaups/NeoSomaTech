@@ -154,7 +154,30 @@ if (type === 'product' && item) {
     };
 }
 
-// 5. FAQ Schema
+// 5. WebPage Schema (product pages) — signal E-E-A-T : author + dateModified
+let webPageSchema: any = null;
+if (type === 'product' && item) {
+    webPageSchema = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": `${currentUrl}#webpage`,
+        "url": currentUrl,
+        "name": item.Nom_du_produit,
+        "description": item.seo_description || item.descripton_simple || '',
+        "inLanguage": "fr-FR",
+        "dateModified": item.date_analyse || undefined,
+        "author": {
+            "@type": "Person",
+            "@id": `${siteUrl}/auteur/axel-paupier#person`,
+            "name": "Axel Paupier",
+            "url": `${siteUrl}/auteur/axel-paupier`
+        },
+        "publisher": { "@id": `${siteUrl}/#organization` },
+        "isPartOf": { "@id": `${siteUrl}/#website` }
+    };
+}
+
+// 6. FAQ Schema
 let faqSchema: any = null;
 if (faqs && faqs.length > 0) {
     faqSchema = {
@@ -179,4 +202,5 @@ if (faqs && faqs.length > 0) {
 
 <!-- Specific Schemas -->
 {specificSchema && <script type="application/ld+json" set:html={JSON.stringify(specificSchema)} is:inline />}
+{webPageSchema && <script type="application/ld+json" set:html={JSON.stringify(webPageSchema)} is:inline />}
 {faqSchema && <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} is:inline />}
