@@ -11,7 +11,6 @@
 		"enabled": true
 	},
 	"vars": {
-		"PUBLIC_URL_DIRECT": "https://spirited-squid.pikapod.net",
-		"PUBLIC_JETON_STATIQUE_DIRECT": "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ"
+		"PUBLIC_URL_DIRECT": "https://spirited-squid.pikapod.net"
 	}
 }
