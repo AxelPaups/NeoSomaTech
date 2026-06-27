@@ -1,5 +1,5 @@
 export const directusUrl = "https://spirited-squid.pikapod.net";
-export const directusToken = import.meta.env.PUBLIC_JETON_STATIQUE_DIRECT as string;
+export const directusToken = "0rDg_xkE3nqWlRECA3q3O2vxbh-RwytQ";
 
 /**
  * Transforme un nom de marque en slug d'URL propre (minuscules, sans accents).
