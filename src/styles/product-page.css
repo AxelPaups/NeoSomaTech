@@ -167,6 +167,10 @@
 }
 .pp-title-word {
 	display: inline-block;
+	/* Les mots sont des inline-block : l espace en bord de span est
+	   supprime par le navigateur, ce qui collait les mots. On retablit
+	   l espacement via une marge (largeur approx. d une espace). */
+	margin-right: 0.25em;
 	background: linear-gradient(120deg, #fff 30%, #a5b4fc 100%);
 	-webkit-background-clip: text;
 	background-clip: text;
@@ -1459,10 +1463,12 @@
 
 .pp-sticky-price .promo-price {
 	font-size: 1.35rem;
+	white-space: nowrap;
 }
 
 .pp-sticky-price .price-main {
 	font-size: 1.35rem;
+	white-space: nowrap;
 }
 
 .pp-sticky-price .original-price {
@@ -1537,6 +1543,24 @@
 	}
 	.pp-inner {
 		padding: 0 1rem;
+	}
+	/* Barre dachat collante : resserrer pour que nom + prix + bouton
+	   tiennent sur une ligne sans couper le prix. */
+	.pp-sticky-inner {
+		gap: 0.6rem;
+	}
+	.pp-sticky-name {
+		max-width: 32vw;
+		font-size: 0.85rem;
+	}
+	.pp-sticky-price .price-main,
+	.pp-sticky-price .promo-price {
+		font-size: 1.15rem;
+	}
+	.pp-sticky-cta .btn {
+		padding: 0.6rem 1rem;
+		font-size: 0.85rem;
+		white-space: nowrap;
 	}
 }
 

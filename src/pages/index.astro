@@ -1466,8 +1466,13 @@ const chiffres = [
 
 	@media (max-width: 900px) {
 		.hero { min-height: auto; }
-		.hero-inner { grid-template-columns: 1fr; padding: 4rem 0 3rem; }
-		.hero-right { display: none; }
+		.hero-inner { grid-template-columns: 1fr; padding: 2.5rem 0 2.75rem; }
+		/* On garde la sphere sur mobile (version compacte, sans les puces de
+		   marques qui figurent deja dans le bandeau defilant) pour ne pas
+		   perdre le visuel signature du hero. */
+		.hero-right { display: flex; margin-top: 1.75rem; }
+		.orb-wrapper { width: min(66vw, 290px); height: min(66vw, 290px); }
+		.chip { display: none; }
 
 		.nst-grid { grid-template-columns: 1fr; }
 		.nst-col--border { border-right: none; border-bottom: 1px solid var(--ns-border); }
@@ -1488,7 +1493,8 @@ const chiffres = [
 
 	@media (max-width: 600px) {
 		.hero-inner { padding: 3rem 0 2.5rem; }
-		.hero-actions { flex-direction: column; }
+		.hero-actions { flex-direction: column; align-items: stretch; }
+		.hero-actions .btn { width: 100%; }
 
 		.nst-col { padding: 1.75rem 1.25rem; }
 		.nst-word { font-size: 1.9rem; }
