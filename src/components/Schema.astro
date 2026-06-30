@@ -93,7 +93,7 @@ if (type === 'product' && item) {
     const isPromoValid = item.promo && item.prix_promo;
     const price = isPromoValid 
         ? String(item.prix_promo).replace(/[^\d.,]/g, '').replace(',', '.') 
-        : (item.prix ? String(item.prix).replace(/[^\d.,]/g, '').replace(',', '.') : "0");
+        : (item.prix ? String(item.prix).replace(/[^\d.,]/g, '').replace(',', '.') : null);
 
     let productImages: string[] = [];
     if (item.allImages && Array.isArray(item.allImages)) {
@@ -115,9 +115,10 @@ if (type === 'product' && item) {
         "offers": {
             "@type": "Offer",
             "priceCurrency": "EUR",
-            "price": price,
-            "availability": item.prix ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
-            "url": currentUrl
+            ...(price !== null ? { "price": price } : {}),
+            "availability": item.prix ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "url": currentUrl,
+            "seller": { "@type": "Organization", "name": "NeoSomaTech" }
         },
         ...(aggregateRating && aggregateRating.reviewCount > 0 ? {
             "aggregateRating": {
