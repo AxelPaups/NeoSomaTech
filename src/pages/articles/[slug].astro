@@ -267,8 +267,25 @@ const formatDate = (date: string) => {
     }
     .article-content p { margin-bottom: 1.25rem; }
     .article-content strong { color: #e2e8f0; }
-    .article-content a { color: #818cf8; text-decoration: underline; text-underline-offset: 3px; }
-    .article-content a:hover { color: #a5b4fc; }
+    /* Liens texte (Directus) : même apparence que les liens produits.
+       :global() obligatoire car le HTML vient de set:html (sinon le style ne s'applique pas).
+       box-decoration-break: clone => rendu propre si le lien passe à la ligne. */
+    :global(.article-content a:not(.product-inline-link)) {
+        color: #818cf8;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(129, 140, 248, 0.4);
+        font-weight: 600;
+        padding: 0 2px;
+        border-radius: 4px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+    }
+    :global(.article-content a:not(.product-inline-link):hover) {
+        color: #fff;
+        background: rgba(99, 102, 241, 0.2);
+        border-bottom-color: #6366f1;
+    }
 
     /* Style pour les liens produits automatiques */
     :global(.article-content .product-inline-link) {

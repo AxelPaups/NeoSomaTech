@@ -19,6 +19,12 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+._*
+
+# médias générés (reels) et fichiers de travail — ne pas versionner
+*.mp4
+reel_*.json
+scratch/
 
 # jetbrains setting folder
 .idea/
