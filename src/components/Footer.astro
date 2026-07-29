@@ -19,7 +19,7 @@ try {
   
   // Extraction des marques uniques
   marques = [...new Set(produitsData.map((p: any) => p.marque).filter(Boolean))].sort() as string[];
-  articles = articlesData;
+  articles = (articlesData || []).filter((a: any) => a && a.slug);
 } catch (error) {
   console.error("Erreur lors de la récupération des données du footer:", error);
 }

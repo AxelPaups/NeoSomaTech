@@ -16,6 +16,17 @@ import '../../styles/product-page.css';
 
 const { slug } = Astro.params;
 
+// Redirections 301 d'anciens slugs produits supprimes ou renommes,
+// vers la page de marque correspondante (preserve le referencement des URLs indexees).
+const PRODUCT_REDIRECTS: Record<string, string> = {
+	'dnsys-x1-exoskeleton': '/boutique/dnsys',
+	'stoko-k1-supportive-tight-exosquelette-textile': '/boutique/stoko',
+	'ecece': '/boutique',
+};
+if (slug && PRODUCT_REDIRECTS[slug]) {
+	return Astro.redirect(PRODUCT_REDIRECTS[slug], 301);
+}
+
 let produit: Record<string, unknown> | null = null;
 let produitsSimilaires: Record<string, unknown>[] = [];
 let avis: Record<string, unknown>[] = [];
@@ -60,7 +71,7 @@ try {
 			const articlesData = await fetchDirectus(
 				`/items/Articles?filter[contenu][_contains]=${searchTerm}&fields=titre,slug,description_seo,image_principale,date_publication&limit=3`,
 			);
-			articlesLies = Array.isArray(articlesData) ? articlesData : [];
+			articlesLies = Array.isArray(articlesData) ? articlesData.filter((a: any) => a && a.slug) : [];
 		} catch {
 			articlesLies = [];
 		}

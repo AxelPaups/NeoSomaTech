@@ -18,7 +18,7 @@ try {
 		fetchDirectus("/items/Produits?fields=marque&limit=100"),
 	]);
 	produits = produitsData;
-	articles = articlesData;
+	articles = (articlesData || []).filter((a: any) => a && a.slug);
 	marques = [...new Set((marquesData ?? []).map((p: any) => p.marque).filter(Boolean))].sort() as string[];
 
 	if (Array.isArray(articles)) {
