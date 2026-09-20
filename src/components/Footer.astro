@@ -4,22 +4,27 @@
  * Design: Dark Tech / Ultra Premium
  * Dynamique : Données récupérées depuis Directus
  */
-import { fetchDirectus, slugifyBrand } from "../lib/directus";
+import { slugifyBrand } from "../lib/directus";
+import { listBrands, listArticles } from "../lib/content";
+import { useTranslations, path, legalPaths, type Locale } from "../i18n";
 
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = 'fr' } = Astro.props;
+const t = useTranslations(locale);
 const currentYear = new Date().getFullYear();
 
 let marques: string[] = [];
 let articles: any[] = [];
 
 try {
-  const [produitsData, articlesData] = await Promise.all([
-    fetchDirectus("/items/Produits?fields=marque&limit=100"),
-    fetchDirectus("/items/Articles?sort=-date_publication&limit=3&fields=titre,slug")
+  // Marques et derniers articles : uniquement ceux qui existent dans la langue de la page
+  [marques, articles] = await Promise.all([
+    listBrands(locale),
+    listArticles(locale, "titre,slug,date_publication", { limit: 3 }),
   ]);
-  
-  // Extraction des marques uniques
-  marques = [...new Set(produitsData.map((p: any) => p.marque).filter(Boolean))].sort() as string[];
-  articles = (articlesData || []).filter((a: any) => a && a.slug);
 } catch (error) {
   console.error("Erreur lors de la récupération des données du footer:", error);
 }
@@ -34,11 +39,11 @@ const cleanTitle = (title: string) => {
   <div class="container footer-grid">
     <!-- Colonne 1: Logo & Social -->
     <div class="footer-col brand-col">
-      <a href="/" class="footer-logo">
+      <a href={path(locale, 'home')} class="footer-logo">
         <span class="logo-text">NEOSOMA</span><span class="logo-tech">TECH</span>
       </a>
       <p class="brand-slogan">
-        Augmenter le potentiel humain grâce aux technologies d'exosquelettes de pointe.
+        {t.footer.slogan}
       </p>
       <div class="social-links">
         <span class="social-icon" aria-label="LinkedIn">
@@ -55,18 +60,18 @@ const cleanTitle = (title: string) => {
 
     <!-- Colonne 2: Nos Marques (Dynamique) -->
     <div class="footer-col">
-      <h3>Nos Marques</h3>
+      <h3>{t.footer.brands}</h3>
       <nav>
         <ul>
           {marques.map((marque) => (
             <li>
-              <a href={`/boutique/${slugifyBrand(marque)}`}>{marque}</a>
+              <a href={path(locale, 'shop', slugifyBrand(marque))}>{marque}</a>
             </li>
           ))}
           {marques.length === 0 && (
             <>
-              <li><a href="/boutique/ski-mojo">Ski-Mojo</a></li>
-              <li><a href="/boutique/hypershell">Hypershell</a></li>
+              <li><a href={path(locale, 'shop', 'ski-mojo')}>Ski-Mojo</a></li>
+              <li><a href={path(locale, 'shop', 'hypershell')}>Hypershell</a></li>
             </>
           )}
         </ul>
@@ -75,16 +80,16 @@ const cleanTitle = (title: string) => {
 
     <!-- Colonne 3: Articles (Derniers 3 dynamique) -->
     <div class="footer-col">
-      <h3>Articles</h3>
+      <h3>{t.footer.articles}</h3>
       <nav>
         <ul>
           {articles.map((art) => (
             <li>
-              <a href={`/articles/${art.slug}`}>{cleanTitle(art.titre)}</a>
+              <a href={path(locale, 'articles', art.slug)}>{cleanTitle(art.titre)}</a>
             </li>
           ))}
           {articles.length === 0 && (
-            <li><a href="/articles">Dernières actualités</a></li>
+            <li><a href={path(locale, 'articles')}>{t.footer.latest}</a></li>
           )}
         </ul>
       </nav>
@@ -92,17 +97,17 @@ const cleanTitle = (title: string) => {
 
     <!-- Colonne 4: Légal & France -->
     <div class="footer-col">
-      <h3>Légal & France</h3>
+      <h3>{t.footer.legal}</h3>
       <nav>
         <ul>
-          <li><a href="/mentions-legales">Mentions légales</a></li>
-          <li><a href="/politique-cookies">Politique de cookies</a></li>
-          <li><a href="/a-propos">À propos</a></li>
+          <li><a href={legalPaths.notice} hreflang="fr" lang="fr">{t.footer.legalNotice}</a></li>
+          <li><a href={legalPaths.cookies} hreflang="fr" lang="fr">{t.footer.cookies}</a></li>
+          <li><a href={path(locale, 'about')}>{t.footer.about}</a></li>
         </ul>
       </nav>
       <div class="france-mention">
-        <p>Ingénierie & Passion</p>
-        <p>Basé en France 🇫🇷</p>
+        <p>{t.footer.craft}</p>
+        <p>{t.footer.based} 🇫🇷</p>
       </div>
     </div>
   </div>
@@ -110,9 +115,9 @@ const cleanTitle = (title: string) => {
   <!-- Bottom Bar -->
   <div class="footer-bottom">
     <div class="container bottom-inner">
-      <p class="copyright">&copy; {currentYear} NeoSomaTech. Tous droits réservés.</p>
+      <p class="copyright">&copy; {currentYear} {t.site.name}. {t.footer.rights}</p>
       <a href="#top" class="back-to-top">
-        <span>Back to top</span>
+        <span>{t.footer.backToTop}</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
       </a>
     </div>

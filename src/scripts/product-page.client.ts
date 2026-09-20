@@ -1,9 +1,24 @@
 import { renderPriceHtml, renderTitleHtml, renderMarqueeText } from '../lib/productPage';
 
-/** Client-side interactions for /produits/[slug] */
+/** Client-side interactions for the product page (all languages) */
 document.addEventListener('DOMContentLoaded', () => {
 	const root = document.querySelector('[data-product-page]');
 	if (!root) return;
+
+	// Textes de l'interface, fournis par le serveur dans la langue de la page (repli : français)
+	let i18n: Record<string, string> = {};
+	try {
+		i18n = JSON.parse(document.getElementById('pp-i18n')?.textContent || '{}');
+	} catch {
+		i18n = {};
+	}
+	const tr = (key: string, fallback: string) => i18n[key] ?? fallback;
+	const priceLabels = () => ({
+		onRequest: tr('priceOnRequest', 'Sur demande'),
+		sale: tr('priceSale', 'Promo'),
+		instead: tr('priceInstead', 'Au lieu de'),
+		reduction: tr('priceReduction', 'Réduction'),
+	});
 
 	const mainImg = document.getElementById('main-carousel-img') as HTMLImageElement | null;
 	const counterCurrent = document.getElementById('gallery-counter-current');
@@ -153,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	function renderFaqHtml(items: { question: string; reponse: string }[]): string {
 		if (!items || items.length === 0) {
-			return `<p style="color: var(--text-light); line-height: 1.7;">FAQ en préparation. <a href="/contact" style="color: var(--vermilion)">Contactez-nous →</a></p>`;
+			return `<p style="color: var(--text-light); line-height: 1.7;">${tr('faqSoon', 'FAQ en préparation.')} <a href="${tr('contactHref', '/contact')}" style="color: var(--vermilion)">${tr('contactUs', 'Contactez-nous →')}</a></p>`;
 		}
 		return `<div class="pp-faq-list faq-accordion">${items
 			.map(
@@ -221,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				devise: pageEl?.dataset.devise === 'USD' ? 'USD' : 'EUR',
 				ctx: { rate: parseFloat(document.documentElement.dataset.fxRate || '') || 1, target: nst?.get?.() ?? 'EUR' },
 				note: true,
+				labels: priceLabels(),
 			});
 			if (priceBlock) {
 				const label = priceBlock.querySelector('.pp-price-label');
@@ -245,14 +261,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			const stickyCta = document.getElementById('sticky-cta-btn');
 			if (currentBuyBtn) {
 				if (newPrice) {
-					currentBuyBtn.outerHTML = `<a href="${newUrl || '#'}" class="btn btn-buy" id="main-cta-btn" target="${newUrl ? '_blank' : '_self'}" ${newUrl ? 'rel="sponsored nofollow noopener noreferrer"' : ''}>Acheter maintenant</a>`;
+					currentBuyBtn.outerHTML = `<a href="${newUrl || '#'}" class="btn btn-buy" id="main-cta-btn" target="${newUrl ? '_blank' : '_self'}" ${newUrl ? 'rel="sponsored nofollow noopener noreferrer"' : ''}>${tr('buy', 'Acheter maintenant')}</a>`;
 					if (stickyCta) {
-						stickyCta.outerHTML = `<a href="${newUrl || '#'}" class="btn" id="sticky-cta-btn" target="_blank" rel="sponsored nofollow noopener noreferrer">Acheter</a>`;
+						stickyCta.outerHTML = `<a href="${newUrl || '#'}" class="btn" id="sticky-cta-btn" target="_blank" rel="sponsored nofollow noopener noreferrer">${tr('stickyBuy', 'Acheter')}</a>`;
 					}
 				} else {
-					currentBuyBtn.outerHTML = `<button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip="${newAttente || 'Bientôt disponible'}">Me notifier</button>`;
+					currentBuyBtn.outerHTML = `<button class="btn btn-buy btn-disabled tooltip-btn" id="main-cta-btn" data-tooltip="${newAttente || tr('soon', 'Bientôt disponible')}">${tr('notifyShort', 'Me notifier')}</button>`;
 					if (stickyCta) {
-						stickyCta.outerHTML = `<button class="btn btn-disabled" id="sticky-cta-btn" disabled>Bientôt</button>`;
+						stickyCta.outerHTML = `<button class="btn btn-disabled" id="sticky-cta-btn" disabled>${tr('stickySoon', 'Bientôt')}</button>`;
 					}
 				}
 			}
@@ -273,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
 							.map(
 								(imgUrl: string, index: number) => `
 							<button class="pp-thumb-btn thumbnail-btn ${index === 0 ? 'active' : ''}" data-index="${index}" data-image="${imgUrl}?width=900&format=webp&quality=82" aria-label="Image ${index + 1}">
-								<img src="${imgUrl}?width=150&format=webp&quality=82" alt="${productName} — vue ${index + 1}" width="72" height="72" loading="lazy" decoding="async" />
+								<img src="${imgUrl}?width=150&format=webp&quality=82" alt="${tr('altView', '{name} — vue {n}').replace('{name}', productName).replace('{n}', String(index + 1))}" width="72" height="72" loading="lazy" decoding="async" />
 							</button>`,
 							)
 							.join('');
@@ -396,14 +412,14 @@ document.addEventListener('DOMContentLoaded', () => {
 		input.classList.remove('error', 'valid');
 		if (rules.required && !val) {
 			input.classList.add('error');
-			if (errorEl) errorEl.textContent = 'Ce champ est obligatoire.';
+			if (errorEl) errorEl.textContent = tr('fieldRequired', 'Ce champ est obligatoire.');
 			return false;
 		}
 		if (rules.email && val) {
 			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 			if (!emailRegex.test(val)) {
 				input.classList.add('error');
-				if (errorEl) errorEl.textContent = 'Email invalide.';
+				if (errorEl) errorEl.textContent = tr('emailInvalid', 'Email invalide.');
 				return false;
 			}
 		}
@@ -421,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		let valid = true;
 		if (selectedNote === 0) {
 			const noteError = document.getElementById('note-error');
-			if (noteError) noteError.textContent = 'Veuillez sélectionner une note.';
+			if (noteError) noteError.textContent = tr('pickRating', 'Veuillez sélectionner une note.');
 			valid = false;
 		}
 		if (prenomInput && !validateField(prenomInput, 'prenom-error', { required: true })) valid = false;
@@ -431,7 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		if (submitBtn) {
 			submitBtn.disabled = true;
-			submitBtn.textContent = 'Envoi…';
+			submitBtn.textContent = tr('sending', 'Envoi…');
 		}
 		if (successMsg) (successMsg as HTMLElement).style.display = 'none';
 		if (errorGlobal) (errorGlobal as HTMLElement).style.display = 'none';
@@ -464,13 +480,13 @@ document.addEventListener('DOMContentLoaded', () => {
 		} catch (err: unknown) {
 			console.error('Avis:', err);
 			if (errorGlobal) {
-				errorGlobal.textContent = err instanceof Error ? err.message : 'Erreur';
+				errorGlobal.textContent = err instanceof Error ? err.message : tr('errorGeneric', 'Erreur');
 				(errorGlobal as HTMLElement).style.display = 'block';
 			}
 		} finally {
 			if (submitBtn) {
 				submitBtn.disabled = false;
-				submitBtn.textContent = 'Envoyer mon avis';
+				submitBtn.textContent = tr('send', 'Envoyer mon avis');
 			}
 		}
 	});

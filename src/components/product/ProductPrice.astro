@@ -1,20 +1,22 @@
 ---
-import { renderPriceHtml } from '../../lib/productPage';
-import { normalizeCurrency } from '../../lib/money';
+import { renderPriceHtml, type PriceLabels } from '../../lib/productPage';
+import { normalizeCurrency, type MoneyCtx } from '../../lib/money';
 
 interface Props {
 	prix?: string | number | null;
 	isPromo?: boolean;
 	promoPrice?: string | number | null;
 	devise?: string | null;
-	rate?: number;
+	ctx: MoneyCtx;
+	labels?: PriceLabels;
 }
 
-const { prix = '', isPromo = false, promoPrice = '', devise = 'EUR', rate = 1 } = Astro.props;
+const { prix = '', isPromo = false, promoPrice = '', devise = 'EUR', ctx, labels } = Astro.props;
 const html = renderPriceHtml(String(prix ?? ''), isPromo, String(promoPrice ?? ''), {
 	devise: normalizeCurrency(devise),
-	ctx: { rate, target: 'EUR' },
+	ctx,
 	note: true,
+	labels,
 });
 ---
 

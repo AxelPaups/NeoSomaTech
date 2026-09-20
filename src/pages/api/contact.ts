@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Validation
     if (!nom || !email || !message || !rgpd) {
-      return new Response(JSON.stringify({ message: "Champs obligatoires manquants ou RGPD non accepté." }), { status: 400 });
+      return new Response(JSON.stringify({ code: "missing_fields", message: "Champs obligatoires manquants ou RGPD non accepté." }), { status: 400 });
     }
 
     // Envoi vers Directus (Utilisation de l'access_token en query param pour la stabilité Cloudflare)
@@ -35,11 +35,12 @@ export const POST: APIRoute = async ({ request }) => {
       throw new Error(`Erreur Directus (${directusResponse.status})`);
     }
 
-    return new Response(JSON.stringify({ message: "Votre message a été envoyé avec succès !" }), { status: 200 });
+    return new Response(JSON.stringify({ code: "sent", message: "Votre message a été envoyé avec succès !" }), { status: 200 });
 
   } catch (error: any) {
     console.error('Contact API Error:', error.message);
     return new Response(JSON.stringify({ 
+        code: "server_error",
         message: "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer plus tard.",
         error: error.message
     }), { status: 500 });

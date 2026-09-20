@@ -1,0 +1,8 @@
+---
+import NotFoundView from "../../views/NotFoundView.astro";
+
+// Redirections internes (article ou produit anglais introuvable) : vrai statut 404.
+Astro.response.status = 404;
+---
+
+<NotFoundView locale="en" />

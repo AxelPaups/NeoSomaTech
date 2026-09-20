@@ -1,0 +1,80 @@
+---
+// page : /en/author/axel-paupier : author page (E-E-A-T), English version
+import Layout from '../../../layouts/Layout.astro';
+import { path, pathInAllLocales } from '../../../i18n';
+import '../../../styles/editorial.css';
+
+const personSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'Person',
+	'@id': 'https://neosomatech.com/auteur/axel-paupier#person',
+	name: 'Axel Paupier',
+	url: 'https://neosomatech.com/en/author/axel-paupier',
+	jobTitle: 'Founder of NeoSomaTech',
+	description:
+		'Axel Paupier is the founder of NeoSomaTech, the independent reference on medical, sports and industrial exoskeletons. Passionate about biomechanics and human augmentation technologies, he analyzes and compares the exoskeletons on the market.',
+	worksFor: { '@type': 'Organization', name: 'NeoSomaTech', url: 'https://neosomatech.com' },
+	knowsAbout: ['Exoskeletons', 'Ski exoskeletons', 'Hiking exoskeletons', 'Medical exoskeletons', 'Biomechanics', 'Walking assistance'],
+	sameAs: [],
+};
+
+const title = 'Axel Paupier — Founder of NeoSomaTech';
+const description =
+	'Axel Paupier, founder of NeoSomaTech: an exoskeleton enthusiast who tests, compares and decodes human augmentation solutions independently.';
+const alternates = pathInAllLocales('author', 'axel-paupier');
+---
+
+<Layout locale="en" alternates={alternates} title={title} description={description} type="page" schemaItem={personSchema}>
+	<script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
+
+	<article class="p-page ed-author">
+		<nav class="p-crumb">
+			<a href={path('en', 'home')}>Home</a><span>/</span><a href={path('en', 'about')}>About</a><span>/</span><span>Axel Paupier</span>
+		</nav>
+
+		<header class="author-head">
+			<div class="author-avatar" aria-hidden="true">AP</div>
+			<div>
+				<h1 class="p-display p-title">Axel <em>Paupier</em></h1>
+				<p class="author-role">Founder of NeoSomaTech</p>
+			</div>
+		</header>
+
+		<div class="author-body p-prose">
+			<p>
+				I founded <strong>NeoSomaTech</strong> in 2026 with a simple conviction: <strong>exoskeletons</strong> will
+				transform our relationship with the body, sport and health, and readers deserve a clear, honest and
+				independent source to find their way.
+			</p>
+
+			<p>
+				I don't come from a large industrial group. I am first and foremost an <strong>enthusiast</strong>, a young
+				Breton entrepreneur who turned an obsession with biomechanics and wearable robotics into a genuine daily
+				watch. That independence is precisely what gives NeoSomaTech its value: I don't make any of these products,
+				so I have no reason to oversell one over another.
+			</p>
+
+			<h2>My method</h2>
+			<p>
+				Every exoskeleton presented on the site is studied against constant criteria: <strong>real performance</strong>
+				(measurable gain, battery life, power), <strong>safety and joint protection</strong>, <strong>ergonomics and
+				comfort</strong> when worn, and <strong>value for money</strong>. I cross-check manufacturers' technical data,
+				user feedback and biomechanical principles to offer comparisons and buying guides that are actually useful,
+				not copy-pasted commercial sheets.
+			</p>
+
+			<h2>Transparency</h2>
+			<p>
+				NeoSomaTech offers <strong>independent analyses</strong>, not medical advice. Health-related figures (load
+				reduction, joint protection…) come from manufacturers or cited studies: in case of pain, injury or need for
+				rehabilitation, consult a healthcare professional. Some links to manufacturers' shops may be affiliate links,
+				flagged as such and at no extra cost to you.
+			</p>
+
+			<div class="author-cta">
+				<a href={path('en', 'articles')} class="btn">Read my articles</a>
+				<a href={path('en', 'contact')} class="btn btn-outline">Contact me</a>
+			</div>
+		</div>
+	</article>
+</Layout>

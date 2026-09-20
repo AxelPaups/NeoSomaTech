@@ -14,7 +14,17 @@ interface ProductLink {
     slug: string;
 }
 
-export function linkifyProducts(html: string, products: ProductLink[]) {
+export interface LinkifyOptions {
+    /** Début de l'adresse d'une fiche produit dans la langue de la page */
+    productBase?: string;
+    /** Début de l'attribut title des liens ("Voir le produit : ...") */
+    titlePrefix?: string;
+}
+
+export function linkifyProducts(html: string, products: ProductLink[], options: LinkifyOptions = {}) {
+    const productBase = options.productBase ?? '/produits';
+    const titlePrefix = options.titlePrefix ?? 'Voir le produit : ';
+    const escapedBase = productBase.replace(/[.*+?^${}()|[\]\\/]/g, (c) => `\\${c}`);
     if (!html || !products || products.length === 0) return html;
 
     // Filter out empty names and sort by length descending to match longest names first
@@ -29,7 +39,7 @@ export function linkifyProducts(html: string, products: ProductLink[]) {
 
     // Pré-remplir avec les produits déjà liés MANUELLEMENT dans le contenu Directus,
     // pour que les liens manuels aient priorité et ne soient jamais doublés.
-    const existingLinkRegex = /href=["']\/produits\/([^"'#?]+)["']/gi;
+    const existingLinkRegex = new RegExp(`href=["']${escapedBase}/([^"'#?]+)["']`, 'gi');
     let existing: RegExpExecArray | null;
     while ((existing = existingLinkRegex.exec(html)) !== null) {
         linkedSlugs.add(existing[1]);
@@ -56,7 +66,7 @@ export function linkifyProducts(html: string, products: ProductLink[]) {
                 // Déjà un lien vers ce produit sur la page -> on laisse le texte brut.
                 if (linkedSlugs.has(product.slug)) return productName;
                 linkedSlugs.add(product.slug);
-                return `<a href="/produits/${product.slug}" class="product-inline-link" title="Voir le produit : ${product.name}">${productName}</a>`;
+                return `<a href="${productBase}/${product.slug}" class="product-inline-link" title="${titlePrefix}${product.name}">${productName}</a>`;
             }
         }
 

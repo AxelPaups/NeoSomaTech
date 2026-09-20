@@ -3,13 +3,23 @@
 
 export type Currency = 'EUR' | 'USD';
 
+export interface MoneyLabels {
+	seller: string;
+	converted: string;
+}
+
 export interface MoneyCtx {
 	/** USD pour 1 EUR */
 	rate: number;
 	/** monnaie d'affichage choisie */
 	target: Currency;
 	locale?: string;
+	labels?: MoneyLabels;
 }
+
+const DEFAULT_LABELS: MoneyLabels = { seller: 'Prix chez le vendeur : {price}', converted: 'converti au taux du jour' };
+
+export const sellerLine = (labels: MoneyLabels, price: string) => labels.seller.replace('{price}', price);
 
 export const normalizeCurrency = (value: unknown): Currency =>
 	String(value ?? '').trim().toUpperCase() === 'USD' ? 'USD' : 'EUR';
@@ -64,9 +74,10 @@ export function moneyHtml(raw: unknown, seller: Currency, ctx: MoneyCtx, opts: {
 	const amount = parseAmount(raw);
 	if (amount === null) return '';
 	const d = displayMoney(amount, seller, ctx.target, ctx.rate, ctx.locale);
-	const title = d.converted ? ` title="Prix chez le vendeur : ${d.sellerText} (converti au taux du jour)"` : '';
+	const labels = ctx.labels ?? DEFAULT_LABELS;
+	const title = d.converted ? ` title="${sellerLine(labels, d.sellerText)} (${labels.converted})"` : '';
 	const note = opts.note
-		? `<small class="money-seller"${d.converted ? '' : ' hidden'}>Prix chez le vendeur : ${d.sellerText}</small>`
+		? `<small class="money-seller"${d.converted ? '' : ' hidden'}>${sellerLine(labels, d.sellerText)}</small>`
 		: '';
 	return `<span class="money" data-amt="${amount}" data-cur="${seller}"${title}><span class="money-main">${d.text}</span>${note}</span>`;
 }

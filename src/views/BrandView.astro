@@ -1,0 +1,195 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { directusUrl } from '../lib/directus';
+import { normalizeCurrency, moneyHtml } from '../lib/money';
+import { getMoneyCtx } from '../lib/moneyCtx';
+import { useTranslations, path, type Locale } from '../i18n';
+
+interface Props {
+    locale: Locale;
+    brandSlug: string;
+    brandName: string;
+    produits: any[];
+    errorMessage: string | null;
+    alternates: Partial<Record<Locale, string>>;
+}
+
+const { locale, brandSlug, brandName, produits, errorMessage, alternates } = Astro.props;
+const t = useTranslations(locale);
+const b = t.brand;
+const money = await getMoneyCtx(locale);
+
+const intro = b.intros[brandSlug] || b.genericIntro(brandName);
+const title = b.title(brandName);
+const description = b.description(brandName);
+const productHref = (p: any) => path(locale, 'product', p.slug || String(p.id));
+const abs = (p: string) => new URL(p, Astro.site).href;
+
+const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: b.listName(brandName),
+    url: abs(path(locale, 'shop', brandSlug)),
+    numberOfItems: produits.length,
+    itemListElement: produits.map((p: any, i: number) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: abs(productHref(p)),
+        name: p.Nom_du_produit,
+    })),
+};
+---
+
+<Layout locale={locale} alternates={alternates} title={title} description={description}>
+    {produits.length > 0 && (
+        <script type="application/ld+json" set:html={JSON.stringify(itemListSchema)} is:inline />
+    )}
+
+    <div class="p-page p-page--wide">
+    <header class="p-pagehead">
+        <div class="p-crumb">
+            <a href={path(locale, 'home')}>{t.nav.home}</a><span>/</span><a href={path(locale, 'shop')}>{t.nav.shop}</a><span>/</span><span>{brandName}</span>
+        </div>
+        <h1 class="p-display p-title">{b.h1Before}<em>{brandName}</em>{b.h1After}</h1>
+        <p class="brand-intro p-lede">{intro}</p>
+    </header>
+
+    <div class="brand-content">
+        {errorMessage ? (
+            <div class="p-notice p-notice--error">{errorMessage}</div>
+        ) : produits.length === 0 ? (
+            <div class="p-notice"><p>{b.empty(brandName)}</p></div>
+        ) : (
+            <div class="grid">
+                {produits.map((p) => {
+                    const isPromoValid = p.promo && p.prix_promo;
+                    const price = (v: unknown) => moneyHtml(v, normalizeCurrency(p.devise), money);
+                    return (
+                        <article class="card">
+                            <a href={productHref(p)} class="card-img-link p-grid-paper" tabindex="-1" aria-hidden="true">
+                                {p.image ? (
+                                    <img
+                                        src={`${directusUrl}/assets/${p.image}?width=400&format=webp&quality=82`}
+                                        alt={p.Nom_du_produit}
+                                        loading="lazy"
+                                        decoding="async"
+                                        width="400"
+                                        height="400"
+                                    />
+                                ) : (
+                                    <div class="img-placeholder p-label">{t.shop.noImage}</div>
+                                )}
+                                {isPromoValid && <span class="p-stamp promo-badge">{t.shop.sale}</span>}
+                            </a>
+                            <div class="card-body">
+                                <div class="card-tag">{brandName}</div>
+                                <h2 class="card-title">
+                                    <a href={productHref(p)}>{p.Nom_du_produit}</a>
+                                </h2>
+                                <p class="card-desc">{p.descripton_simple}</p>
+                                <div class="card-footer">
+                                    {isPromoValid ? (
+                                        <div class="price-wrapper">
+                                            <span class="price old-price"><Fragment set:html={price(p.prix)} /></span>
+                                            <span class="price promo-price"><Fragment set:html={price(p.prix_promo)} /></span>
+                                        </div>
+                                    ) : (
+                                        <span class="price">{p.prix ? <Fragment set:html={price(p.prix)} /> : t.shop.contact}</span>
+                                    )}
+                                    <a href={productHref(p)} class="btn">{t.shop.view} &rarr;</a>
+                                </div>
+                            </div>
+                        </article>
+                    );
+                })}
+            </div>
+        )}
+
+        <div class="all-products-link">
+            <a href={path(locale, 'shop')} class="btn btn-outline">&larr; {b.all}</a>
+        </div>
+    </div>
+    </div>
+</Layout>
+
+<style>
+    .brand-content { padding-bottom: 1rem; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 1.75rem; }
+    .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--ink);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease, scale 0.28s ease;
+    }
+    .card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--vermilion); }
+    .card.card-out { opacity: 0; scale: 0.93; pointer-events: none; }
+    .card-img-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 1 / 1;
+        padding: 1.5rem;
+        overflow: hidden;
+        border-bottom: 1px solid var(--ink);
+        background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
+    }
+    .card-img-link img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card:hover .card-img-link img { transform: scale(1.06); }
+    .img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; }
+    .promo-badge { position: absolute; top: 0.9rem; right: 0.9rem; z-index: 2; }
+    .card-body { padding: 1.4rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: 0.7rem; flex: 1; }
+    .card-tag {
+        font-family: var(--f-mono);
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--vermilion);
+    }
+    .card-title, .card-body h3 {
+        font-family: var(--f-display);
+        font-size: 1.35rem;
+        font-weight: 420;
+        font-variation-settings: "opsz" 48;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+    }
+    .card-title a, .card-body h3 a { color: var(--ink); text-decoration: none; }
+    .card-title a::after, .card-body h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+    .card-desc {
+        color: var(--ink-soft);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .card-footer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px dashed var(--rule-strong);
+    }
+    .price { font-family: var(--f-mono); font-size: 1.3rem; font-weight: 500; letter-spacing: -0.03em; color: var(--ink); }
+    .price-wrapper { display: flex; flex-direction: column; line-height: 1.2; }
+    .old-price { font-size: 0.85rem; text-decoration: line-through; color: var(--ink-soft); }
+    .promo-price { color: var(--vermilion); }
+    .card-footer .btn { padding: 0.6rem 0.95rem; font-size: 0.72rem; position: relative; z-index: 2; box-shadow: 3px 3px 0 var(--vermilion); }
+
+    .all-products-link { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--ink); }
+</style>

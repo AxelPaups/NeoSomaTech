@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { fetchPageSEO } from '../lib/directus';
+import { pathInAllLocales } from '../i18n';
+import '../styles/editorial.css';
 
 const seo = await fetchPageSEO(
     "a-propos",
@@ -9,8 +11,8 @@ const seo = await fetchPageSEO(
 );
 ---
 
-<Layout title={seo.title} description={seo.description}>
-    <div class="p-page">
+<Layout alternates={pathInAllLocales('about')} title={seo.title} description={seo.description}>
+    <div class="p-page ed-about">
         <div class="p-crumb"><a href="/">Accueil</a><span>/</span><span>À propos</span></div>
         <h1 class="p-display p-title">Notre <em>manifeste</em></h1>
         
@@ -81,40 +83,3 @@ const seo = await fetchPageSEO(
         </div>
     </div>
 </Layout>
-
-<style>
-    .content :global(p.lead) {
-        font-family: var(--f-display);
-        font-size: clamp(1.3rem, 2.4vw, 1.7rem);
-        font-weight: 350;
-        line-height: 1.5;
-        letter-spacing: -0.01em;
-        color: var(--ink);
-    }
-    .mission-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        border: 1px solid var(--ink);
-        margin: 2rem 0 0.5rem;
-        background: var(--surface);
-    }
-    .mission-card { padding: 1.75rem; }
-    .mission-card + .mission-card { border-left: 1px solid var(--ink); }
-    .mission-card h3 { margin: 0 0 0.75rem; }
-    .mission-card p { font-size: 0.98rem; margin-bottom: 0; }
-
-    .pillars { margin-top: 1.5rem; border-bottom: 1px solid var(--ink); }
-    .pillar {
-        padding: 1.75rem 0 1.4rem;
-        border-top: 1px solid var(--ink);
-        transition: padding 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .pillar:hover { padding-left: 0.85rem; }
-    .pillar h3 { margin-top: 0; }
-    .pillar p { margin-bottom: 0; }
-
-    @media (max-width: 768px) {
-        .mission-grid { grid-template-columns: 1fr; }
-        .mission-card + .mission-card { border-left: none; border-top: 1px solid var(--ink); }
-    }
-</style>

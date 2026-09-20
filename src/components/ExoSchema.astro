@@ -2,6 +2,11 @@
 // Planche anatomique : silhouette + exosquelette au trait, légendes numérotées.
 // La moitié gauche est dessinée une fois puis dupliquée en miroir autour de l'axe x=200.
 
+import { useTranslations, type Locale } from '../i18n';
+
+const { locale = 'fr' } = Astro.props as { locale?: Locale };
+const tx = useTranslations(locale).exo;
+
 type Shape = { t: "path" | "circle"; d?: string; cx?: number; cy?: number; r?: number; cls?: string };
 
 const body: string[] = [
@@ -61,11 +66,11 @@ const parts: { key: string; shapes: Shape[] }[] = [
 ];
 
 const callouts = [
-	{ n: 1, key: "belt", x: 262, y: 272, label: "Ceinture lombaire" },
-	{ n: 2, key: "hip", x: 282, y: 298, label: "Moteur de hanche" },
-	{ n: 3, key: "thigh", x: 270, y: 357, label: "Tuteur de cuisse" },
-	{ n: 4, key: "knee", x: 278, y: 442, label: "Genou articulé" },
-	{ n: 5, key: "ankle", x: 274, y: 540, label: "Appui cheville" },
+	{ n: 1, key: "belt", x: 262, y: 272, label: tx.belt },
+	{ n: 2, key: "hip", x: 282, y: 298, label: tx.hip },
+	{ n: 3, key: "thigh", x: 270, y: 357, label: tx.thigh },
+	{ n: 4, key: "knee", x: 278, y: 442, label: tx.knee },
+	{ n: 5, key: "ankle", x: 274, y: 540, label: tx.ankle },
 ];
 
 const halves = [
@@ -79,7 +84,7 @@ const halves = [
 	viewBox="40 0 480 590"
 	xmlns="http://www.w3.org/2000/svg"
 	role="img"
-	aria-label="Schéma d'un exosquelette des membres inférieurs, avec ceinture lombaire, moteur de hanche, tuteur de cuisse, genou articulé et appui cheville"
+	aria-label={tx.aria}
 >
 	<!-- axe de symétrie -->
 	<path class="axis fade" style="--d:0.2s" d="M200,8 V584"></path>
@@ -138,7 +143,7 @@ const halves = [
 		<path d="M64,29 H80 M64,557 H80"></path>
 		<path d="M72,29 l-3,9 h6 z M72,557 l-3,-9 h6 z" class="arrow"></path>
 		<path class="ext" d="M84,29 H170 M84,558 H120"></path>
-		<text transform="translate(58 300) rotate(-90)" text-anchor="middle">H = 1 750 mm</text>
+		<text transform="translate(58 300) rotate(-90)" text-anchor="middle">{tx.height}</text>
 	</g>
 
 	<!-- légendes -->

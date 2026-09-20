@@ -5,9 +5,14 @@ import PostHog from '../components/PostHog.astro';
 import Schema from '../components/Schema.astro';
 import Ruler from '../components/Ruler.astro';
 import '../styles/planche.css';
-import { getFx } from '../lib/fx';
+import { getMoneyCtx } from '../lib/moneyCtx';
+import { localeFromPath, localeMeta, useTranslations, type Locale } from '../i18n';
 
 interface Props {
+	/** Langue de la page (par défaut : déduite de l'URL) */
+	locale?: Locale;
+	/** Adresse de cette page dans chaque langue où elle existe (sert au sélecteur de langue et aux balises hreflang) */
+	alternates?: Partial<Record<Locale, string>>;
 	title: string;
 	description?: string;
 	image?: string;
@@ -19,8 +24,10 @@ interface Props {
 }
 
 const {
+	locale: localeProp,
+	alternates,
 	title,
-	description = 'NeoSomaTech - Boutique et Articles dédiés aux Exosquelettes',
+	description: descriptionProp,
 	image = '/og-image.png',
 	type = 'website',
 	schemaItem,
@@ -29,13 +36,30 @@ const {
 	noindex = false
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const fx = await getFx();
+const locale: Locale = localeProp ?? localeFromPath(Astro.url.pathname);
+const t = useTranslations(locale);
+const meta = localeMeta[locale];
+const description = descriptionProp ?? t.site.defaultDescription;
+const money = await getMoneyCtx(locale);
+
+// Adresse de chaque langue : celles déclarées par la page, sinon la page seule
+const pages: Partial<Record<Locale, string>> = alternates ?? { [locale]: Astro.url.pathname };
+const abs = (p: string) => new URL(p, Astro.site);
+const canonicalURL = abs(pages[locale] ?? Astro.url.pathname);
+const otherLocales = (Object.keys(pages) as Locale[]).filter((l) => l !== locale);
+const xDefault = pages.fr ?? pages[locale];
 const fontsUrl = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap';
 ---
 
 <!doctype html>
-<html lang="fr" data-fx-rate={fx.usdPerEur} data-fx-date={fx.date} data-default-currency="EUR">
+<html
+	lang={meta.hreflang}
+	data-fx-rate={money.rate}
+	data-fx-date={money.date}
+	data-default-currency={money.target}
+	data-seller-label={t.money.seller}
+	data-converted-note={t.money.converted}
+>
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -53,11 +77,14 @@ const fontsUrl = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wg
 		<meta name="description" content={description} />
 		<meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1"} />
 		<link rel="canonical" href={canonicalURL} />
-		<link rel="alternate" hreflang="fr-fr" href={canonicalURL} />
-		<link rel="alternate" type="application/rss+xml" title="NeoSomaTech — Articles" href="/rss.xml" />
+		{(Object.entries(pages) as [Locale, string][]).map(([l, p]) => <link rel="alternate" hreflang={localeMeta[l].hreflang} href={abs(p)} />)}
+		{xDefault && <link rel="alternate" hreflang="x-default" href={abs(xDefault)} />}
+		{locale === 'fr' && <link rel="alternate" type="application/rss+xml" title={t.site.feedTitle} href="/rss.xml" />}
 
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content={type} />
+		<meta property="og:locale" content={meta.ogLocale} />
+		{otherLocales.map((l) => <meta property="og:locale:alternate" content={localeMeta[l].ogLocale} />)}
 		<meta property="og:url" content={Astro.url} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
@@ -74,15 +101,15 @@ const fontsUrl = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wg
 		<PostHog />
 
 		<!-- Structured Data -->
-		<Schema type={type} item={schemaItem} faqs={faqs} aggregateRating={aggregateRating} />
+		<Schema type={type} item={schemaItem} faqs={faqs} aggregateRating={aggregateRating} locale={locale} />
 	</head>
 	<body id="top" data-theme="planche">
 		<Ruler />
-		<Header />
+		<Header locale={locale} alternates={pages} />
 		<main>
 			<slot />
 		</main>
-		<Footer />
+		<Footer locale={locale} />
 		<script>
 			import '../scripts/currency.client.ts';
 		</script>

@@ -1,6 +1,8 @@
 ---
 // page : /auteur/axel-paupier — page auteur (E-E-A-T)
 import Layout from '../../layouts/Layout.astro';
+import { pathInAllLocales } from '../../i18n';
+import '../../styles/editorial.css';
 
 const personSchema = {
     '@context': 'https://schema.org',
@@ -34,10 +36,10 @@ const description =
     "Axel Paupier, fondateur de NeoSomaTech : passionné d'exosquelettes, il teste, compare et décrypte les solutions d'augmentation humaine de façon indépendante.";
 ---
 
-<Layout title={title} description={description} type="page" schemaItem={personSchema}>
+<Layout alternates={pathInAllLocales('author', 'axel-paupier')} title={title} description={description} type="page" schemaItem={personSchema}>
     <script type="application/ld+json" set:html={JSON.stringify(personSchema)} is:inline />
 
-    <article class="p-page">
+    <article class="p-page ed-author">
         <nav class="p-crumb">
             <a href="/">Accueil</a><span>/</span><a href="/a-propos">À propos</a><span>/</span><span>Axel Paupier</span>
         </nav>
@@ -91,43 +93,3 @@ const description =
         </div>
     </article>
 </Layout>
-
-<style>
-    .author-head {
-        display: flex;
-        align-items: center;
-        gap: 2rem;
-        padding-bottom: 2.5rem;
-        margin-bottom: 2.5rem;
-        border-bottom: 1px solid var(--ink);
-    }
-    .author-head h1 { margin-bottom: 0.5rem; }
-    .author-avatar {
-        flex: none;
-        width: 104px;
-        height: 104px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--f-display);
-        font-size: 2.6rem;
-        font-weight: 380;
-        font-style: italic;
-        color: var(--ink);
-        background: var(--surface);
-        border: 1px solid var(--ink);
-        box-shadow: 6px 6px 0 var(--vermilion);
-    }
-    .author-role {
-        font-family: var(--f-mono);
-        font-size: 0.78rem;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--ink-soft);
-    }
-    .author-cta { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 3rem; }
-
-    @media (max-width: 560px) {
-        .author-head { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
-    }
-</style>

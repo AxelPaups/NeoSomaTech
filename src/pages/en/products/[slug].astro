@@ -1,16 +1,16 @@
 ---
-import ProductView from '../../views/ProductView.astro';
-import { loadProductPage } from '../../lib/productData';
+import ProductView from '../../../views/ProductView.astro';
+import { loadProductPage } from '../../../lib/productData';
 
-const page = await loadProductPage('fr', Astro.params.slug);
+const page = await loadProductPage('en', Astro.params.slug);
 if ('redirect' in page && page.redirect) return Astro.redirect(page.redirect, page.status);
-if (page.notFound) return Astro.redirect('/404');
+if (page.notFound) return Astro.redirect('/en/404');
 // Produit introuvable ou en erreur : vrai 404 + noindex (évite l'indexation d'une page d'erreur en 200)
 if (!page.produit || page.errorMessage) Astro.response.status = 404;
 ---
 
 <ProductView
-	locale="fr"
+	locale="en"
 	produit={page.produit ?? null}
 	produitsSimilaires={page.produitsSimilaires ?? []}
 	avis={page.avis ?? []}

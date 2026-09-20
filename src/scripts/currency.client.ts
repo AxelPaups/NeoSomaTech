@@ -1,9 +1,13 @@
 // Bouton € / $ : réaffiche tous les prix (.money) dans la monnaie choisie, sans rechargement.
-import { displayMoney, formatAmount, convert, moneyHtml, normalizeCurrency, type Currency } from '../lib/money';
+import { displayMoney, formatAmount, convert, moneyHtml, normalizeCurrency, sellerLine, type Currency } from '../lib/money';
 
 const root = document.documentElement;
 const rate = parseFloat(root.dataset.fxRate || '') || 1.15;
 const locale = root.lang.startsWith('en') ? 'en-US' : 'fr-FR';
+const labels = {
+	seller: root.dataset.sellerLabel || 'Prix chez le vendeur : {price}',
+	converted: root.dataset.convertedNote || 'converti au taux du jour',
+};
 const KEY = 'nst-currency';
 
 function read(): Currency {
@@ -25,9 +29,9 @@ function updateEl(el: HTMLElement, target: Currency) {
 	const note = el.querySelector<HTMLElement>('.money-seller');
 	if (note) {
 		note.hidden = !d.converted;
-		note.textContent = `Prix chez le vendeur : ${d.sellerText}`;
+		note.textContent = sellerLine(labels, d.sellerText);
 	}
-	if (d.converted) el.title = `Prix chez le vendeur : ${d.sellerText} (converti au taux du jour)`;
+	if (d.converted) el.title = `${sellerLine(labels, d.sellerText)} (${labels.converted})`;
 	else el.removeAttribute('title');
 }
 
@@ -60,7 +64,7 @@ const api = {
 	refresh: () => paint(read()),
 	/** HTML d'un prix dans la monnaie courante (prix affichés par du JavaScript) */
 	moneyHtml: (raw: unknown, seller: unknown, note = false) =>
-		moneyHtml(raw, normalizeCurrency(seller), { rate, target: read(), locale }, { note }),
+		moneyHtml(raw, normalizeCurrency(seller), { rate, target: read(), locale, labels }, { note }),
 	/** Montant exprimé en euros, affiché dans la monnaie courante (curseur de prix de la boutique) */
 	formatEur: (amountEur: number) => {
 		const target = read();

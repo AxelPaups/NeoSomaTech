@@ -1,0 +1,769 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { fetchDirectus, directusUrl } from '../lib/directus';
+import {
+	getCustomAlts,
+	collectGallery,
+	collectVariantGallery,
+	parsePromo,
+	renderPriceHtml,
+	SPEC_DEFS,
+	type PriceLabels,
+} from '../lib/productPage';
+import SpecIcon from '../components/product/SpecIcon.astro';
+import ProductPrice from '../components/product/ProductPrice.astro';
+import { normalizeCurrency, moneyHtml } from '../lib/money';
+import { getMoneyCtx } from '../lib/moneyCtx';
+import { useTranslations, localeMeta, path, fmt, type Locale } from '../i18n';
+import '../styles/product-page.css';
+
+interface Props {
+	locale: Locale;
+	produit: Record<string, any> | null;
+	produitsSimilaires: Record<string, any>[];
+	avis: Record<string, any>[];
+	articlesLies: Record<string, any>[];
+	errorMessage: string | null;
+	alternates: Partial<Record<Locale, string>>;
+}
+
+const { locale, produit, produitsSimilaires, avis, articlesLies, errorMessage, alternates } = Astro.props;
+const t = useTranslations(locale);
+const p = t.product;
+const intl = localeMeta[locale].intl;
+const money = await getMoneyCtx(locale);
+const devise = normalizeCurrency(produit?.devise);
+
+const priceLabels: PriceLabels = { onRequest: p.priceOnRequest, sale: p.priceSale, instead: p.priceInstead, reduction: p.priceReduction };
+// Adresse française de la fiche : les avis lui sont rattachés, quelle que soit la langue de la page
+const slugFr: string = produit?.slugs?.fr ?? produit?.slug ?? '';
+const productHref = (x: any) => path(locale, 'product', x.slug || String(x.id));
+
+// Textes utilisés par le script navigateur (changement de variante, formulaire d'avis)
+const clientStrings = {
+	buy: p.buy,
+	notifyShort: p.notifyShort,
+	soon: p.soon,
+	stickyBuy: p.stickyBuy,
+	stickySoon: p.stickySoon,
+	faqSoon: p.faqSoon,
+	contactUs: p.contactUs,
+	contactHref: path(locale, 'contact'),
+	altView: p.altView,
+	fieldRequired: p.fieldRequired,
+	emailInvalid: p.emailInvalid,
+	pickRating: p.pickRating,
+	sending: p.sending,
+	send: p.send,
+	errorGeneric: p.errorGeneric,
+	priceOnRequest: p.priceOnRequest,
+	priceSale: p.priceSale,
+	priceInstead: p.priceInstead,
+	priceReduction: p.priceReduction,
+};
+
+const noteMoyenne =
+	avis.length > 0
+		? Math.round((avis.reduce((sum, a) => sum + (Number(a.note) || 0), 0) / avis.length) * 10) / 10
+		: null;
+
+const customAlts = getCustomAlts(produit?.custom_alts as string | undefined);
+let allImages = collectGallery(produit?.image as string | undefined, produit?.galerie, directusUrl);
+let imageUrl = allImages[0] || null;
+const { isPromoValid } = parsePromo(Boolean(produit?.promo), produit?.prix_promo as string | undefined);
+const productName = (produit?.Nom_du_produit as string) || p.defaultName;
+const specValueByKey: Record<string, string> = {};
+for (const def of SPEC_DEFS) {
+	const raw = produit ? (produit as any)?.[def.field] : null;
+	const s = raw == null ? '' : String(raw).trim();
+	specValueByKey[def.key] = s;
+}
+const hasAnySpecsInProduit = Object.values(specValueByKey).some(Boolean);
+const hasVariants = produit?.variantes && Array.isArray(produit.variantes) && produit.variantes.length > 0;
+
+type VariantButtonData = {
+	label: string;
+	name: string;
+	price: string;
+	promo: string;
+	prixPromo: string;
+	image: string | null;
+	url: string;
+	attente: string;
+	descShort: string;
+	descLong: string;
+	gallery: string;
+	specs: string;
+	modele: string;
+	taille: string;
+	faq: string;
+};
+
+// FAQ par variante : GET /items/Variantes/{id}?fields=FAQ.FAQ_id.question,FAQ.FAQ_id.reponse
+const variantFaqsById: Record<string, { question: string; reponse: string }[]> = {};
+if (hasVariants && produit) {
+	const variantesArr = produit.variantes as Record<string, unknown>[];
+	await Promise.all(
+		variantesArr.map(async (v) => {
+			const vid = v.id;
+			if (vid == null) return;
+			try {
+				const vData = await fetchDirectus(
+					`/items/Variantes/${vid}?fields=FAQ.FAQ_id.question,FAQ.FAQ_id.reponse`,
+				);
+				const rawFaq = Array.isArray((vData as any)?.FAQ) ? (vData as any).FAQ : [];
+				variantFaqsById[String(vid)] = rawFaq
+					.map((f: any) => ({
+						question: String(f?.FAQ_id?.question ?? ''),
+						reponse: String(f?.FAQ_id?.reponse ?? ''),
+					}))
+					.filter((f: { question: string }) => f.question);
+			} catch {
+				variantFaqsById[String(vid)] = [];
+			}
+		}),
+	);
+}
+
+const variantItems: VariantButtonData[] = hasVariants && produit
+	? (produit.variantes as Record<string, unknown>[]).map((v) => {
+			const variantGallery = collectVariantGallery(v, allImages, directusUrl);
+			const vPromo = parsePromo(Boolean(v.promo), v.prix_promo as string);
+			const specPayload: Record<string, string> = {};
+			for (const def of SPEC_DEFS) {
+				const raw = (v as any)?.[def.field];
+				specPayload[def.key] = raw == null ? '' : String(raw).trim();
+			}
+			return {
+				label: String(v.nom_court || v.Nom_du_produit || ''),
+				name: (v.Nom_du_produit as string) || productName,
+				price: String(v.prix || produit.prix || ''),
+				promo: vPromo.isPromoValid ? 'true' : 'false',
+				prixPromo: String(v.prix_promo || ''),
+				image: v.Image ? `${directusUrl}/assets/${v.Image}` : imageUrl,
+				url: String(v.bouton_acheter || v.Lien_achat || produit.Bouton_acheter || ''),
+				attente: String(v.texte_attente_sortie || produit.texte_attente_sortie || ''),
+				descShort: String(v.description_simple || produit.descripton_simple || ''),
+				descLong: String(v.description_principale || produit.description_principale || ''),
+				gallery: JSON.stringify(variantGallery),
+				specs: JSON.stringify(specPayload),
+				modele: v.modele != null ? String(v.modele) : '',
+				taille: v.taille != null ? String(v.taille) : '',
+				faq: JSON.stringify(variantFaqsById[String(v.id)] || []),
+			};
+		})
+	: [];
+
+// Produit sans visuel propre : on retombe sur la galerie de la première variante illustrée
+if (allImages.length === 0) {
+	const firstVariantWithGallery = variantItems.find((v) => {
+		try {
+			return (JSON.parse(v.gallery) as string[]).length > 0;
+		} catch {
+			return false;
+		}
+	});
+	if (firstVariantWithGallery) {
+		allImages = JSON.parse(firstVariantWithGallery.gallery) as string[];
+		imageUrl = allImages[0] || null;
+	}
+}
+
+// CAS 1 (modele + taille) vs CAS 2 (sélecteur classique) — détecté sur la première variante
+const hasModeleTaille =
+	hasVariants &&
+	Array.isArray(produit?.variantes) &&
+	(produit!.variantes as Record<string, unknown>[])[0]?.modele != null;
+
+const modeleOptions: string[] = hasModeleTaille
+	? [...new Set(variantItems.map((v) => v.modele).filter(Boolean))]
+	: [];
+
+const hasAnySpecsInVariants = variantItems.some((v) => {
+	try {
+		const payload = JSON.parse(v.specs) as Record<string, string>;
+		return Object.values(payload).some(Boolean);
+	} catch {
+		return false;
+	}
+});
+
+const hasAnySpecs = hasAnySpecsInProduit || hasAnySpecsInVariants;
+
+const faqItems: { question: string; reponse: string }[] =
+	produit?.faqs && Array.isArray(produit.faqs)
+		? (produit.faqs as Record<string, unknown>[]).map((f) => ({
+				question: String(f.question ?? ''),
+				reponse: String(f.reponse ?? ''),
+			}))
+		: [];
+
+const metaDescription =
+	(produit?.seo_description as string) ||
+	(produit?.descripton_simple as string) ||
+	p.defaultMeta;
+const titleWords = productName.split(/\s+/);
+// Marquee varié avec features du produit (évite la répétition SEO du nom)
+const marqueeFeats = [
+	productName,
+	...(specValueByKey['poids'] ? [specValueByKey['poids']] : []),
+	...(specValueByKey['assist'] ? [fmt(p.marqueeAssist, { v: specValueByKey['assist'] })] : []),
+	...(specValueByKey['warranty'] ? [fmt(p.marqueeWarranty, { v: specValueByKey['warranty'] })] : []),
+	...(specValueByKey['autonomie'] ? [specValueByKey['autonomie']] : []),
+	...(produit?.marque ? [produit.marque as string] : []),
+].filter(Boolean);
+const marqueeText = (marqueeFeats.length >= 3 ? marqueeFeats : [productName, productName, productName, productName]).map((x) => `${x} — `).join('');
+const heroPriceHtml = renderPriceHtml(
+	String(produit?.prix ?? ''),
+	isPromoValid,
+	String(produit?.prix_promo ?? ''),
+	{ devise, ctx: money, note: true, labels: priceLabels },
+);
+---
+
+<Layout
+	locale={locale}
+	alternates={alternates}
+	title={produit ? `${productName} | NeoSomaTech` : p.notFoundTitle}
+	description={metaDescription}
+	image={imageUrl || '/og-image.png'}
+	type="product"
+	schemaItem={{ ...produit, allImages }}
+	faqs={produit?.faqs}
+	aggregateRating={
+		noteMoyenne && avis.length > 0
+			? { ratingValue: noteMoyenne, reviewCount: avis.length }
+			: (produit?.note_externe && produit?.nb_avis_externe)
+				? { ratingValue: Number(produit.note_externe), reviewCount: Number(produit.nb_avis_externe) }
+				: undefined
+	}
+	noindex={!produit || !!errorMessage}
+>
+	<div class="product-page" data-product-page data-devise={devise}>
+		<script type="application/json" id="pp-i18n" set:html={JSON.stringify(clientStrings)}></script>
+		<div class="pp-inner">
+			{errorMessage ? (
+				<div class="pp-error">{errorMessage}</div>
+			) : (
+				produit && (
+					<>
+						<nav class="pp-crumb" aria-label={p.crumbAria}>
+							<a href={path(locale, 'home')}>{t.nav.home}</a>
+							<span class="pp-crumb-sep">/</span>
+							<a href={path(locale, 'shop')}>{t.nav.shop}</a>
+							<span class="pp-crumb-sep">/</span>
+							<span id="pp-crumb-name">{productName}</span>
+						</nav>
+
+						<header class="pp-hero-band">
+							<div class="pp-hero-left">
+								{produit.marque && (
+									<div class="pp-marque">
+										<span class="pp-marque-dot"></span>
+										{produit.marque as string}
+									</div>
+								)}
+								<h1 class="pp-title" id="pp-product-title">
+									<span class="pp-title-line">
+										{titleWords.map((word, i) => (
+											<span class="pp-title-word" style={`animation-delay: ${0.35 + i * 0.06}s`}>
+												{word}{' '}
+											</span>
+										))}
+									</span>
+								</h1>
+								{produit.descripton_simple && (
+									<p class="pp-short-desc">{produit.descripton_simple as string}</p>
+								)}
+								{noteMoyenne && (
+									<div class="pp-rating-pill">
+										<strong>{noteMoyenne}</strong>
+										<div class="pp-rating-stars">
+											{[1, 2, 3, 4, 5].map((i) => (
+												<span class={i <= Math.round(noteMoyenne) ? 'star filled' : 'star'}>★</span>
+											))}
+										</div>
+										<span>{fmt(p.ratingCount, { n: avis.length })}</span>
+									</div>
+								)}
+							</div>
+							<div class="pp-hero-price">
+								<div class="pp-price-card" id="price-block-container">
+									<div class="pp-price-label">{p.priceLabel}</div>
+									<Fragment set:html={heroPriceHtml} />
+								</div>
+							</div>
+						</header>
+
+						<section class="pp-stage" id="pp-stage">
+							<div class="pp-gallery-wrap">
+								{allImages.length > 0 ? (
+									<div class="carousel-container">
+										<div class="pp-gallery-frame">
+											<div class="pp-gallery-inner">
+												<img
+													id="main-carousel-img"
+													class="pp-gallery-img"
+													src={`${allImages[0]}?width=900&format=webp&quality=82`}
+													alt={customAlts[0] || fmt(p.altView, { name: productName, n: 1 })}
+													width="900"
+													height="900"
+													fetchpriority="high"
+													loading="eager"
+												/>
+												<div
+													class="pp-gallery-controls carousel-controls"
+													style={allImages.length <= 1 ? 'display:none' : undefined}
+												>
+													<button type="button" id="prev-btn" aria-label={p.imgPrev}>←</button>
+													<button type="button" id="next-btn" aria-label={p.imgNext}>→</button>
+												</div>
+												<div class="pp-gallery-counter">
+													<span id="gallery-counter-current">01</span> / <span id="gallery-counter-total">{String(allImages.length).padStart(2, '0')}</span>
+												</div>
+											</div>
+										</div>
+										<div
+											class="pp-thumbs carousel-thumbnails"
+											style={allImages.length <= 1 ? 'display:none' : undefined}
+										>
+											{allImages.map((imgUrl, index) => (
+												<button
+													type="button"
+													class={`pp-thumb-btn thumbnail-btn ${index === 0 ? 'active' : ''}`}
+													data-index={index}
+													data-image={`${imgUrl}?width=900&format=webp&quality=82`}
+													aria-label={fmt(p.imgN, { n: index + 1 })}
+												>
+													<img
+														src={`${imgUrl}?width=150&format=webp&quality=82`}
+														alt={customAlts[index] || fmt(p.altView, { name: productName, n: index + 1 })}
+														width="72"
+														height="72"
+														loading="lazy"
+														decoding="async"
+													/>
+												</button>
+											))}
+										</div>
+									</div>
+								) : (
+									<div class="pp-gallery-placeholder">
+										<p>{p.noImage}</p>
+									</div>
+								)}
+							</div>
+
+							<aside class="pp-panel">
+								<p class="pp-panel-title">{p.panelTitle}</p>
+
+								<div class="pp-panel-price" id="panel-price-block">
+									<ProductPrice
+										prix={produit.prix as string}
+										isPromo={isPromoValid}
+										promoPrice={produit.prix_promo as string}
+										devise={devise}
+										ctx={money}
+										labels={priceLabels}
+									/>
+								</div>
+
+								{hasVariants && hasModeleTaille && (
+									<div class="variants-selection" data-variants-mode="modele-taille">
+										<div class="pp-variants-selectors">
+											<label class="pp-variants-field">
+												<span class="pp-variants-label">{p.model}</span>
+												<select id="pp-modele-select" class="pp-variants-select">
+													{modeleOptions.map((m) => (
+														<option value={m}>{m}</option>
+													))}
+												</select>
+											</label>
+											<label class="pp-variants-field">
+												<span class="pp-variants-label">{p.size}</span>
+												<select id="pp-taille-select" class="pp-variants-select"></select>
+											</label>
+										</div>
+										<div class="pp-variants-grid" hidden>
+											{variantItems.map((v, i) => (
+												<button
+													type="button"
+													class={`variant-btn ${i === 0 ? 'active' : ''}`}
+													data-name={v.name}
+													data-price={v.price}
+													data-promo={v.promo}
+													data-prix-promo={v.prixPromo}
+													data-image={v.image}
+													data-url={v.url}
+													data-attente={v.attente}
+													data-desc-short={v.descShort}
+													data-desc-long={v.descLong}
+													data-gallery={v.gallery}
+													data-specs={v.specs}
+													data-modele={v.modele}
+													data-taille={v.taille}
+													data-faq={v.faq}
+												>
+													<span>{v.label}</span>
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+
+								{hasVariants && !hasModeleTaille && (
+									<div class="variants-selection" data-variants-mode="simple">
+										<span class="pp-variants-label">{p.model}</span>
+										<div class="pp-variants-grid">
+											<button
+												type="button"
+												class="variant-btn active"
+												data-name={productName}
+												data-price={produit.prix || ''}
+												data-promo={isPromoValid ? 'true' : 'false'}
+												data-prix-promo={produit.prix_promo || ''}
+												data-image={imageUrl}
+												data-url={produit.Bouton_acheter || ''}
+												data-attente={produit.texte_attente_sortie || ''}
+												data-desc-short={produit.descripton_simple || ''}
+												data-desc-long={produit.description_principale || ''}
+												data-gallery={JSON.stringify(allImages)}
+												data-specs={JSON.stringify(specValueByKey)}
+												data-faq={JSON.stringify(faqItems)}
+											>
+												<span>{produit.nom_court || p.mainModel}</span>
+												<span class="variant-btn-check" aria-hidden="true"></span>
+											</button>
+											{variantItems.map((v) => (
+												<button
+													type="button"
+													class="variant-btn"
+													data-name={v.name}
+													data-price={v.price}
+													data-promo={v.promo}
+													data-prix-promo={v.prixPromo}
+													data-image={v.image}
+													data-url={v.url}
+													data-attente={v.attente}
+													data-desc-short={v.descShort}
+													data-desc-long={v.descLong}
+													data-gallery={v.gallery}
+													data-specs={v.specs}
+													data-faq={v.faq}
+												>
+													<span>{v.label}</span>
+													<span class="variant-btn-check" aria-hidden="true"></span>
+												</button>
+											))}
+										</div>
+									</div>
+								)}
+
+								<div class="pp-trust-row">
+									<span class="pp-trust-badge">{p.trustExpert}</span>
+									<span class="pp-trust-badge">{p.trustAdvice}</span>
+									{produit.garantie && <span class="pp-trust-badge">{fmt(p.warranty, { w: produit.garantie as string })}</span>}
+								</div>
+
+								<div class="pp-cta-stack">
+									{produit.prix ? (
+										<a
+											href={(produit.Bouton_acheter as string) || '#'}
+											class="btn btn-buy"
+											id="main-cta-btn"
+											target={produit.Bouton_acheter ? '_blank' : '_self'}
+											rel={produit.Bouton_acheter ? 'sponsored nofollow noopener noreferrer' : undefined}
+										>
+											{p.buy}
+										</a>
+									) : (
+										<button
+											type="button"
+											class="btn btn-buy btn-disabled tooltip-btn"
+											id="main-cta-btn"
+											data-tooltip={(produit.texte_attente_sortie as string) || p.soon}
+										>
+											{p.notify}
+										</button>
+									)}
+									<a href={path(locale, 'shop')} class="btn btn-outline">{p.backShop}</a>
+									{hasAnySpecs && (
+										<a href={path(locale, 'compare')} class="pp-comparateur-link">
+											{p.compareLink}
+										</a>
+									)}
+								</div>
+							</aside>
+						</section>
+
+						{hasAnySpecs && (
+							<section class="pp-specs-section reveal">
+								<p class="pp-section-eyebrow">{p.specsEyebrow}</p>
+								<h2 class="pp-section-heading">{p.specsHeading}</h2>
+								<div class="pp-specs-bento">
+									{SPEC_DEFS.map((def, i) => (
+										<article
+											class={`pp-spec-card reveal ${specValueByKey[def.key] ? '' : 'is-hidden'}`}
+											data-spec-key={def.key}
+											style={`transition-delay: ${i * 0.07}s`}
+										>
+											<div class="pp-spec-icon-wrap">
+												<SpecIcon icon={def.icon} />
+											</div>
+											<p class="pp-spec-label">{p.specLabels[def.key] ?? def.label}</p>
+											<p class="pp-spec-value">{specValueByKey[def.key]}</p>
+										</article>
+									))}
+								</div>
+							</section>
+						)}
+
+						<div class="pp-marquee-wrap" aria-hidden="true">
+							<div class="pp-marquee-track" id="pp-marquee-track">
+								<span class="pp-marquee-text">{marqueeText}</span>
+								<span class="pp-marquee-text">{marqueeText}</span>
+							</div>
+						</div>
+
+						<div class="pp-content">
+							{produit.description_principale && (
+								<section class="pp-block pp-block--description reveal" id="description">
+									<div class="pp-block-header">
+										<span class="pp-block-num">01</span>
+										<h2 class="pp-block-title">{p.analysis}</h2>
+									</div>
+									<header class="pp-description-header">
+										<p class="pp-description-kicker">{p.dossier}</p>
+										<p class="pp-description-product">{productName}</p>
+										<div class="pp-description-chips">
+											{produit.marque && <span class="pp-chip">{p.chipBrand}: {produit.marque as string}</span>}
+											{produit.poids && <span class="pp-chip">{p.chipWeight}: {String(produit.poids)}</span>}
+											{produit.autonomie && <span class="pp-chip">{p.chipBattery}: {String(produit.autonomie)}</span>}
+											{produit.garantie && <span class="pp-chip">{p.chipWarranty}: {String(produit.garantie)}</span>}
+										</div>
+										<p class="pp-byline">
+											{p.analyzedBy}&nbsp;<a href={path(locale, 'author', 'axel-paupier')} class="author-link">Axel Paupier</a>
+											{produit.date_analyse && (
+												<>
+													&nbsp;·&nbsp;{p.updatedOn}&nbsp;
+													{new Date(produit.date_analyse as string).toLocaleDateString(intl, { day: 'numeric', month: 'long', year: 'numeric' })}
+												</>
+											)}
+										</p>
+									</header>
+									<div class="pp-description-body">
+										<div class="pp-rich rich-content p-prose" set:html={produit.description_principale as string} />
+									</div>
+								</section>
+							)}
+
+							<section class="pp-block reveal" id="faq">
+								<div class="pp-block-header">
+									<span class="pp-block-num">02</span>
+									<h2 class="pp-block-title">{p.faq}</h2>
+								</div>
+								<div id="pp-faq-content">
+									{faqItems.length > 0 ? (
+										<div class="pp-faq-list faq-accordion">
+											{faqItems.map((f) => (
+												<details class="pp-faq-item faq-item">
+													<summary class="pp-faq-q faq-question">
+														<span>{f.question}</span>
+														<span class="pp-faq-icon" aria-hidden="true">+</span>
+													</summary>
+													<div class="pp-faq-a faq-answer">
+														<div class="pp-rich p-prose" set:html={f.reponse} />
+													</div>
+												</details>
+											))}
+										</div>
+									) : (
+										<p style="color: var(--text-light); line-height: 1.7;">
+											{p.faqSoon} <a href={path(locale, 'contact')} class="pp-comparateur-link">{p.contactUs}</a>
+										</p>
+									)}
+								</div>
+							</section>
+
+							<section class="pp-block reveal" id="avis-section">
+								<div class="pp-block-header">
+									<span class="pp-block-num">03</span>
+									<h2 class="pp-block-title">{p.reviews}</h2>
+								</div>
+
+								<div class="pp-avis-layout">
+									{noteMoyenne ? (
+										<div class="pp-avis-score-ring">
+											<div class="pp-avis-big-num">{noteMoyenne}</div>
+											<div class="pp-rating-stars" style="justify-content:center; margin: 0.5rem 0;">
+												{[1, 2, 3, 4, 5].map((i) => (
+													<span class={i <= Math.round(noteMoyenne) ? 'star filled' : 'star'}>★</span>
+												))}
+											</div>
+											<p style="font-size: 0.85rem; color: var(--text-light);">{fmt(p.reviewsCount, { n: avis.length })}</p>
+										</div>
+									) : (
+										<div class="pp-avis-score-ring">
+											<p style="color: var(--text-light);">{p.beFirst}</p>
+										</div>
+									)}
+
+									<div class="pp-avis-list">
+										{avis.length > 0 ? (
+											avis.map((a) => (
+												<article class="pp-avis-card avis-card">
+													<div class="pp-avis-card-top">
+														<div class="pp-avis-avatar">
+															{a.prenom ? String(a.prenom)[0].toUpperCase() : '?'}
+														</div>
+														<div>
+															<strong>{a.prenom || p.anonymous}</strong>
+															<div class="pp-rating-stars">
+																{[1, 2, 3, 4, 5].map((i) => (
+																	<span class={i <= (Number(a.note) || 0) ? 'star filled' : 'star'}>★</span>
+																))}
+															</div>
+														</div>
+													</div>
+													<p style="color: var(--text-light); line-height: 1.7; margin: 0;">{String(a.avis_texte ?? '')}</p>
+												</article>
+											))
+										) : (
+											<p style="color: var(--text-light);">{p.noReviews}</p>
+										)}
+									</div>
+								</div>
+
+								<div class="pp-avis-form-wrap avis-form-container">
+									<h3 class="pp-form-title">{p.leaveReview}</h3>
+									<form id="avis-form" novalidate>
+										<input type="hidden" name="produit_slug" value={slugFr} />
+										<div class="form-group">
+											<label class="form-label">{p.rating} <span class="required">*</span></label>
+											<div class="stars-input" id="stars-input" role="group" aria-label={p.rating}>
+												{[1, 2, 3, 4, 5].map((i) => (
+													<button type="button" class="star-btn" data-value={i} aria-label={fmt(p.starsAria, { n: i })}>★</button>
+												))}
+											</div>
+											<input type="hidden" name="note" id="note-value" value="" />
+											<span class="field-error" id="note-error"></span>
+										</div>
+										<div class="form-row">
+											<div class="form-group">
+												<label for="avis-prenom" class="form-label">{p.firstName} <span class="required">*</span></label>
+												<input type="text" id="avis-prenom" name="prenom" class="form-input" autocomplete="given-name" />
+												<span class="field-error" id="prenom-error"></span>
+											</div>
+											<div class="form-group">
+												<label for="avis-email" class="form-label">{p.email} <span class="required">*</span></label>
+												<input type="email" id="avis-email" name="email" class="form-input" autocomplete="email" />
+												<span class="field-error" id="email-error"></span>
+											</div>
+										</div>
+										<div class="form-group">
+											<label for="avis-tel" class="form-label">{p.phone} <span style="color:var(--text-light);font-weight:400">{p.optional}</span></label>
+											<input type="tel" id="avis-tel" name="telephone" class="form-input" autocomplete="tel" />
+										</div>
+										<div class="form-group">
+											<label for="avis-texte" class="form-label">{p.comment} <span class="required">*</span></label>
+											<textarea id="avis-texte" name="avis_texte" class="form-input" rows={4}></textarea>
+											<span class="field-error" id="avis-texte-error"></span>
+										</div>
+										<div style="display:flex; flex-wrap:wrap; gap:1rem; align-items:center; justify-content:space-between;">
+											<span style="font-size:0.8rem;color:var(--text-light)"><span class="required">*</span> {p.required}</span>
+											<button type="submit" class="btn btn-buy" id="avis-submit">{p.send}</button>
+										</div>
+										<div id="avis-success" class="avis-success" style="display:none">{p.thanks}</div>
+										<div id="avis-error-global" class="avis-error-global" style="display:none"></div>
+									</form>
+								</div>
+							</section>
+
+							{articlesLies.length > 0 && (
+								<section class="pp-block reveal">
+									<div class="pp-block-header">
+										<span class="pp-block-num">04</span>
+										<h2 class="pp-block-title">{p.relatedArticles}</h2>
+									</div>
+									<div class="pp-similar-scroll">
+										{articlesLies.map((a) => (
+											<article class="pp-similar-card">
+												<a href={path(locale, 'articles', a.slug as string)} class="pp-similar-img">
+													{a.image_principale ? (
+														<img src={`${directusUrl}/assets/${a.image_principale}?width=320&format=webp&quality=82`} alt={a.titre as string} loading="lazy" decoding="async" width="280" height="280" />
+													) : (
+														<span class="pp-similar-empty p-label">{p.noImage}</span>
+													)}
+												</a>
+												<div class="pp-similar-body">
+													<h3><a href={path(locale, 'articles', a.slug as string)}>{a.titre as string}</a></h3>
+													{a.description_seo && <p class="pp-similar-desc">{a.description_seo as string}</p>}
+													<a href={path(locale, 'articles', a.slug as string)} class="pp-comparateur-link">{p.readArticle}</a>
+												</div>
+											</article>
+										))}
+									</div>
+								</section>
+							)}
+
+							{produitsSimilaires.length > 0 && (
+								<section class="pp-block reveal">
+									<div class="pp-block-header">
+										<span class="pp-block-num">{articlesLies.length > 0 ? '05' : '04'}</span>
+										<h2 class="pp-block-title">{p.alsoLike}</h2>
+									</div>
+									<div class="pp-similar-scroll">
+										{produitsSimilaires.map((sim) => (
+											<article class="pp-similar-card">
+												<a href={productHref(sim)} class="pp-similar-img">
+													{sim.image ? (
+														<img src={`${directusUrl}/assets/${sim.image}?width=320&format=webp&quality=82`} alt={sim.Nom_du_produit as string} loading="lazy" decoding="async" width="280" height="280" />
+													) : (
+														<span class="pp-similar-empty p-label">{p.noImage}</span>
+													)}
+												</a>
+												<div class="pp-similar-body">
+													{sim.marque && <span class="pp-similar-brand">{sim.marque as string}</span>}
+													<h3><a href={productHref(sim)}>{sim.Nom_du_produit as string}</a></h3>
+													<p class="pp-similar-price">{sim.prix ? <Fragment set:html={moneyHtml(sim.prix, normalizeCurrency(sim.devise), money)} /> : p.contact}</p>
+													<a href={productHref(sim)} class="pp-comparateur-link">{p.discover}</a>
+												</div>
+											</article>
+										))}
+									</div>
+								</section>
+							)}
+						</div>
+
+						<div class="pp-sticky-dock" id="pp-sticky-dock">
+							<div class="pp-sticky-inner">
+								<span class="pp-sticky-name" id="sticky-product-name">{productName}</span>
+								<div class="pp-sticky-price" id="sticky-price-block">
+									<Fragment set:html={heroPriceHtml} />
+								</div>
+								<div class="pp-sticky-cta">
+									{produit.prix ? (
+										<a
+											href={(produit.Bouton_acheter as string) || '#'}
+											class="btn"
+											id="sticky-cta-btn"
+											target="_blank"
+											rel="sponsored nofollow noopener noreferrer"
+										>
+											{p.stickyBuy}
+										</a>
+									) : (
+										<button type="button" class="btn btn-disabled" id="sticky-cta-btn" disabled>{p.stickySoon}</button>
+									)}
+								</div>
+							</div>
+						</div>
+					</>
+				)
+			)}
+		</div>
+	</div>
+</Layout>
+
+
+<script src="../scripts/product-page.client.ts"></script>

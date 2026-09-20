@@ -1,22 +1,41 @@
 ---
 // src/components/Header.astro
-// Composant réutilisable : <Header /> dans n'importe quelle page
+import { useTranslations, path, locales, localeMeta, type Locale } from '../i18n';
+
+interface Props {
+    locale?: Locale;
+    /** Adresse de la page courante dans chaque langue disponible */
+    alternates?: Partial<Record<Locale, string>>;
+}
+
+const { locale = 'fr', alternates = {} } = Astro.props;
+const t = useTranslations(locale);
 
 const navLinks = [
-    { href: "/", label: "Accueil" },
-    { href: "/articles", label: "Articles" },
-    { href: "/boutique", label: "Boutique" },
-    { href: "/comparateur", label: "Comparateur" },
-    { href: "/a-propos", label: "À propos" },
-    { href: "/contact", label: "Contact" },
+    { href: path(locale, 'home'), label: t.nav.home },
+    { href: path(locale, 'articles'), label: t.nav.articles },
+    { href: path(locale, 'shop'), label: t.nav.shop },
+    { href: path(locale, 'compare'), label: t.nav.compare },
+    { href: path(locale, 'about'), label: t.nav.about },
+    { href: path(locale, 'contact'), label: t.nav.contact },
 ];
 
+const homePath = path(locale, 'home');
 const currentPath = Astro.url.pathname;
+const isActive = (href: string) =>
+    href === homePath
+        ? currentPath === href || currentPath === href.replace(/\/$/, '')
+        : currentPath.startsWith(href);
+
+// Lien vers l'autre langue : la même page si elle existe, sinon l'accueil de cette langue
+const switchLinks = locales
+    .filter((l) => l !== locale)
+    .map((l) => ({ locale: l, href: alternates[l] ?? path(l, 'home'), label: localeMeta[l].short, title: `${t.lang.switchTo} ${t.lang[l]}` }));
 ---
 
 <header class="header">
     <div class="header-inner">
-        <a href="/" class="logo" aria-label="Retour à l'accueil">
+        <a href={homePath} class="logo" aria-label={t.nav.homeAria}>
             <img src="/favicon.png" alt="NST Logo" class="logo-img" />
             NeoSomaTech
         </a>
@@ -24,17 +43,22 @@ const currentPath = Astro.url.pathname;
             {navLinks.map(link => (
                 <a
                     href={link.href}
-                    class:list={["nav-link", { active: currentPath === link.href || (link.href !== "/" && currentPath.startsWith(link.href)) }]}
+                    class:list={["nav-link", { active: isActive(link.href) }]}
                 >
                     {link.label}
                 </a>
             ))}
         </nav>
-        <div class="fx-toggle" role="group" aria-label="Devise d'affichage des prix">
-            <button type="button" data-fx-set="EUR" aria-pressed="true" title="Afficher les prix en euros">€</button>
-            <button type="button" data-fx-set="USD" aria-pressed="false" title="Afficher les prix en dollars">$</button>
+        <div class="header-tools">
+            {switchLinks.map((l) => (
+                <a class="lang-switch" href={l.href} hreflang={localeMeta[l.locale].hreflang} lang={l.locale} title={l.title}>{l.label}</a>
+            ))}
+            <div class="fx-toggle" role="group" aria-label={t.money.label}>
+                <button type="button" data-fx-set="EUR" aria-pressed="true" title={t.money.showEur}>€</button>
+                <button type="button" data-fx-set="USD" aria-pressed="false" title={t.money.showUsd}>$</button>
+            </div>
         </div>
-        <span class="header-meta">Planche N°001 &middot; {new Date().getFullYear()}</span>
+        <span class="header-meta">{t.nav.plateLabel} &middot; {new Date().getFullYear()}</span>
         <button class="menu-toggle" id="menuToggle" aria-label="Menu">
             <span></span><span></span><span></span>
         </button>
@@ -42,6 +66,9 @@ const currentPath = Astro.url.pathname;
     <nav class="mobile-nav" id="mobileNav">
         {navLinks.map(link => (
             <a href={link.href} class="mobile-nav-link">{link.label}</a>
+        ))}
+        {switchLinks.map((l) => (
+            <a href={l.href} class="mobile-nav-link" hreflang={localeMeta[l.locale].hreflang} lang={l.locale}>{t.lang[l.locale]}</a>
         ))}
     </nav>
 </header>
@@ -154,6 +181,19 @@ const currentPath = Astro.url.pathname;
 
     /* ── Thème "planche" ── */
     .header-meta { display: none; }
+    .header-tools { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+    .lang-switch {
+        font-family: var(--f-mono);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        color: var(--ink);
+        text-decoration: none;
+        padding: 0.42rem 0.55rem;
+        border: 1px solid var(--rule);
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .lang-switch:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
     .fx-toggle {
         display: inline-flex;
         border: 1px solid var(--ink);

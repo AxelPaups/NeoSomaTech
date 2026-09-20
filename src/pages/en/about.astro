@@ -1,0 +1,92 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { listBrands } from '../../lib/content';
+import { slugifyBrand } from '../../lib/directus';
+import { path, pathInAllLocales } from '../../i18n';
+import '../../styles/editorial.css';
+
+// Les liens vers une marque ne sont posés que si sa page anglaise existe (pas de lien vers une redirection).
+const enBrands = (await listBrands('en').catch(() => [])).map(slugifyBrand);
+const brandLink = (slug: string, label: string) =>
+	enBrands.includes(slug) ? `<a href="${path('en', 'shop', slug)}" class="brand-link">${label}</a>` : label;
+
+const alternates = pathInAllLocales('about');
+---
+
+<Layout
+	locale="en"
+	alternates={alternates}
+	title="About | NeoSomaTech"
+	description="The story, mission and ethics of NeoSomaTech: augmenting humans through technology."
+>
+	<div class="p-page ed-about">
+		<div class="p-crumb"><a href={path('en', 'home')}>Home</a><span>/</span><span>About</span></div>
+		<h1 class="p-display p-title">Our <em>manifesto</em></h1>
+
+		<div class="content p-prose">
+			<section>
+				<h2>1. The Genesis: Beyond Biological Limits</h2>
+				<p class="lead">The story of NeoSomaTech does not begin in a robotics lab, but with a simple observation: the human being is an extraordinary biological machine, but a limited one.</p>
+				<p>Whether it's the athlete looking to break records, the hiker who wants to explore the steepest peaks, or the worker whose body wears down under the weight of daily tasks, we all reach a physical ceiling.</p>
+				<p>NeoSomaTech was born from the desire to break that ceiling. We don't see technology as a replacement for humans, but as their rebirth. At a time when artificial intelligence dominates every debate, we chose to focus on the intelligence of movement and the augmentation of our real physical abilities.</p>
+			</section>
+
+			<section>
+				<h2>2. Our Mission: Democratizing Augmentation</h2>
+				<p>For a long time, exoskeletons were confined to science-fiction films or inaccessible military prototypes. Today, the technology is mature.</p>
+				<p set:html={`Innovative companies like ${brandLink('hypershell', 'Hypershell')} or ${brandLink('stoko', 'Stoko')} are radically transforming the landscape of physical assistance.`}></p>
+
+				<div class="mission-grid">
+					<div class="mission-card">
+						<h3>Decoding complexity</h3>
+						<p>Making PMSM motors, adaptive movement artificial intelligence and compression textile structures easy to understand.</p>
+					</div>
+					<div class="mission-card">
+						<h3>Guiding the choice</h3>
+						<p>Offering an impartial, technical analysis of the solutions available on the market, so that every user finds the extension of their body best suited to their needs.</p>
+					</div>
+				</div>
+			</section>
+
+			<section>
+				<h2>3. Ethics at the Heart of Movement</h2>
+				<p>The question often comes up: does the exoskeleton mark the end of the pure athlete? At NeoSomaTech, we believe on the contrary that it enables a new form of human expression. We commit to addressing human augmentation with total transparency:</p>
+				<ul>
+					<li><strong>Technological Transparency:</strong> We explain how data is processed by movement algorithms.</li>
+					<li><strong>Data Ethics:</strong> As shown by our anonymized use of tools like <strong>PostHog</strong>, we believe your physical activity and movement data belong to you.</li>
+					<li><strong>Body-Machine Balance:</strong> We do not advocate a technology that makes humans lazy, but one that protects them from injury and extends their active life.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>4. What We Explore: Our Pillars</h2>
+				<div class="pillars">
+					<div class="pillar">
+						<h3>A. Active (Motorized) Exoskeletons</h3>
+						<p>This is the frontier of science. Devices able to provide assistance of several tens of kilos, turning a 1,000 m climb into a health walk. We analyze battery life, output force and sensor responsiveness.</p>
+					</div>
+					<div class="pillar">
+						<h3>B. Passive Support and Textile Structures</h3>
+						<p set:html={`It's not all about motors. Innovations like those from ${brandLink('stoko', 'Stoko')} show that ligament support can be built directly into clothing. This is the "invisible" exoskeleton, the one that preserves the integrity of the body without batteries.`}></p>
+					</div>
+					<div class="pillar">
+						<h3>C. Performance in Competition</h3>
+						<p>Sport is the ultimate laboratory. We closely follow the debates on integrating assistive technologies into official competitions, and bring answers based on physiology and biomechanics.</p>
+					</div>
+				</div>
+			</section>
+
+			<section>
+				<h2>5. Why NeoSomaTech?</h2>
+				<p>The web is full of gadget-review sites. NeoSomaTech is different. We are based in France, at the heart of an ecosystem that values engineering and precision. Every article, every analysis goes through our obsession with technical detail.</p>
+				<p>We are not here to sell a futuristic dream, but to analyze concrete tools that exist today. Whether you are a mountain professional, an athlete in recovery or simply a tech enthusiast, NeoSomaTech is your reference hub for the augmented human.</p>
+			</section>
+
+			<section>
+				<h2>6. A Community of Pioneers</h2>
+				<p>By browsing NeoSomaTech, you are not just a reader. You are among the first adopters of a silent revolution. The "Soma", the body, meets the "Tech".</p>
+				<p>We invite you to explore our guides, to debate the future of athletics and to discover how, tomorrow, we will all walk a little further, a little higher, and a little longer.</p>
+			</section>
+		</div>
+	</div>
+</Layout>

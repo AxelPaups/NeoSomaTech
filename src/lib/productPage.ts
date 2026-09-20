@@ -120,32 +120,43 @@ export function getPromoPercent(original: string, promo: string): number | null 
 }
 
 /** Contexte monétaire d'un prix : monnaie du vendeur + taux/monnaie d'affichage */
+export interface PriceLabels {
+	onRequest: string;
+	sale: string;
+	instead: string;
+	reduction: string;
+}
+
+const DEFAULT_PRICE_LABELS: PriceLabels = { onRequest: 'Sur demande', sale: 'Promo', instead: 'Au lieu de', reduction: 'Réduction' };
+
 export interface PriceFx {
 	devise: Currency;
 	ctx: MoneyCtx;
 	/** affiche la ligne "Prix chez le vendeur" quand le prix est converti */
 	note?: boolean;
+	labels?: PriceLabels;
 }
 
 /** HTML prix — partagé entre Astro (SSR) et le script client (variantes) */
 export function renderPriceHtml(prix: string, isPromo: boolean, prixPromo: string, fx?: PriceFx): string {
+	const L = fx?.labels ?? DEFAULT_PRICE_LABELS;
 	const label = (v: string, note = false) =>
 		fx ? moneyHtml(v, fx.devise, fx.ctx, { note }) : formatPromoPriceLabel(v);
 	const originalLabel = fx ? label(prix) : formatPriceDisplay(prix);
 
 	if (!prix && !isPromo) {
-		return `<div class="pp-price-display"><span class="price price-on-request">Sur demande</span></div>`;
+		return `<div class="pp-price-display"><span class="price price-on-request">${L.onRequest}</span></div>`;
 	}
 
 	if (isPromo && prixPromo) {
 		const promoLabel = label(prixPromo, true);
 		const pct = getPromoPercent(prix, prixPromo);
-		const saveBadge = pct != null ? `<span class="pp-price-save" aria-label="Réduction">−${pct}%</span>` : '';
+		const saveBadge = pct != null ? `<span class="pp-price-save" aria-label="${L.reduction}">−${pct}%</span>` : '';
 		const originalPart = originalLabel
-			? `<span class="pp-original-line">Au lieu de <del class="pp-original-del">${originalLabel}</del></span>`
+			? `<span class="pp-original-line">${L.instead} <del class="pp-original-del">${originalLabel}</del></span>`
 			: '';
 		return `<div class="pp-price-display pp-price-display--promo">
-			<span class="pp-promo-badge">Promo</span>
+			<span class="pp-promo-badge">${L.sale}</span>
 			<div class="pp-price-promo-row">
 				<span class="price promo-price">${promoLabel}</span>
 				${saveBadge}
@@ -155,7 +166,7 @@ export function renderPriceHtml(prix: string, isPromo: boolean, prixPromo: strin
 	}
 
 	return `<div class="pp-price-display">
-		<span class="price price-main">${fx ? label(prix, true) || 'Sur demande' : originalLabel || 'Sur demande'}</span>
+		<span class="price price-main">${fx ? label(prix, true) || L.onRequest : originalLabel || L.onRequest}</span>
 	</div>`;
 }
 

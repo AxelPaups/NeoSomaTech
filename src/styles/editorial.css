@@ -1,0 +1,76 @@
+/* Pages éditoriales (À propos, Auteur) : partagées par toutes les langues. */
+
+/* ── À propos ── */
+.ed-about .content p.lead {
+	font-family: var(--f-display);
+	font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+	font-weight: 350;
+	line-height: 1.5;
+	letter-spacing: -0.01em;
+	color: var(--ink);
+}
+.ed-about .mission-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	border: 1px solid var(--ink);
+	margin: 2rem 0 0.5rem;
+	background: var(--surface);
+}
+.ed-about .mission-card { padding: 1.75rem; }
+.ed-about .mission-card + .mission-card { border-left: 1px solid var(--ink); }
+.ed-about .mission-card h3 { margin: 0 0 0.75rem; }
+.ed-about .mission-card p { font-size: 0.98rem; margin-bottom: 0; }
+
+.ed-about .pillars { margin-top: 1.5rem; border-bottom: 1px solid var(--ink); }
+.ed-about .pillar {
+	padding: 1.75rem 0 1.4rem;
+	border-top: 1px solid var(--ink);
+	transition: padding 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ed-about .pillar:hover { padding-left: 0.85rem; }
+.ed-about .pillar h3 { margin-top: 0; }
+.ed-about .pillar p { margin-bottom: 0; }
+
+@media (max-width: 768px) {
+	.ed-about .mission-grid { grid-template-columns: 1fr; }
+	.ed-about .mission-card + .mission-card { border-left: none; border-top: 1px solid var(--ink); }
+}
+
+/* ── Auteur ── */
+.ed-author .author-head {
+	display: flex;
+	align-items: center;
+	gap: 2rem;
+	padding-bottom: 2.5rem;
+	margin-bottom: 2.5rem;
+	border-bottom: 1px solid var(--ink);
+}
+.ed-author .author-head h1 { margin-bottom: 0.5rem; }
+.ed-author .author-avatar {
+	flex: none;
+	width: 104px;
+	height: 104px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: var(--f-display);
+	font-size: 2.6rem;
+	font-weight: 380;
+	font-style: italic;
+	color: var(--ink);
+	background: var(--surface);
+	border: 1px solid var(--ink);
+	box-shadow: 6px 6px 0 var(--vermilion);
+}
+.ed-author .author-role {
+	font-family: var(--f-mono);
+	font-size: 0.78rem;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--ink-soft);
+}
+.ed-author .author-cta { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 3rem; }
+
+@media (max-width: 560px) {
+	.ed-author .author-head { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+}
