@@ -1,3 +1,5 @@
+import { moneyHtml, type Currency, type MoneyCtx } from './money';
+
 export type ProductSpec = {
 	key: string;
 	label: string;
@@ -117,16 +119,26 @@ export function getPromoPercent(original: string, promo: string): number | null 
 	return Math.round((1 - p / o) * 100);
 }
 
+/** Contexte monétaire d'un prix : monnaie du vendeur + taux/monnaie d'affichage */
+export interface PriceFx {
+	devise: Currency;
+	ctx: MoneyCtx;
+	/** affiche la ligne "Prix chez le vendeur" quand le prix est converti */
+	note?: boolean;
+}
+
 /** HTML prix — partagé entre Astro (SSR) et le script client (variantes) */
-export function renderPriceHtml(prix: string, isPromo: boolean, prixPromo: string): string {
-	const originalLabel = formatPriceDisplay(prix);
+export function renderPriceHtml(prix: string, isPromo: boolean, prixPromo: string, fx?: PriceFx): string {
+	const label = (v: string, note = false) =>
+		fx ? moneyHtml(v, fx.devise, fx.ctx, { note }) : formatPromoPriceLabel(v);
+	const originalLabel = fx ? label(prix) : formatPriceDisplay(prix);
 
 	if (!prix && !isPromo) {
 		return `<div class="pp-price-display"><span class="price price-on-request">Sur demande</span></div>`;
 	}
 
 	if (isPromo && prixPromo) {
-		const promoLabel = formatPromoPriceLabel(prixPromo);
+		const promoLabel = label(prixPromo, true);
 		const pct = getPromoPercent(prix, prixPromo);
 		const saveBadge = pct != null ? `<span class="pp-price-save" aria-label="Réduction">−${pct}%</span>` : '';
 		const originalPart = originalLabel
@@ -143,7 +155,7 @@ export function renderPriceHtml(prix: string, isPromo: boolean, prixPromo: strin
 	}
 
 	return `<div class="pp-price-display">
-		<span class="price price-main">${originalLabel || 'Sur demande'}</span>
+		<span class="price price-main">${fx ? label(prix, true) || 'Sur demande' : originalLabel || 'Sur demande'}</span>
 	</div>`;
 }
 
@@ -182,6 +194,7 @@ export const PRODUCT_FIELDS = [
 	'Nom_du_produit',
 	'nom_court',
 	'prix',
+	'devise',
 	'descripton_simple',
 	'description_principale',
 	'Bouton_acheter',

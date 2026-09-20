@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { fetchDirectus, fetchPageSEO } from '../lib/directus';
+import { getFx } from '../lib/fx';
+import { normalizeCurrency, moneyHtml } from '../lib/money';
 
 const directusUrl = "https://spirited-squid.pikapod.net";
 
@@ -9,7 +11,7 @@ let errorMessage: string | null = null;
 
 try {
     // fields to request, including the new ones the user will add + variantes
-    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification,comparateur_defaut,variantes.*&limit=50`;
+    const query = `/items/Produits?fields=id,Nom_du_produit,nom_court,slug,image,prix,devise,marque,poids,autonomie,assistance_max,temps_charge,materiaux,garantie,certification,comparateur_defaut,variantes.*&limit=50`;
     const data = await fetchDirectus(query);
     products = Array.isArray(data) ? data : [];
 } catch (error: any) {
@@ -29,6 +31,7 @@ products.forEach(p => {
         slug: p.slug,
         image: p.image ? `${directusUrl}/assets/${p.image}?width=700&format=webp&quality=82` : null,
         prix: p.prix,
+        devise: normalizeCurrency(p.devise),
         marque: p.marque,
         poids: p.poids || 'N/A',
         autonomie: p.autonomie || 'N/A',
@@ -51,6 +54,7 @@ products.forEach(p => {
                 slug: p.slug,
                 image: v.Image ? `${directusUrl}/assets/${v.Image}?width=700&format=webp&quality=82` : (p.image ? `${directusUrl}/assets/${p.image}?width=700&format=webp&quality=82` : null),
                 prix: v.prix || p.prix,
+                devise: normalizeCurrency(p.devise),
                 marque: p.marque,
                 poids: v.poids || p.poids || 'N/A',
                 autonomie: v.autonomie || p.autonomie || 'N/A',
@@ -78,7 +82,9 @@ const defaultProducts = defaultIds.slice(0, 3).map((id) => flatOptions.find((p) 
 
 const optionLabel = (p: any) => (p.parent_nom ? `${p.parent_nom} - ${p.nom_court}` : p.nom_court || p.nom);
 const orDash = (v: unknown) => (!v || v === 'N/A' ? '—' : String(v));
-const formatPrice = (v: unknown) => (v ? `${v} €` : 'Sur demande');
+const fx = await getFx();
+const fxCtx = { rate: fx.usdPerEur, target: 'EUR' as const };
+const priceHtml = (p: any) => (p.prix ? moneyHtml(p.prix, p.devise, fxCtx) : 'Sur demande');
 
 const specRows: [string, string][] = [
     ['Poids', 'poids'],
@@ -151,7 +157,7 @@ const seo = await fetchPageSEO(
                             <div class="product-info-top">
                                 <div class="brand-tag" style={dp?.marque ? 'opacity: 1;' : 'opacity: 0;'}>{dp?.marque || 'X'}</div>
                                 <h2 class="product-name">{dp?.nom ?? ''}</h2>
-                                <div class="product-price">{dp ? (dp.prix ? `${dp.prix} €` : 'Contact') : ''}</div>
+                                <div class="product-price"><Fragment set:html={dp ? (dp.prix ? moneyHtml(dp.prix, dp.devise, fxCtx) : 'Contact') : ''} /></div>
                                 <a href={dp ? `/produits/${dp.slug}` : '#'} class="btn btn-buy btn-small">Voir le produit</a>
                             </div>
 
@@ -189,7 +195,7 @@ const seo = await fetchPageSEO(
                                         <a href={`/produits/${p.slug}`}>{p.nom_court || p.nom}</a>
                                         {p.marque && <span class="compare-brand">{p.marque}</span>}
                                     </th>
-                                    <td class="compare-price">{formatPrice(p.prix)}</td>
+                                    <td class="compare-price"><Fragment set:html={priceHtml(p)} /></td>
                                     {specRows.map(([, field]) => <td>{orDash(p[field])}</td>)}
                                 </tr>
                             ))}
@@ -274,7 +280,9 @@ const seo = await fetchPageSEO(
                     }
 
                     (filledCard.querySelector('.product-name') as HTMLElement).textContent = product.nom;
-                    (filledCard.querySelector('.product-price') as HTMLElement).textContent = product.prix ? `${product.prix} €` : 'Contact';
+                    (filledCard.querySelector('.product-price') as HTMLElement).innerHTML = product.prix
+                        ? ((window as any).nstCurrency?.moneyHtml(product.prix, product.devise) ?? `${product.prix} €`)
+                        : 'Contact';
                     (filledCard.querySelector('.btn-buy') as HTMLAnchorElement).href = `/produits/${product.slug}`;
 
                     // Update Specs

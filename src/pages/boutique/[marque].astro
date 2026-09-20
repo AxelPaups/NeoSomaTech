@@ -2,8 +2,12 @@
 // page : /boutique/[marque]  — page de marque indexable (SEO)
 import Layout from '../../layouts/Layout.astro';
 import { fetchDirectus, directusUrl, slugifyBrand } from '../../lib/directus';
+import { getFx } from '../../lib/fx';
+import { normalizeCurrency, moneyHtml } from '../../lib/money';
 
 const { marque: marqueSlug } = Astro.params;
+const fx = await getFx();
+const fxCtx = { rate: fx.usdPerEur, target: 'EUR' as const };
 
 let produits: any[] = [];
 let brandName = '';
@@ -11,7 +15,7 @@ let errorMessage: string | null = null;
 
 try {
     const all = await fetchDirectus(
-        '/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque,promo,prix_promo&limit=200'
+        '/items/Produits?fields=id,Nom_du_produit,prix,devise,descripton_simple,slug,image,marque,promo,prix_promo&limit=200'
     );
     const matched = (all || []).filter(
         (p: any) => p.marque && slugifyBrand(p.marque) === marqueSlug
@@ -86,9 +90,7 @@ const itemListSchema = {
             <div class="grid">
                 {produits.map((p) => {
                     const isPromoValid = p.promo && p.prix_promo;
-                    const displayPromoPrice = isPromoValid
-                        ? (String(p.prix_promo).includes('€') ? p.prix_promo : `${p.prix_promo} €`)
-                        : null;
+                    const price = (v: unknown) => moneyHtml(v, normalizeCurrency(p.devise), fxCtx);
                     return (
                         <article class="card">
                             <a href={`/produits/${p.slug || p.id}`} class="card-img-link p-grid-paper" tabindex="-1" aria-hidden="true">
@@ -115,11 +117,11 @@ const itemListSchema = {
                                 <div class="card-footer">
                                     {isPromoValid ? (
                                         <div class="price-wrapper">
-                                            <span class="price old-price">{p.prix} €</span>
-                                            <span class="price promo-price">{displayPromoPrice}</span>
+                                            <span class="price old-price"><Fragment set:html={price(p.prix)} /></span>
+                                            <span class="price promo-price"><Fragment set:html={price(p.prix_promo)} /></span>
                                         </div>
                                     ) : (
-                                        <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
+                                        <span class="price">{p.prix ? <Fragment set:html={price(p.prix)} /> : 'Nous contacter'}</span>
                                     )}
                                     <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
                                 </div>

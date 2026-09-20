@@ -5,6 +5,7 @@ import PostHog from '../components/PostHog.astro';
 import Schema from '../components/Schema.astro';
 import Ruler from '../components/Ruler.astro';
 import '../styles/planche.css';
+import { getFx } from '../lib/fx';
 
 interface Props {
 	title: string;
@@ -29,11 +30,12 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const fx = await getFx();
 const fontsUrl = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap';
 ---
 
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-fx-rate={fx.usdPerEur} data-fx-date={fx.date} data-default-currency="EUR">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -81,6 +83,9 @@ const fontsUrl = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wg
 			<slot />
 		</main>
 		<Footer />
+		<script>
+			import '../scripts/currency.client.ts';
+		</script>
 	</body>
 </html>
 

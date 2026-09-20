@@ -114,7 +114,7 @@ if (type === 'product' && item) {
         } : undefined,
         "offers": {
             "@type": "Offer",
-            "priceCurrency": "EUR",
+            "priceCurrency": item.devise === 'USD' ? 'USD' : 'EUR',
             ...(price !== null ? { "price": price } : {}),
             "availability": item.prix ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             "url": currentUrl,

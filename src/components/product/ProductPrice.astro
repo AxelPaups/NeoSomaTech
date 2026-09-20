@@ -1,14 +1,21 @@
 ---
 import { renderPriceHtml } from '../../lib/productPage';
+import { normalizeCurrency } from '../../lib/money';
 
 interface Props {
 	prix?: string | number | null;
 	isPromo?: boolean;
 	promoPrice?: string | number | null;
+	devise?: string | null;
+	rate?: number;
 }
 
-const { prix = '', isPromo = false, promoPrice = '' } = Astro.props;
-const html = renderPriceHtml(String(prix ?? ''), isPromo, String(promoPrice ?? ''));
+const { prix = '', isPromo = false, promoPrice = '', devise = 'EUR', rate = 1 } = Astro.props;
+const html = renderPriceHtml(String(prix ?? ''), isPromo, String(promoPrice ?? ''), {
+	devise: normalizeCurrency(devise),
+	ctx: { rate, target: 'EUR' },
+	note: true,
+});
 ---
 
 <div set:html={html} />

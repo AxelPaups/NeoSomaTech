@@ -1,14 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { fetchDirectus, fetchPageSEO } from '../lib/directus';
+import { getFx } from '../lib/fx';
+import { normalizeCurrency, moneyHtml, convert } from '../lib/money';
 
 const directusUrl = "https://spirited-squid.pikapod.net";
+const fx = await getFx();
+const fxCtx = { rate: fx.usdPerEur, target: 'EUR' as const };
 
 let produits: any[] = [];
 let errorMessage: string | null = null;
 
 try {
-    produits = await fetchDirectus(`/items/Produits?fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque,promo,prix_promo`);
+    produits = await fetchDirectus(`/items/Produits?fields=id,Nom_du_produit,prix,devise,descripton_simple,slug,image,marque,promo,prix_promo`);
 } catch (error: any) {
     errorMessage = error.message;
 }
@@ -19,7 +23,11 @@ function parsePrice(val: any): number {
     if (!val) return 0;
     return parseFloat(String(val).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
 }
-const prices = produits.map((p: any) => parsePrice(p.prix)).filter((v: number) => v > 0);
+const eurValue = (p: any): number => {
+    const amount = parsePrice(p.prix);
+    return amount > 0 ? convert(amount, normalizeCurrency(p.devise), 'EUR', fx.usdPerEur) : 0;
+};
+const prices = produits.map(eurValue).filter((v: number) => v > 0);
 const minPriceData = prices.length ? Math.floor(Math.min(...prices)) : 0;
 const maxPriceData = prices.length ? Math.ceil(Math.max(...prices)) : 10000;
 const hasPromo = produits.some((p: any) => p.promo && p.prix_promo);
@@ -160,8 +168,8 @@ const seo = await fetchPageSEO(
                 <div class="grid" id="productsGrid">
                     {produits.map((p) => {
                         const isPromoValid = p.promo && p.prix_promo;
-                        const displayPromoPrice = isPromoValid ? (String(p.prix_promo).includes('€') ? p.prix_promo : `${p.prix_promo} €`) : null;
-                        const prixNum = parsePrice(p.prix);
+                        const price = (v: unknown) => moneyHtml(v, normalizeCurrency(p.devise), fxCtx);
+                        const prixNum = Math.round(eurValue(p));
                         return (
                             <article class="card" data-nom={(p.Nom_du_produit || '').toLowerCase()} data-marque={p.marque || ''} data-prix={prixNum} data-promo={isPromoValid ? 'true' : 'false'}>
                                 <a href={`/produits/${p.slug || p.id}`} class="card-img-link p-grid-paper" tabindex="-1" aria-hidden="true">
@@ -179,11 +187,11 @@ const seo = await fetchPageSEO(
                                     <div class="card-footer">
                                         {isPromoValid ? (
                                             <div class="price-wrapper">
-                                                <span class="price old-price">{p.prix} €</span>
-                                                <span class="price promo-price">{displayPromoPrice}</span>
+                                                <span class="price old-price"><Fragment set:html={price(p.prix)} /></span>
+                                                <span class="price promo-price"><Fragment set:html={price(p.prix_promo)} /></span>
                                             </div>
                                         ) : (
-                                            <span class="price">{p.prix ? `${p.prix} €` : 'Nous contacter'}</span>
+                                            <span class="price">{p.prix ? <Fragment set:html={price(p.prix)} /> : 'Nous contacter'}</span>
                                         )}
                                         <a href={`/produits/${p.slug || p.id}`} class="btn">Voir &rarr;</a>
                                     </div>
@@ -242,6 +250,11 @@ const seo = await fetchPageSEO(
             });
         });
 
+        function fmtPrice(n) {
+            var c = window.nstCurrency;
+            return c && c.formatEur ? c.formatEur(n) : n.toLocaleString('fr-FR') + ' €';
+        }
+
         function updateRange() {
             if (!priceMin || !priceMax) return;
             var lo = parseInt(priceMin.value);
@@ -250,8 +263,8 @@ const seo = await fetchPageSEO(
                 if (document.activeElement === priceMin) { priceMin.value = hi - 50; lo = hi - 50; }
                 else { priceMax.value = lo + 50; hi = lo + 50; }
             }
-            if (priceMinDisp) priceMinDisp.textContent = lo.toLocaleString('fr-FR') + ' €';
-            if (priceMaxDisp) priceMaxDisp.textContent = hi.toLocaleString('fr-FR') + ' €';
+            if (priceMinDisp) priceMinDisp.textContent = fmtPrice(lo);
+            if (priceMaxDisp) priceMaxDisp.textContent = fmtPrice(hi);
             var range = maxP - minP;
             if (rangeFill && range > 0) {
                 rangeFill.style.left  = ((lo - minP) / range * 100) + '%';
@@ -262,6 +275,7 @@ const seo = await fetchPageSEO(
         if (priceMin) priceMin.addEventListener('input', updateRange);
         if (priceMax) priceMax.addEventListener('input', updateRange);
         updateRange();
+        document.addEventListener('nst:currency', updateRange);
 
         if (searchInput) {
             searchInput.addEventListener('input', function() {

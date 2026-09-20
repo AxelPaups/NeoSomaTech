@@ -449,3 +449,17 @@ body[data-theme="planche"] .btn-disabled {
 .p-prose iframe,
 .p-prose video { border: 1px solid var(--ink); margin: 1.75rem 0; }
 .p-prose br { content: ""; display: block; margin-bottom: 0.5rem; }
+
+/* Prix converti : mention du prix réel chez le vendeur */
+.money-seller {
+	display: block;
+	margin-top: 0.3rem;
+	font-family: var(--f-mono);
+	font-size: 0.66rem;
+	font-weight: 400;
+	letter-spacing: 0.04em;
+	line-height: 1.4;
+	color: var(--ink-soft);
+	text-transform: none;
+}
+.money-seller[hidden] { display: none; }

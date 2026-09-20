@@ -12,6 +12,8 @@ import {
 } from '../../lib/productPage';
 import SpecIcon from '../../components/product/SpecIcon.astro';
 import ProductPrice from '../../components/product/ProductPrice.astro';
+import { getFx } from '../../lib/fx';
+import { normalizeCurrency, moneyHtml } from '../../lib/money';
 import '../../styles/product-page.css';
 
 const { slug } = Astro.params;
@@ -42,14 +44,14 @@ try {
 	if (produit) {
 		const brandFilter = produit.marque ? `&filter[marque][_eq]=${produit.marque}` : '';
 		const others = await fetchDirectus(
-			`/items/Produits?filter[slug][_neq]=${slug}${brandFilter}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=4`,
+			`/items/Produits?filter[slug][_neq]=${slug}${brandFilter}&fields=id,Nom_du_produit,prix,devise,descripton_simple,slug,image,marque&limit=4`,
 		);
 		produitsSimilaires = Array.isArray(others) ? others : [];
 
 		if (produitsSimilaires.length < 4) {
 			const excludeSlugs = [slug, ...produitsSimilaires.map((p) => p.slug || p.id)];
 			const more = await fetchDirectus(
-				`/items/Produits?filter[slug][_nin]=${excludeSlugs.join(',')}&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,marque&limit=${4 - produitsSimilaires.length}`,
+				`/items/Produits?filter[slug][_nin]=${excludeSlugs.join(',')}&fields=id,Nom_du_produit,prix,devise,descripton_simple,slug,image,marque&limit=${4 - produitsSimilaires.length}`,
 			);
 			if (Array.isArray(more)) produitsSimilaires = [...produitsSimilaires, ...more];
 		}
@@ -79,6 +81,10 @@ try {
 } catch (error: unknown) {
 	errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 }
+
+const fx = await getFx();
+const devise = normalizeCurrency(produit?.devise);
+const fxCtx = { rate: fx.usdPerEur, target: 'EUR' as const };
 
 const noteMoyenne =
 	avis.length > 0
@@ -247,6 +253,7 @@ const heroPriceHtml = renderPriceHtml(
 	String(produit?.prix ?? ''),
 	isPromoValid,
 	String(produit?.prix_promo ?? ''),
+	{ devise, ctx: fxCtx, note: true },
 );
 ---
 
@@ -266,7 +273,7 @@ const heroPriceHtml = renderPriceHtml(
 	}
 	noindex={!produit || !!errorMessage}
 >
-	<div class="product-page" data-product-page>
+	<div class="product-page" data-product-page data-devise={devise}>
 		<div class="pp-inner">
 			{errorMessage ? (
 				<div class="pp-error">{errorMessage}</div>
@@ -388,6 +395,8 @@ const heroPriceHtml = renderPriceHtml(
 										prix={produit.prix as string}
 										isPromo={isPromoValid}
 										promoPrice={produit.prix_promo as string}
+										devise={devise}
+										rate={fx.usdPerEur}
 									/>
 								</div>
 
@@ -748,7 +757,7 @@ const heroPriceHtml = renderPriceHtml(
 												<div class="pp-similar-body">
 													{p.marque && <span class="pp-similar-brand">{p.marque as string}</span>}
 													<h3><a href={`/produits/${p.slug || p.id}`}>{p.Nom_du_produit as string}</a></h3>
-													<p class="pp-similar-price">{p.prix ? `${p.prix} €` : 'Contact'}</p>
+													<p class="pp-similar-price">{p.prix ? <Fragment set:html={moneyHtml(p.prix, normalizeCurrency(p.devise), fxCtx)} /> : 'Contact'}</p>
 													<a href={`/produits/${p.slug || p.id}`} class="pp-comparateur-link">Découvrir →</a>
 												</div>
 											</article>

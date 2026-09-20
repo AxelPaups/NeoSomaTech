@@ -215,7 +215,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 			if (newName) updateProductTitle(newName);
 
-			const priceInner = renderPriceHtml(newPrice, isPromo, newPrixPromo);
+			const nst = (window as any).nstCurrency;
+			const pageEl = document.querySelector('[data-product-page]') as HTMLElement | null;
+			const priceInner = renderPriceHtml(newPrice, isPromo, newPrixPromo, {
+				devise: pageEl?.dataset.devise === 'USD' ? 'USD' : 'EUR',
+				ctx: { rate: parseFloat(document.documentElement.dataset.fxRate || '') || 1, target: nst?.get?.() ?? 'EUR' },
+				note: true,
+			});
 			if (priceBlock) {
 				const label = priceBlock.querySelector('.pp-price-label');
 				priceBlock.innerHTML = label
@@ -223,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					: priceInner;
 			}
 			syncAllPrices(priceInner);
+			nst?.refresh?.();
 
 			if (newImage && mainImg) {
 				mainImg.style.opacity = '0.4';

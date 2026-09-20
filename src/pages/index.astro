@@ -2,6 +2,8 @@
 import Layout from "../layouts/Layout.astro";
 import { fetchDirectus, fetchPageSEO, slugifyBrand } from "../lib/directus";
 import ExoSchema from "../components/ExoSchema.astro";
+import { getFx } from "../lib/fx";
+import { normalizeCurrency, moneyHtml, convert } from "../lib/money";
 
 let produits: any[] = [];
 let articles: any[] = [];
@@ -12,7 +14,7 @@ let errorMessage: string | null = null;
 try {
 	const [produitsData, articlesData, marquesData] = await Promise.all([
 		fetchDirectus(
-			"/items/Produits?limit=3&fields=id,Nom_du_produit,prix,descripton_simple,slug,image,promo,prix_promo",
+			"/items/Produits?limit=3&fields=id,Nom_du_produit,prix,devise,descripton_simple,slug,image,promo,prix_promo",
 		),
 		fetchDirectus(
 			"/items/Articles?limit=3&sort=-date_publication&fields=id,titre,slug,description_seo,date_publication,auteur,image_principale",
@@ -41,6 +43,8 @@ try {
 if (marques.length === 0) {
 	marques = ["Ski-Mojo", "Hypershell", "Stoko"];
 }
+const fx = await getFx();
+const fxCtx = { rate: fx.usdPerEur, target: "EUR" as const };
 const pad = (n: number) => String(n).padStart(2, "0");
 const edition = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date());
 
@@ -238,9 +242,7 @@ const chiffres = [
 				<div class="produits-bento">
 					{produits.map((produit, i) => {
 						const isPromoValid = produit.promo && produit.prix_promo;
-						const displayPromoPrice = isPromoValid
-							? (String(produit.prix_promo).includes('€') ? produit.prix_promo : `${produit.prix_promo} €`)
-							: null;
+						const price = (v: unknown) => moneyHtml(v, normalizeCurrency(produit.devise), fxCtx);
 						const isFeatured = i === 0;
 						return (
 							<article
@@ -271,12 +273,12 @@ const chiffres = [
 											<div class="p-label">À partir de</div>
 											{isPromoValid ? (
 												<div class="prod-prices">
-													<span class="prod-price prod-price--old">{produit.prix} €</span>
-													<span class="prod-price prod-price--promo">{displayPromoPrice}</span>
+													<span class="prod-price prod-price--old"><Fragment set:html={price(produit.prix)} /></span>
+													<span class="prod-price prod-price--promo"><Fragment set:html={price(produit.prix_promo)} /></span>
 												</div>
 											) : (
 												<div class="prod-price">
-													{produit.prix ? `${produit.prix} €` : "Sur devis"}
+													{produit.prix ? <Fragment set:html={price(produit.prix)} /> : "Sur devis"}
 												</div>
 											)}
 										</div>

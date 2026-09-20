@@ -30,6 +30,10 @@ const currentPath = Astro.url.pathname;
                 </a>
             ))}
         </nav>
+        <div class="fx-toggle" role="group" aria-label="Devise d'affichage des prix">
+            <button type="button" data-fx-set="EUR" aria-pressed="true" title="Afficher les prix en euros">€</button>
+            <button type="button" data-fx-set="USD" aria-pressed="false" title="Afficher les prix en dollars">$</button>
+        </div>
         <span class="header-meta">Planche N°001 &middot; {new Date().getFullYear()}</span>
         <button class="menu-toggle" id="menuToggle" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -150,6 +154,27 @@ const currentPath = Astro.url.pathname;
 
     /* ── Thème "planche" ── */
     .header-meta { display: none; }
+    .fx-toggle {
+        display: inline-flex;
+        border: 1px solid var(--ink);
+        flex-shrink: 0;
+    }
+    .fx-toggle button {
+        min-width: 2.3rem;
+        padding: 0.4rem 0.6rem;
+        font-family: var(--f-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--ink);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+    .fx-toggle button + button { border-left: 1px solid var(--ink); }
+    .fx-toggle button:hover { background: var(--paper-2); }
+    .fx-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
 
     :global(body[data-theme="planche"]) .header {
         background: rgba(242, 236, 223, 0.92);
