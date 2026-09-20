@@ -57,22 +57,22 @@ const formatDate = (date: string) => {
             }))
         })} is:inline />
     )}
-    <div class="page-wrapper">
+    <div class="p-page p-page--wide">
         <!-- EN-TÊTE DE PAGE -->
-        <header class="page-header container">
-            <div class="breadcrumb"><a href="/">Accueil</a> / Articles</div>
-            <h1>Articles & <span class="gradient-text">Actualités</span></h1>
-            <p>Tout savoir sur les exosquelettes : comparatifs, guides, innovations et avis d'experts.</p>
+        <header class="p-pagehead">
+            <div class="p-crumb"><a href="/">Accueil</a><span>/</span><span>Articles</span></div>
+            <h1 class="p-display p-title">Articles &amp; <em>actualités</em></h1>
+            <p class="p-lede">Tout savoir sur les exosquelettes : comparatifs, guides, innovations et avis d'experts.</p>
         </header>
 
         <!-- GRILLE ARTICLES -->
-        <div class="container articles-content">
+        <div class="articles-content">
             {errorMessage ? (
-                <div class="error-box">
+                <div class="p-notice p-notice--error">
                     <strong>⚠️ Erreur :</strong> {errorMessage}
                 </div>
             ) : articles.length === 0 ? (
-                <div class="empty-box">
+                <div class="p-notice">
                     <p>Aucun article publié pour le moment. Revenez bientôt !</p>
                 </div>
             ) : (
@@ -121,109 +121,95 @@ const formatDate = (date: string) => {
 </Layout>
 
 <style>
-    .page-wrapper { padding-bottom: 5rem; }
-
-    .page-header {
-        padding: 4rem 1.5rem 3rem;
-        text-align: center;
-    }
-    .breadcrumb {
-        font-size: 0.85rem;
-        color: var(--text-light);
-        margin-bottom: 1rem;
-    }
-    .breadcrumb a { color: #818cf8; text-decoration: none; }
-    .breadcrumb a:hover { text-decoration: underline; }
-    .page-header h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        font-weight: 900;
-        color: #fff;
-        letter-spacing: -1.5px;
-        margin-bottom: 0.75rem;
-    }
-    .page-header p {
-        color: var(--text-light);
-        font-size: 1.1rem;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    /* GRILLE */
     .articles-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+        gap: 2rem;
+        counter-reset: art;
     }
-
-    /* Card standard */
     .article-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
+        position: relative;
+        counter-increment: art;
         display: flex;
         flex-direction: column;
-        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        background: var(--surface);
+        border: 1px solid var(--ink);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .article-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--primary);
-        box-shadow: 0 0 30px rgba(99, 102, 241, 0.15);
+        transform: translate(-4px, -4px);
+        box-shadow: 8px 8px 0 var(--vermilion);
     }
-
-    /* Première carte en vedette sur toute la largeur */
     .article-card.featured {
         grid-column: 1 / -1;
         flex-direction: row;
     }
     .article-card.featured .card-img {
-        flex: 0 0 45%;
+        flex: 0 0 52%;
+        aspect-ratio: auto;
+        min-height: 320px;
+        border-bottom: none;
+        border-right: 1px solid var(--ink);
     }
-    .article-card.featured h2 { font-size: 1.6rem; }
+    .article-card.featured h2 { font-size: clamp(1.9rem, 3vw, 2.8rem); }
 
     .card-img {
         overflow: hidden;
-        aspect-ratio: 16/9;
+        aspect-ratio: 16 / 9;
+        border-bottom: 1px solid var(--ink);
+        background-color: var(--paper-2);
     }
     .card-img img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.4s;
+        mix-blend-mode: multiply;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .article-card:hover .card-img img { transform: scale(1.04); }
+    .article-card:hover .card-img img { transform: scale(1.05); }
 
     .card-body {
-        padding: 1.75rem;
+        padding: 1.6rem 1.6rem 1.75rem;
         display: flex;
         flex-direction: column;
-        gap: 0.85rem;
+        gap: 0.9rem;
         flex: 1;
+    }
+    .card-body::before {
+        content: "N° " counter(art, decimal-leading-zero);
+        font-family: var(--f-mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        color: var(--vermilion);
     }
     .card-meta {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 1rem;
-        font-size: 0.82rem;
-        color: var(--text-light);
+        gap: 0.4rem 1rem;
+        font-family: var(--f-mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
     }
-    .author { color: #818cf8; }
+    .author { text-transform: none; letter-spacing: 0.02em; }
     .card-body h2 {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #fff;
-        line-height: 1.35;
+        font-family: var(--f-display);
+        font-size: 1.6rem;
+        font-weight: 400;
+        font-variation-settings: "opsz" 72;
+        letter-spacing: -0.025em;
+        line-height: 1.12;
     }
-    .card-body h2 a {
-        color: inherit;
-        text-decoration: none;
-        transition: color 0.2s;
-    }
-    .card-body h2 a:hover { color: #a5b4fc; }
+    .card-body h2 a { color: var(--ink); text-decoration: none; }
+    .card-body h2 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+    .author a { position: relative; z-index: 2; }
     .card-excerpt {
-        color: var(--text-light);
-        font-size: 0.95rem;
-        line-height: 1.6;
+        color: var(--ink-soft);
+        font-size: 1rem;
+        line-height: 1.65;
         flex: 1;
         display: -webkit-box;
         -webkit-line-clamp: 3;
@@ -231,35 +217,28 @@ const formatDate = (date: string) => {
         overflow: hidden;
     }
     .read-more {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #818cf8;
+        font-family: var(--f-mono);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink);
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: 0.4rem;
         transition: gap 0.2s, color 0.2s;
     }
-    .read-more:hover { color: #a5b4fc; gap: 0.6rem; }
+    .article-card:hover .read-more { color: var(--vermilion); gap: 0.8rem; }
 
-    .error-box {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        color: #fca5a5;
-        padding: 1.5rem;
-        border-radius: 12px;
-        text-align: center;
-    }
-    .empty-box {
-        background: var(--surface);
-        border: 1px dashed var(--border);
-        padding: 3rem;
-        border-radius: 12px;
-        text-align: center;
-        color: var(--text-light);
-    }
-
-    @media (max-width: 700px) {
+    @media (max-width: 760px) {
         .article-card.featured { flex-direction: column; }
+        .article-card.featured .card-img {
+            flex: none;
+            aspect-ratio: 16 / 9;
+            min-height: 0;
+            border-right: none;
+            border-bottom: 1px solid var(--ink);
+        }
     }
 </style>

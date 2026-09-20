@@ -10,11 +10,11 @@ const seo = await fetchPageSEO(
 ---
 
 <Layout title={seo.title} description={seo.description}>
-    <div class="page container">
-        <div class="breadcrumb"><a href="/">Accueil</a> / À propos</div>
-        <h1>Notre <span class="gradient-text">Manifeste</span></h1>
+    <div class="p-page">
+        <div class="p-crumb"><a href="/">Accueil</a><span>/</span><span>À propos</span></div>
+        <h1 class="p-display p-title">Notre <em>manifeste</em></h1>
         
-        <div class="content">
+        <div class="content p-prose">
             <section>
                 <h2>1. La Genèse : Au-delà des Limites Biologiques</h2>
                 <p class="lead">L’histoire de NeoSomaTech ne commence pas dans un laboratoire de robotique, mais par une simple observation : l'humain est une machine biologique extraordinaire, mais limitée.</p>
@@ -83,92 +83,38 @@ const seo = await fetchPageSEO(
 </Layout>
 
 <style>
-    .page { max-width: 840px; padding: 4rem 1.5rem 8rem; }
-    .breadcrumb { font-size: 0.83rem; color: var(--text-light); margin-bottom: 1.5rem; }
-    .breadcrumb a { color: #818cf8; text-decoration: none; }
-    h1 { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 900; color: #fff; letter-spacing: -2px; margin-bottom: 3rem; }
-    .gradient-text {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    .content :global(p.lead) {
+        font-family: var(--f-display);
+        font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+        font-weight: 350;
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        color: var(--ink);
     }
-    
-    .content { display: flex; flex-direction: column; gap: 4rem; }
-    .content section { display: flex; flex-direction: column; gap: 1.25rem; }
-    .content h2 { font-size: 1.75rem; font-weight: 800; color: #fff; line-height: 1.2; }
-    .content p { color: var(--text-light); line-height: 1.8; font-size: 1.05rem; }
-    .content strong { color: #fff; }
-    
-    .lead { font-size: 1.25rem !important; color: #a5b4fc !important; font-weight: 500; line-height: 1.6 !important; }
-
-    /* Liens Marques */
-    .brand-link {
-        color: #fff;
-        text-decoration: none;
-        font-weight: 700;
-        border-bottom: 2px solid #0047AB; /* Bleu Cobalt */
-        transition: all 0.2s ease;
-    }
-    .brand-link:hover {
-        background: rgba(0, 71, 171, 0.1);
-        border-bottom-color: #818cf8;
-        padding: 0 4px;
-        margin: 0 -4px;
-        border-radius: 4px;
-    }
-
-    /* Grille de mission */
     .mission-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-top: 1rem;
+        border: 1px solid var(--ink);
+        margin: 2rem 0 0.5rem;
+        background: var(--surface);
     }
-    .mission-card {
-        padding: 1.5rem;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-    }
-    .mission-card h3 { font-size: 1.1rem; color: #fff; margin-bottom: 0.75rem; font-weight: 700; }
-    .mission-card p { font-size: 0.95rem !important; margin-bottom: 0; }
+    .mission-card { padding: 1.75rem; }
+    .mission-card + .mission-card { border-left: 1px solid var(--ink); }
+    .mission-card h3 { margin: 0 0 0.75rem; }
+    .mission-card p { font-size: 0.98rem; margin-bottom: 0; }
 
-    /* Piliers */
-    .pillars {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
+    .pillars { margin-top: 1.5rem; border-bottom: 1px solid var(--ink); }
     .pillar {
-        padding-left: 1.5rem;
-        border-left: 2px solid var(--border);
-        transition: border-color 0.3s;
+        padding: 1.75rem 0 1.4rem;
+        border-top: 1px solid var(--ink);
+        transition: padding 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .pillar:hover { border-left-color: #6366f1; }
-    .pillar h3 { font-size: 1.2rem; color: #fff; margin-bottom: 0.5rem; }
-
-    .content ul {
-        list-style: none;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-    .content ul li {
-        position: relative;
-        padding-left: 1.5rem;
-        color: var(--text-light);
-        line-height: 1.7;
-    }
-    .content ul li::before {
-        content: "→";
-        position: absolute;
-        left: 0;
-        color: #6366f1;
-        font-weight: 700;
-    }
+    .pillar:hover { padding-left: 0.85rem; }
+    .pillar h3 { margin-top: 0; }
+    .pillar p { margin-bottom: 0; }
 
     @media (max-width: 768px) {
         .mission-grid { grid-template-columns: 1fr; }
-        .page { padding-top: 3rem; }
+        .mission-card + .mission-card { border-left: none; border-top: 1px solid var(--ink); }
     }
 </style>

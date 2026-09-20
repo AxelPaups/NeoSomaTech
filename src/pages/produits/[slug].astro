@@ -267,16 +267,9 @@ const heroPriceHtml = renderPriceHtml(
 	noindex={!produit || !!errorMessage}
 >
 	<div class="product-page" data-product-page>
-		<div class="pp-ambient" aria-hidden="true">
-			<div class="pp-orb pp-orb-1"></div>
-			<div class="pp-orb pp-orb-2"></div>
-			<div class="pp-orb pp-orb-3"></div>
-			<div class="pp-grain"></div>
-		</div>
-
 		<div class="pp-inner">
 			{errorMessage ? (
-				<div class="pp-error">⚠️ {errorMessage}</div>
+				<div class="pp-error">{errorMessage}</div>
 			) : (
 				produit && (
 					<>
@@ -382,7 +375,6 @@ const heroPriceHtml = renderPriceHtml(
 									</div>
 								) : (
 									<div class="pp-gallery-placeholder">
-										<span>🦾</span>
 										<p>Visuel à venir</p>
 									</div>
 								)}
@@ -493,7 +485,7 @@ const heroPriceHtml = renderPriceHtml(
 								<div class="pp-trust-row">
 									<span class="pp-trust-badge">✓ Sélection expert</span>
 									<span class="pp-trust-badge">✓ Conseil NeoSoma</span>
-									{produit.garantie && <span class="pp-trust-badge">🛡 {produit.garantie as string}</span>}
+									{produit.garantie && <span class="pp-trust-badge">Garantie {produit.garantie as string}</span>}
 								</div>
 
 								<div class="pp-cta-stack">
@@ -583,7 +575,7 @@ const heroPriceHtml = renderPriceHtml(
 										</p>
 									</header>
 									<div class="pp-description-body">
-										<div class="pp-rich rich-content" set:html={produit.description_principale as string} />
+										<div class="pp-rich rich-content p-prose" set:html={produit.description_principale as string} />
 									</div>
 								</section>
 							)}
@@ -603,14 +595,14 @@ const heroPriceHtml = renderPriceHtml(
 														<span class="pp-faq-icon" aria-hidden="true">+</span>
 													</summary>
 													<div class="pp-faq-a faq-answer">
-														<div class="pp-rich" set:html={f.reponse} />
+														<div class="pp-rich p-prose" set:html={f.reponse} />
 													</div>
 												</details>
 											))}
 										</div>
 									) : (
 										<p style="color: var(--text-light); line-height: 1.7;">
-											FAQ en préparation. <a href="/contact" style="color: #818cf8">Contactez-nous →</a>
+											FAQ en préparation. <a href="/contact" class="pp-comparateur-link">Contactez-nous →</a>
 										</p>
 									)}
 								</div>
@@ -648,7 +640,7 @@ const heroPriceHtml = renderPriceHtml(
 															{a.prenom ? String(a.prenom)[0].toUpperCase() : '?'}
 														</div>
 														<div>
-															<strong style="color:#fff">{a.prenom || 'Anonyme'}</strong>
+															<strong>{a.prenom || 'Anonyme'}</strong>
 															<div class="pp-rating-stars">
 																{[1, 2, 3, 4, 5].map((i) => (
 																	<span class={i <= (Number(a.note) || 0) ? 'star filled' : 'star'}>★</span>
@@ -666,7 +658,7 @@ const heroPriceHtml = renderPriceHtml(
 								</div>
 
 								<div class="pp-avis-form-wrap avis-form-container">
-									<h3 style="font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 1.25rem;">Laisser un avis</h3>
+									<h3 class="pp-form-title">Laisser un avis</h3>
 									<form id="avis-form" novalidate>
 										<input type="hidden" name="produit_slug" value={slug} />
 										<div class="form-group">
@@ -704,7 +696,7 @@ const heroPriceHtml = renderPriceHtml(
 											<span style="font-size:0.8rem;color:var(--text-light)"><span class="required">*</span> Obligatoire</span>
 											<button type="submit" class="btn btn-buy" id="avis-submit">Envoyer mon avis</button>
 										</div>
-										<div id="avis-success" class="avis-success" style="display:none">✅ Merci ! Votre avis a été enregistré.</div>
+										<div id="avis-success" class="avis-success" style="display:none">Merci ! Votre avis a été enregistré.</div>
 										<div id="avis-error-global" class="avis-error-global" style="display:none"></div>
 									</form>
 								</div>
@@ -723,12 +715,12 @@ const heroPriceHtml = renderPriceHtml(
 													{a.image_principale ? (
 														<img src={`${directusUrl}/assets/${a.image_principale}?width=320&format=webp&quality=82`} alt={a.titre as string} loading="lazy" decoding="async" width="280" height="280" />
 													) : (
-														<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">📝</span>
+														<span class="pp-similar-empty p-label">Visuel à venir</span>
 													)}
 												</a>
 												<div class="pp-similar-body">
 													<h3><a href={`/articles/${a.slug}`}>{a.titre as string}</a></h3>
-													{a.description_seo && <p class="pp-similar-price" style="font-size:0.85rem;color:var(--text-light);font-weight:400">{a.description_seo as string}</p>}
+													{a.description_seo && <p class="pp-similar-desc">{a.description_seo as string}</p>}
 													<a href={`/articles/${a.slug}`} class="pp-comparateur-link">Lire l'article →</a>
 												</div>
 											</article>
@@ -750,7 +742,7 @@ const heroPriceHtml = renderPriceHtml(
 													{p.image ? (
 														<img src={`${directusUrl}/assets/${p.image}?width=320&format=webp&quality=82`} alt={p.Nom_du_produit as string} loading="lazy" decoding="async" width="280" height="280" />
 													) : (
-														<span style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%">🦾</span>
+														<span class="pp-similar-empty p-label">Visuel à venir</span>
 													)}
 												</a>
 												<div class="pp-similar-body">

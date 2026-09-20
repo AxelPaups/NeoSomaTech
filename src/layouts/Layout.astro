@@ -3,6 +3,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import PostHog from '../components/PostHog.astro';
 import Schema from '../components/Schema.astro';
+import Ruler from '../components/Ruler.astro';
+import '../styles/planche.css';
 
 interface Props {
 	title: string;
@@ -27,6 +29,7 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const fontsUrl = 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap';
 ---
 
 <!doctype html>
@@ -39,10 +42,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		<link rel="shortcut icon" href="/favicon.png" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" />
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-		<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" /></noscript>
-		
+		<link rel="preload" as="style" href={fontsUrl} />
+		<link href={fontsUrl} rel="stylesheet" media="print" onload="this.media='all'" />
+		<noscript><link href={fontsUrl} rel="stylesheet" /></noscript>
+
 		<!-- SEO Primordial -->
 		<title>{title}</title>
 		<meta name="description" content={description} />
@@ -71,7 +74,8 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		<!-- Structured Data -->
 		<Schema type={type} item={schemaItem} faqs={faqs} aggregateRating={aggregateRating} />
 	</head>
-	<body id="top">
+	<body id="top" data-theme="planche">
+		<Ruler />
 		<Header />
 		<main>
 			<slot />
@@ -81,27 +85,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 </html>
 
 <style is:global>
-	:root {
-		--primary: #6366f1;
-		--primary-hover: #4f46e5;
-		--background: #0f0f1e;
-		--surface: #1a1a2e;
-		--surface-2: #16213e;
-		--text: #e2e8f0;
-		--text-light: #94a3b8;
-		--border: rgba(99, 102, 241, 0.2);
-		--gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-		--font-description: 'Outfit', system-ui, sans-serif;
-	}
 	* {
 		box-sizing: border-box;
 		margin: 0;
 		padding: 0;
 	}
 	html {
-		font-family: 'Inter', system-ui, sans-serif;
-		background: var(--background);
-		color: var(--text);
 		scroll-behavior: smooth;
 	}
 	body {
@@ -120,40 +109,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		padding: 0 1.5rem;
 		width: 100%;
 	}
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		background: var(--gradient);
-		color: white;
-		padding: 0.75rem 1.5rem;
-		border-radius: 10px;
-		text-decoration: none;
-		font-weight: 600;
-		border: none;
-		cursor: pointer;
-		transition: opacity 0.2s, transform 0.15s;
-		font-size: 1rem;
-	}
-	.btn:hover {
-		opacity: 0.9;
-		transform: translateY(-2px);
-	}
-	.btn-outline {
-		background: transparent;
-		border: 1.5px solid var(--primary);
-		color: #a5b4fc;
-	}
-	.btn-outline:hover {
-		background: rgba(99, 102, 241, 0.1);
-		opacity: 1;
-	}
 
-	/* Lien de signature auteur (byline) : blanc, sans soulignement,
-	   avec un soulignement animé qui apparaît au survol */
+	/* Lien de signature auteur (byline) : soulignement animé au survol */
 	.author-link {
-		color: #fff;
 		text-decoration: none;
 		font-weight: 600;
 		position: relative;
@@ -171,14 +129,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 		transform-origin: left;
 		transition: transform 0.25s ease;
 	}
-	.author-link:hover {
-		color: #a5b4fc;
-	}
 	.author-link:hover::after {
 		transform: scaleX(1);
 	}
 
-	/* Responsive Globals */
 	@media (max-width: 768px) {
 		html {
 			font-size: 15px;

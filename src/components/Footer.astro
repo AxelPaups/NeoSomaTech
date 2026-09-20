@@ -269,6 +269,89 @@ const cleanTitle = (title: string) => {
     opacity: 0.7;
   }
 
+  /* ── Thème "planche" ── */
+  :global(body[data-theme="planche"]) .footer {
+    background-color: var(--paper-2);
+    color: var(--ink-soft);
+    border-top: 1px solid var(--ink);
+    box-shadow: inset 0 4px 0 var(--paper-2), inset 0 5px 0 var(--ink);
+    padding-top: 6rem;
+  }
+  :global(body[data-theme="planche"]) .footer .container {
+    max-width: 1440px;
+  }
+  :global(body[data-theme="planche"]) .footer-col h3 {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    color: var(--vermilion);
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  :global(body[data-theme="planche"]) .footer-logo {
+    font-family: var(--f-display);
+    font-size: 2.2rem;
+    font-weight: 420;
+    font-variation-settings: "opsz" 144;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  :global(body[data-theme="planche"]) .logo-text { color: var(--ink); }
+  :global(body[data-theme="planche"]) .logo-tech {
+    color: var(--vermilion);
+    font-style: italic;
+    font-variation-settings: "opsz" 144;
+  }
+  :global(body[data-theme="planche"]) .brand-slogan {
+    color: var(--ink-soft);
+    max-width: 30ch;
+  }
+  :global(body[data-theme="planche"]) .social-icon {
+    background: transparent;
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    color: var(--ink);
+  }
+  :global(body[data-theme="planche"]) .social-icon:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  :global(body[data-theme="planche"]) nav ul li a {
+    color: var(--ink);
+    font-size: 0.98rem;
+    background: linear-gradient(var(--vermilion), var(--vermilion)) left bottom / 0 1px no-repeat;
+    padding-bottom: 2px;
+    transition: background-size 0.25s ease, color 0.2s ease;
+  }
+  :global(body[data-theme="planche"]) nav ul li a:hover {
+    color: var(--vermilion);
+    background-size: 100% 1px;
+  }
+  :global(body[data-theme="planche"]) .france-mention {
+    border-top: 1px solid var(--rule);
+    font-family: var(--f-mono);
+    color: var(--ink-soft);
+  }
+  :global(body[data-theme="planche"]) .france-mention p {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  :global(body[data-theme="planche"]) .footer-bottom {
+    border-top: 1px solid var(--ink);
+    padding-top: 1.5rem;
+  }
+  :global(body[data-theme="planche"]) .copyright,
+  :global(body[data-theme="planche"]) .back-to-top {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  :global(body[data-theme="planche"]) .back-to-top { color: var(--ink); }
+
   /* Responsive */
   @media (max-width: 1024px) {
     .footer-grid {

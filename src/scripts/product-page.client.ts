@@ -153,14 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	function renderFaqHtml(items: { question: string; reponse: string }[]): string {
 		if (!items || items.length === 0) {
-			return `<p style="color: var(--text-light); line-height: 1.7;">FAQ en préparation. <a href="/contact" style="color: #818cf8">Contactez-nous →</a></p>`;
+			return `<p style="color: var(--text-light); line-height: 1.7;">FAQ en préparation. <a href="/contact" style="color: var(--vermilion)">Contactez-nous →</a></p>`;
 		}
 		return `<div class="pp-faq-list faq-accordion">${items
 			.map(
 				(f) => `
 			<details class="pp-faq-item faq-item">
 				<summary class="pp-faq-q faq-question"><span>${f.question}</span><span class="pp-faq-icon" aria-hidden="true">+</span></summary>
-				<div class="pp-faq-a faq-answer"><div class="pp-rich">${f.reponse}</div></div>
+				<div class="pp-faq-a faq-answer"><div class="pp-rich p-prose">${f.reponse}</div></div>
 			</details>`,
 			)
 			.join('')}</div>`;
@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		} catch (err: unknown) {
 			console.error('Avis:', err);
 			if (errorGlobal) {
-				errorGlobal.textContent = `⚠️ ${err instanceof Error ? err.message : 'Erreur'}`;
+				errorGlobal.textContent = err instanceof Error ? err.message : 'Erreur';
 				(errorGlobal as HTMLElement).style.display = 'block';
 			}
 		} finally {

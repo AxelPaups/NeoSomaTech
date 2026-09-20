@@ -6,11 +6,11 @@ import Layout from "../layouts/Layout.astro";
     title="Mentions légales | NeoSomaTech"
     description="Consultez les mentions légales de NeoSomaTech. Informations sur l'éditeur, l'hébergement et la propriété intellectuelle."
 >
-    <div class="page container">
-        <div class="breadcrumb"><a href="/">Accueil</a> / Mentions légales</div>
-        <h1>Mentions <span class="gradient-text">Légales</span></h1>
+    <div class="p-page">
+        <div class="p-crumb"><a href="/">Accueil</a><span>/</span><span>Mentions légales</span></div>
+        <h1 class="p-display p-title">Mentions <em>légales</em></h1>
 
-        <div class="content">
+        <div class="content p-prose">
             <section>
                 <h2>1. Édition du site</h2>
                 <p>
@@ -78,59 +78,3 @@ import Layout from "../layouts/Layout.astro";
     </div>
 </Layout>
 
-<style>
-    .page {
-        max-width: 780px;
-        padding: 4rem 1.5rem 6rem;
-    }
-    .breadcrumb {
-        font-size: 0.83rem;
-        color: var(--text-light);
-        margin-bottom: 1.5rem;
-    }
-    .breadcrumb a {
-        color: #818cf8;
-        text-decoration: none;
-    }
-    h1 {
-        font-size: clamp(2rem, 5vw, 3rem);
-        font-weight: 900;
-        color: #fff;
-        letter-spacing: -1.5px;
-        margin-bottom: 2rem;
-    }
-    .gradient-text {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    .content {
-        display: flex;
-        flex-direction: column;
-        gap: 2.5rem;
-    }
-    .content h2 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #fff;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border);
-        padding-bottom: 0.5rem;
-    }
-    .content p {
-        color: var(--text-light);
-        line-height: 1.8;
-        margin-bottom: 1rem;
-    }
-    .content strong {
-        color: #fff;
-    }
-    .content a {
-        color: #818cf8;
-        text-decoration: none;
-    }
-    .content a:hover {
-        text-decoration: underline;
-    }
-</style>

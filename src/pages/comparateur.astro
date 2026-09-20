@@ -27,7 +27,7 @@ products.forEach(p => {
         nom: p.Nom_du_produit,
         nom_court: p.nom_court,
         slug: p.slug,
-        image: p.image ? `${directusUrl}/assets/${p.image}` : null,
+        image: p.image ? `${directusUrl}/assets/${p.image}?width=700&format=webp&quality=82` : null,
         prix: p.prix,
         marque: p.marque,
         poids: p.poids || 'N/A',
@@ -49,7 +49,7 @@ products.forEach(p => {
                 nom_court: v.nom_court || v.Nom_du_produit,
                 parent_nom: p.nom_court || p.Nom_du_produit,
                 slug: p.slug,
-                image: v.Image ? `${directusUrl}/assets/${v.Image}` : (p.image ? `${directusUrl}/assets/${p.image}` : null),
+                image: v.Image ? `${directusUrl}/assets/${v.Image}?width=700&format=webp&quality=82` : (p.image ? `${directusUrl}/assets/${p.image}?width=700&format=webp&quality=82` : null),
                 prix: v.prix || p.prix,
                 marque: p.marque,
                 poids: v.poids || p.poids || 'N/A',
@@ -67,6 +67,32 @@ products.forEach(p => {
 
 const productsJson = JSON.stringify(flatOptions);
 
+// Colonnes pré-remplies côté serveur (même règle que le script client) :
+// le contenu est ainsi présent dans le HTML pour les moteurs de recherche.
+let defaultIds = flatOptions.filter((p) => p.comparateur_defaut).map((p) => String(p.id));
+if (defaultIds.length < 3) {
+    const otherIds = flatOptions.filter((p) => !p.comparateur_defaut).map((p) => String(p.id));
+    defaultIds = [...defaultIds, ...otherIds].slice(0, 3);
+}
+const defaultProducts = defaultIds.slice(0, 3).map((id) => flatOptions.find((p) => String(p.id) === id));
+
+const optionLabel = (p: any) => (p.parent_nom ? `${p.parent_nom} - ${p.nom_court}` : p.nom_court || p.nom);
+const orDash = (v: unknown) => (!v || v === 'N/A' ? '—' : String(v));
+const formatPrice = (v: unknown) => (v ? `${v} €` : 'Sur demande');
+
+const specRows: [string, string][] = [
+    ['Poids', 'poids'],
+    ['Autonomie', 'autonomie'],
+    ['Assistance max.', 'assistance_max'],
+    ['Temps de charge', 'temps_charge'],
+    ['Matériaux', 'materiaux'],
+    ['Garantie', 'garantie'],
+    ['Certification', 'certification'],
+];
+
+// Tableau récapitulatif : un produit = une ligne (les variantes de taille sont exclues)
+const tableProducts = flatOptions.filter((p) => !p.parent_nom);
+
 const seo = await fetchPageSEO(
     "comparateur",
     "Comparateur de produits | NeoSomaTech",
@@ -75,91 +101,103 @@ const seo = await fetchPageSEO(
 ---
 
 <Layout title={seo.title} description={seo.description}>
-    <div class="page-wrapper container">
-        <header class="comparateur-header">
-            <h1 class="main-title">Comparateur <span class="gradient-text">de Produits</span></h1>
-            <p class="subtitle">Sélectionnez jusqu'à 3 produits pour comparer leurs caractéristiques en détail.</p>
+    <div class="p-page p-page--wide">
+        <header class="comparateur-header p-pagehead">
+            <div class="p-crumb"><a href="/">Accueil</a><span>/</span><span>Comparateur</span></div>
+            <h1 class="main-title p-display p-title">Comparateur <em>de produits</em></h1>
+            <p class="subtitle p-lede">Sélectionnez jusqu'à 3 produits pour comparer leurs caractéristiques en détail.</p>
         </header>
 
         {errorMessage ? (
-            <div class="error-box">⚠️ {errorMessage}</div>
+            <div class="p-notice p-notice--error">{errorMessage}</div>
         ) : products.length === 0 ? (
-            <div class="empty-box">Aucun produit disponible pour la comparaison.</div>
+            <div class="p-notice">Aucun produit disponible pour la comparaison.</div>
         ) : (
+            <>
             <div class="comparateur-grid" id="comparateur-app" data-products={productsJson}>
-                <!-- Les 3 colonnes de comparaison -->
-                {[0, 1, 2].map((colIndex) => (
+                {[0, 1, 2].map((colIndex) => {
+                    const dp = defaultProducts[colIndex];
+                    return (
                     <div class="compare-col" data-col={colIndex}>
                         <div class="custom-select-wrapper">
                             <div class="custom-select" id={`select-col-${colIndex}`}>
                                 <div class="select-trigger">
-                                    <span class="trigger-text">-- Sélectionner un produit --</span>
+                                    <span class="trigger-text">{dp ? optionLabel(dp) : '-- Sélectionner un produit --'}</span>
                                     <span class="arrow">▼</span>
                                 </div>
                                 <div class="select-options-container">
                                     <div class="select-options">
                                         <div class="select-option" data-value="">-- Sélectionner un produit --</div>
                                         {flatOptions.map((p) => (
-                                            <div class="select-option" data-value={p.id}>
-                                                {p.parent_nom ? `${p.parent_nom} - ${p.nom_court}` : (p.nom_court || p.nom)}
+                                            <div class:list={['select-option', { selected: dp && String(dp.id) === String(p.id) }]} data-value={p.id}>
+                                                {optionLabel(p)}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="product-card empty">
+
+                        <div class="product-card empty" style={dp ? 'display: none;' : undefined}>
                             <img src="/favicon.png" alt="NST Logo" class="placeholder-logo" />
                             <p>Sélectionnez un produit</p>
                         </div>
 
-                        <div class="product-card filled" style="display: none;">
+                        <div class="product-card filled" style={dp ? 'display: flex;' : 'display: none;'}>
                             <div class="product-img-wrapper">
-                                <img src="" alt="" class="product-img" />
+                                <img src={dp?.image ?? ''} alt={dp?.nom ?? ''} class="product-img" style={dp?.image ? 'display: block;' : 'display: none;'} loading="lazy" decoding="async" />
                             </div>
-                            
+
                             <div class="product-info-top">
-                                <div class="brand-tag"></div>
-                                <h2 class="product-name"></h2>
-                                <div class="product-price"></div>
-                                <a href="#" class="btn btn-buy btn-small">Voir le produit</a>
+                                <div class="brand-tag" style={dp?.marque ? 'opacity: 1;' : 'opacity: 0;'}>{dp?.marque || 'X'}</div>
+                                <h2 class="product-name">{dp?.nom ?? ''}</h2>
+                                <div class="product-price">{dp ? (dp.prix ? `${dp.prix} €` : 'Contact') : ''}</div>
+                                <a href={dp ? `/produits/${dp.slug}` : '#'} class="btn btn-buy btn-small">Voir le produit</a>
                             </div>
 
                             <div class="product-specs">
-                                <div class="spec-row">
-                                    <span class="spec-label">Poids</span>
-                                    <span class="spec-val" data-field="poids"></span>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">Autonomie</span>
-                                    <span class="spec-val" data-field="autonomie"></span>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">Assistance max.</span>
-                                    <span class="spec-val" data-field="assistance_max"></span>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">Temps de charge</span>
-                                    <span class="spec-val" data-field="temps_charge"></span>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">Matériaux</span>
-                                    <span class="spec-val" data-field="materiaux"></span>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">Garantie</span>
-                                    <span class="spec-val" data-field="garantie"></span>
-                                </div>
-                                <div class="spec-row">
-                                    <span class="spec-label">Certification</span>
-                                    <span class="spec-val" data-field="certification"></span>
-                                </div>
+                                {specRows.map(([label, field]) => (
+                                    <div class="spec-row">
+                                        <span class="spec-label">{label}</span>
+                                        <span class="spec-val" data-field={field}>{dp ? (dp[field] || 'N/A') : ''}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
+
+            <section class="compare-table-section" aria-labelledby="compare-table-title">
+                <p class="p-label"><b>Tableau</b> &mdash; Vue d'ensemble</p>
+                <h2 id="compare-table-title" class="p-display compare-table-title">Tous les exosquelettes <em>côte à côte</em></h2>
+                <div class="compare-table-wrap">
+                    <table class="compare-table">
+                        <caption class="visually-hidden">Comparatif des caractéristiques de tous les exosquelettes référencés sur NeoSomaTech</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Modèle</th>
+                                <th scope="col">Prix</th>
+                                {specRows.map(([label]) => <th scope="col">{label}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tableProducts.map((p) => (
+                                <tr>
+                                    <th scope="row">
+                                        <a href={`/produits/${p.slug}`}>{p.nom_court || p.nom}</a>
+                                        {p.marque && <span class="compare-brand">{p.marque}</span>}
+                                    </th>
+                                    <td class="compare-price">{formatPrice(p.prix)}</td>
+                                    {specRows.map(([, field]) => <td>{orDash(p[field])}</td>)}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            </>
         )}
     </div>
 
@@ -281,222 +319,138 @@ const seo = await fetchPageSEO(
     </script>
 
     <style>
-        .page-wrapper {
-            padding-top: 4rem;
-            padding-bottom: 6rem;
-        }
+        .comparateur-header { margin-bottom: 3rem; }
 
-        .comparateur-header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        .subtitle {
-            color: var(--text-light);
-            font-size: 1.1rem;
-            margin-top: 1rem;
-        }
-
-        /* GRID DES COLONNES */
         .comparateur-grid {
             display: grid;
             grid-template-columns: repeat(1, 1fr);
             gap: 2rem;
             align-items: flex-start;
         }
-
         @media (min-width: 768px) {
-            .comparateur-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
+            .comparateur-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
-        .compare-col {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            min-width: 0;
-            height: 100%;
-        }
+        .compare-col { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; height: 100%; }
 
-        /* CUSTOM SELECT PREMIUM */
-        .custom-select-wrapper {
-            position: relative;
-            z-index: 50;
-        }
-        .custom-select {
-            position: relative;
-            width: 100%;
-        }
+        /* Sélecteur */
+        .custom-select-wrapper { position: relative; z-index: 50; }
+        .custom-select { position: relative; width: 100%; }
         .select-trigger {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem 1.25rem;
-            background: rgba(26, 26, 46, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: #fff;
-            font-weight: 600;
+            gap: 1rem;
+            padding: 1rem 1.15rem;
+            background: var(--surface);
+            border: 1px solid var(--ink);
+            color: var(--ink);
+            font-family: var(--f-mono);
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: box-shadow 0.2s, transform 0.2s;
             user-select: none;
         }
-        .custom-select:hover .select-trigger {
-            border-color: var(--primary);
-            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
-        }
-        .custom-select.open .select-trigger {
-            border-color: var(--primary);
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-            background: var(--surface);
-        }
-        .select-trigger .arrow {
-            font-size: 0.7rem;
-            transition: transform 0.3s ease;
-            color: var(--text-light);
-        }
-        .custom-select.open .arrow {
-            transform: rotate(180deg);
-        }
+        .trigger-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .custom-select:hover .select-trigger { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--vermilion); }
+        .custom-select.open .select-trigger { background: var(--ink); color: var(--paper); transform: none; box-shadow: none; }
+        .select-trigger .arrow { font-size: 0.65rem; transition: transform 0.3s ease; flex-shrink: 0; }
+        .custom-select.open .arrow { transform: rotate(180deg); }
 
         .select-options-container {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            background: #1a1a2e;
-            border: 1px solid var(--primary);
+            background: var(--surface);
+            border: 1px solid var(--ink);
             border-top: none;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
             overflow: hidden;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(-8px);
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
             z-index: 100;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 6px 6px 0 var(--vermilion);
         }
-        .custom-select.open .select-options-container {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        .select-options {
-            max-height: 250px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
-        }
-        .select-options::-webkit-scrollbar {
-            width: 6px;
-        }
-        .select-options::-webkit-scrollbar-thumb {
-            background-color: var(--primary);
-            border-radius: 10px;
-        }
-
+        .custom-select.open .select-options-container { opacity: 1; visibility: visible; transform: translateY(0); }
+        .select-options { max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ink) transparent; }
         .select-option {
-            padding: 0.9rem 1.25rem;
-            color: var(--text-light);
+            padding: 0.85rem 1.15rem;
+            color: var(--ink-soft);
             cursor: pointer;
-            transition: all 0.2s;
             font-size: 0.95rem;
             border-left: 3px solid transparent;
+            transition: background 0.15s, color 0.15s, padding 0.2s;
         }
-        .select-option:hover {
-            background: rgba(99, 102, 241, 0.1);
-            color: #fff;
-            border-left-color: var(--primary);
-            padding-left: 1.5rem;
-        }
-        .select-option.selected {
-            background: rgba(99, 102, 241, 0.2);
-            color: #fff;
-            font-weight: 700;
-            border-left-color: var(--primary);
-        }
+        .select-option:hover { background: rgba(16, 26, 51, 0.06); color: var(--ink); border-left-color: var(--vermilion); padding-left: 1.4rem; }
+        .select-option.selected { background: var(--ink); color: var(--paper); font-weight: 600; border-left-color: var(--vermilion); }
 
-        /* CARTES PRODUIT */
+        /* Fiches */
         .product-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            overflow: hidden;
-            flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, border-color 0.3s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
+            background: var(--surface);
+            border: 1px solid var(--ink);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .product-card:hover {
-            border-color: rgba(99, 102, 241, 0.5);
-            transform: translateY(-5px);
-        }
+        .product-card.filled:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--vermilion); }
 
         .product-card.empty {
-            display: flex;
             align-items: center;
             justify-content: flex-start;
-            padding-top: 8rem;
-            padding-left: 2rem;
-            padding-right: 2rem;
-            border: 1px dashed var(--border);
+            padding: 6rem 2rem 4rem;
+            border: 1px dashed var(--ink);
             background: transparent;
-            box-shadow: none;
-            color: var(--text-light);
+            color: var(--ink-soft);
             text-align: center;
             gap: 1rem;
+            font-family: var(--f-mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
-        .placeholder-logo {
-            width: 4rem;
-            height: 4rem;
-            object-fit: contain;
-            filter: brightness(0) invert(1);
-            opacity: 0.15;
-            margin-bottom: 0.5rem;
-        }
+        .placeholder-logo { width: 4rem; height: 4rem; object-fit: contain; opacity: 0.25; margin-bottom: 0.5rem; }
 
         .product-img-wrapper {
             width: 100%;
-            aspect-ratio: 1/1;
-            background: #1a1a2e;
+            aspect-ratio: 1 / 1;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--ink);
             padding: 1.5rem;
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(rgba(16, 26, 51, 0.09) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 26, 51, 0.09) 1px, transparent 1px),
+                linear-gradient(rgba(16, 26, 51, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 26, 51, 0.045) 1px, transparent 1px);
+            background-size: 60px 60px, 60px 60px, 12px 12px, 12px 12px;
         }
-        .product-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transition: transform 0.5s ease;
-        }
-        .product-card:hover .product-img {
-            transform: scale(1.05);
-        }
+        .product-img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.5s ease; }
+        .product-card:hover .product-img { transform: scale(1.05); }
+
         .product-info-top {
             padding: 1.5rem;
             text-align: center;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--ink);
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 0.75rem;
         }
-
         .brand-tag {
-            font-size: 0.75rem;
+            font-family: var(--f-mono);
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.16em;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #818cf8;
-            font-weight: 700;
+            color: var(--vermilion);
             min-height: 1.2rem;
             display: flex;
             align-items: center;
@@ -504,67 +458,55 @@ const seo = await fetchPageSEO(
             transition: opacity 0.3s;
         }
         .product-name {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #fff;
+            font-family: var(--f-display);
+            font-size: 1.35rem;
+            font-weight: 420;
+            font-variation-settings: "opsz" 48;
+            letter-spacing: -0.02em;
+            color: var(--ink);
             margin: 0;
-            line-height: 1.3;
-            height: 4.6rem; /* Hauteur fixe pour 3 lignes pour tout aligner */
+            line-height: 1.2;
+            height: 4.9rem;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             overflow: hidden;
         }
+        .product-price { font-family: var(--f-mono); font-size: 1.6rem; font-weight: 500; letter-spacing: -0.03em; color: var(--ink); }
+        .btn-small { padding: 0.75rem 1.25rem; font-size: 0.72rem; margin-top: 0.5rem; width: 100%; text-align: center; }
 
-        .product-price {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #fff;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .btn-small {
-            padding: 0.6rem 1.5rem;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            width: 100%;
-            text-align: center;
-            border-radius: 8px;
-        }
+        /* Specs */
+        .product-specs { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; flex-grow: 1; }
+        .spec-row { display: flex; flex-direction: column; gap: 0.25rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--rule-strong); }
+        .spec-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .spec-label { font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+        .spec-val { font-size: 1.05rem; color: var(--ink); font-weight: 500; }
 
-        /* SPECS */
-        .product-specs {
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            flex-grow: 1;
+        /* Tableau récapitulatif (rendu serveur) */
+        .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .compare-table-section { margin-top: 6rem; }
+        .compare-table-title { font-size: clamp(2rem, 4vw, 3.4rem); margin: 0.9rem 0 2rem; }
+        .compare-table-wrap { overflow-x: auto; border: 1px solid var(--ink); background: var(--surface); }
+        .compare-table { width: 100%; border-collapse: collapse; min-width: 980px; font-size: 0.95rem; }
+        .compare-table thead th {
+            position: sticky; top: 0;
+            background: var(--ink); color: var(--paper);
+            font-family: var(--f-mono); font-size: 0.68rem; font-weight: 500;
+            letter-spacing: 0.14em; text-transform: uppercase; text-align: left;
+            padding: 0.9rem 1rem; white-space: nowrap;
         }
-        .spec-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        .compare-table tbody th, .compare-table td { padding: 0.9rem 1rem; border-bottom: 1px dashed var(--rule-strong); text-align: left; vertical-align: top; }
+        .compare-table tbody tr:last-child th, .compare-table tbody tr:last-child td { border-bottom: none; }
+        .compare-table tbody tr:hover { background: var(--paper-2); }
+        .compare-table tbody th { font-weight: 500; min-width: 240px; }
+        .compare-table tbody th a {
+            display: block; color: var(--ink); text-decoration: none;
+            font-family: var(--f-display); font-size: 1.1rem; font-weight: 420; letter-spacing: -0.015em; line-height: 1.25;
         }
-        .spec-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .spec-label {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-        .spec-val {
-            font-size: 1.05rem;
-            color: #fff;
-            font-weight: 500;
-        }
+        .compare-table tbody th a:hover { color: var(--vermilion); }
+        .compare-brand { display: block; margin-top: 0.25rem; font-family: var(--f-mono); font-size: 0.64rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--vermilion); }
+        .compare-price { font-family: var(--f-mono); font-weight: 500; white-space: nowrap; }
     </style>
+
 </Layout>

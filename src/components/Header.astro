@@ -30,6 +30,7 @@ const currentPath = Astro.url.pathname;
                 </a>
             ))}
         </nav>
+        <span class="header-meta">Planche N°001 &middot; {new Date().getFullYear()}</span>
         <button class="menu-toggle" id="menuToggle" aria-label="Menu">
             <span></span><span></span><span></span>
         </button>
@@ -145,6 +146,97 @@ const currentPath = Astro.url.pathname;
     @media (max-width: 700px) {
         .nav { display: none; }
         .menu-toggle { display: flex; }
+    }
+
+    /* ── Thème "planche" ── */
+    .header-meta { display: none; }
+
+    :global(body[data-theme="planche"]) .header {
+        background: rgba(242, 236, 223, 0.92);
+        border-bottom: 1px solid var(--ink);
+    }
+    :global(body[data-theme="planche"]) .header-inner {
+        max-width: 1440px;
+    }
+    :global(body[data-theme="planche"]) .logo {
+        color: var(--ink);
+        font-family: var(--f-display);
+        font-size: 1.55rem;
+        font-weight: 480;
+        font-variation-settings: "opsz" 72;
+        letter-spacing: -0.03em;
+    }
+    :global(body[data-theme="planche"]) .logo-img {
+        filter: none;
+        width: 30px;
+        height: 30px;
+    }
+    :global(body[data-theme="planche"]) .nav {
+        gap: 0.25rem;
+        counter-reset: nav;
+    }
+    :global(body[data-theme="planche"]) .nav-link {
+        font-family: var(--f-mono);
+        font-size: 0.74rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink);
+        border-radius: 0;
+        padding: 0.55rem 0.8rem;
+        counter-increment: nav;
+        position: relative;
+    }
+    :global(body[data-theme="planche"]) .nav-link::before {
+        content: "0" counter(nav);
+        color: var(--vermilion);
+        margin-right: 0.45em;
+        font-weight: 600;
+    }
+    :global(body[data-theme="planche"]) .nav-link:hover {
+        background: var(--ink);
+        color: var(--paper);
+    }
+    :global(body[data-theme="planche"]) .nav-link.active {
+        background: transparent;
+        color: var(--ink);
+        box-shadow: inset 0 -2px 0 var(--vermilion);
+    }
+    :global(body[data-theme="planche"]) .nav-link.active:hover {
+        background: var(--ink);
+        color: var(--paper);
+    }
+    :global(body[data-theme="planche"]) .header-meta {
+        display: block;
+        font-family: var(--f-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        border: 1px solid var(--rule);
+        padding: 0.35rem 0.6rem;
+        white-space: nowrap;
+    }
+    :global(body[data-theme="planche"]) .menu-toggle span {
+        background: var(--ink);
+        border-radius: 0;
+    }
+    :global(body[data-theme="planche"]) .mobile-nav {
+        border-top: 1px solid var(--rule);
+    }
+    :global(body[data-theme="planche"]) .mobile-nav-link {
+        font-family: var(--f-mono);
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink);
+        border-bottom: 1px solid var(--rule);
+    }
+    :global(body[data-theme="planche"]) .mobile-nav-link:hover {
+        color: var(--vermilion);
+    }
+    @media (max-width: 1100px) {
+        :global(body[data-theme="planche"]) .header-meta { display: none; }
     }
 </style>
 
