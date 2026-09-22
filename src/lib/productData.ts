@@ -48,19 +48,27 @@ export async function loadProductPage(locale: Locale, slug: string | undefined) 
 				avis = [];
 			}
 
-			// Articles liés : cherche la marque (sinon le nom du produit) dans le contenu, dans la langue de la page
+			// Articles liés : cherche le nom du produit (prioritaire, plus précis) puis la marque
+			// (repli), dans le contenu, dans la langue de la page. Triés par date décroissante pour
+			// que le contenu le plus récent/pertinent ne soit pas noyé sous d'anciens articles.
 			try {
-				const term = encodeURIComponent(produit.marque || produit.Nom_du_produit || '');
-				if (locale === 'fr') {
+				// nom_court ("Hapo HD") plutôt que Nom_du_produit ("Hapo HD – Exosquelette dorsal…") :
+				// c'est la forme sous laquelle un article mentionne réellement le produit dans son texte.
+				const nameTerm = encodeURIComponent(produit.nom_court || produit.Nom_du_produit || '');
+				const brandTerm = encodeURIComponent(produit.marque || '');
+
+				const search = async (term: string, max: number) => {
+					if (!term) return [] as any[];
+					if (locale === 'fr') {
+						const data = await fetchDirectus(
+							`/items/Articles?filter[contenu][_contains]=${term}&fields=titre,slug,description_seo,image_principale,date_publication&sort=-date_publication&limit=${max}`,
+						);
+						return Array.isArray(data) ? data.filter((a: any) => a && a.slug) : [];
+					}
 					const data = await fetchDirectus(
-						`/items/Articles?filter[contenu][_contains]=${term}&fields=titre,slug,description_seo,image_principale,date_publication&limit=3`,
+						`/items/Articles_translations?filter[languages_code][_eq]=${locale}&filter[contenu][_contains]=${term}&fields=titre,slug,description_seo,Articles_id.image_principale,Articles_id.date_publication&sort=-Articles_id.date_publication&limit=${max}`,
 					);
-					articlesLies = Array.isArray(data) ? data.filter((a: any) => a && a.slug) : [];
-				} else {
-					const data = await fetchDirectus(
-						`/items/Articles_translations?filter[languages_code][_eq]=${locale}&filter[contenu][_contains]=${term}&fields=titre,slug,description_seo,Articles_id.image_principale,Articles_id.date_publication&limit=3`,
-					);
-					articlesLies = (Array.isArray(data) ? data : [])
+					return (Array.isArray(data) ? data : [])
 						.filter((a: any) => a && a.slug)
 						.map((a: any) => ({
 							titre: a.titre,
@@ -69,6 +77,16 @@ export async function loadProductPage(locale: Locale, slug: string | undefined) 
 							image_principale: a.Articles_id?.image_principale ?? null,
 							date_publication: a.Articles_id?.date_publication ?? null,
 						}));
+				};
+
+				articlesLies = await search(nameTerm, 3);
+				if (articlesLies.length < 3 && brandTerm) {
+					const seen = new Set(articlesLies.map((a: any) => a.slug));
+					const more = await search(brandTerm, 3 + seen.size);
+					for (const a of more) {
+						if (articlesLies.length >= 3) break;
+						if (!seen.has(a.slug)) { articlesLies.push(a); seen.add(a.slug); }
+					}
 				}
 			} catch {
 				articlesLies = [];

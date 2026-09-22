@@ -7,4 +7,4 @@ const page = await loadBrandPage('fr', brandSlug);
 if (page.redirect) return Astro.redirect(page.redirect, 302);
 ---
 
-<BrandView locale="fr" brandSlug={brandSlug} brandName={page.brandName} produits={page.produits} errorMessage={page.errorMessage} alternates={page.alternates} />
+<BrandView locale="fr" brandSlug={brandSlug} brandName={page.brandName} produits={page.produits} articlesLies={page.articlesLies ?? []} errorMessage={page.errorMessage} alternates={page.alternates} />

@@ -193,6 +193,9 @@ export const fr = {
 		} as Record<string, string>,
 		empty: (b: string) => `Aucun produit ${b} disponible pour le moment.`,
 		all: 'Tous les exosquelettes',
+		relatedArticles: 'Articles sur cette marque',
+		readArticle: "Lire l'article →",
+		noImage: 'Visuel à venir',
 	},
 	compare: {
 		seoTitle: 'Comparateur de produits | NeoSomaTech',

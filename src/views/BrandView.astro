@@ -10,11 +10,12 @@ interface Props {
     brandSlug: string;
     brandName: string;
     produits: any[];
+    articlesLies?: any[];
     errorMessage: string | null;
     alternates: Partial<Record<Locale, string>>;
 }
 
-const { locale, brandSlug, brandName, produits, errorMessage, alternates } = Astro.props;
+const { locale, brandSlug, brandName, produits, articlesLies = [], errorMessage, alternates } = Astro.props;
 const t = useTranslations(locale);
 const b = t.brand;
 const money = await getMoneyCtx(locale);
@@ -108,6 +109,30 @@ const itemListSchema = {
         <div class="all-products-link">
             <a href={path(locale, 'shop')} class="btn btn-outline">&larr; {b.all}</a>
         </div>
+
+        {articlesLies.length > 0 && (
+            <section class="brand-articles">
+                <h2>{b.relatedArticles}</h2>
+                <div class="brand-articles-grid">
+                    {articlesLies.map((a: any) => (
+                        <article class="mini-card">
+                            <a href={path(locale, 'articles', a.slug)} class="mini-card-img">
+                                {a.image_principale ? (
+                                    <img src={`${directusUrl}/assets/${a.image_principale}?width=320&format=webp&quality=82`} alt={a.titre} loading="lazy" decoding="async" width="280" height="280" />
+                                ) : (
+                                    <span class="mini-card-empty p-label">{b.noImage}</span>
+                                )}
+                            </a>
+                            <div class="mini-card-body">
+                                <h3><a href={path(locale, 'articles', a.slug)}>{a.titre}</a></h3>
+                                {a.description_seo && <p class="mini-card-desc">{a.description_seo}</p>}
+                                <a href={path(locale, 'articles', a.slug)} class="mini-card-link">{b.readArticle}</a>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            </section>
+        )}
     </div>
     </div>
 </Layout>
@@ -192,4 +217,41 @@ const itemListSchema = {
     .card-footer .btn { padding: 0.6rem 0.95rem; font-size: 0.72rem; position: relative; z-index: 2; box-shadow: 3px 3px 0 var(--vermilion); }
 
     .all-products-link { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--ink); }
+
+    .brand-articles { margin-top: 4rem; padding-top: 3rem; border-top: 1px solid var(--ink); }
+    .brand-articles h2 {
+        font-family: var(--f-display);
+        font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+        font-weight: 420;
+        font-variation-settings: "opsz" 48;
+        letter-spacing: -0.02em;
+        margin-bottom: 1.75rem;
+    }
+    .brand-articles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 1.5rem; }
+    .mini-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--ink);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mini-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--vermilion); }
+    .mini-card-img { display: block; aspect-ratio: 16 / 9; overflow: hidden; border-bottom: 1px solid var(--ink); background: var(--paper-2); }
+    .mini-card-img img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: multiply; }
+    .mini-card-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; }
+    .mini-card-body { padding: 1.1rem 1.2rem 1.3rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+    .mini-card-body h3 {
+        font-family: var(--f-display);
+        font-size: 1.1rem;
+        font-weight: 420;
+        font-variation-settings: "opsz" 48;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+    }
+    .mini-card-body h3 a { color: var(--ink); text-decoration: none; }
+    .mini-card-body h3 a::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+    .mini-card-desc { color: var(--ink-soft); font-size: 0.88rem; line-height: 1.55; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .mini-card-link { font-family: var(--f-mono); font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); text-decoration: none; position: relative; z-index: 2; }
+    .mini-card:hover .mini-card-link { color: var(--vermilion); }
 </style>

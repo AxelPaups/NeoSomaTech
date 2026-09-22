@@ -194,6 +194,9 @@ export const en: Dict = {
 		} as Record<string, string>,
 		empty: (b: string) => `No ${b} product is available yet.`,
 		all: 'All exoskeletons',
+		relatedArticles: 'Articles about this brand',
+		readArticle: 'Read the article →',
+		noImage: 'Image coming soon',
 	},
 	compare: {
 		seoTitle: 'Compare Exoskeletons | NeoSomaTech',
