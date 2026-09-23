@@ -8,11 +8,12 @@ interface Props {
     locale: Locale;
     article: any;
     productsForLinking: { name: string; slug: string }[];
+    faqs?: { question: string; reponse: string }[];
     errorMessage: string | null;
     alternates: Partial<Record<Locale, string>>;
 }
 
-const { locale, article, productsForLinking, errorMessage, alternates } = Astro.props;
+const { locale, article, productsForLinking, faqs = [], errorMessage, alternates } = Astro.props;
 const t = useTranslations(locale);
 const a = t.articles;
 const intl = localeMeta[locale].intl;
@@ -44,6 +45,7 @@ const formatDate = (date: string) => {
     image={imageUrl || '/favicon.png'}
     type="article"
     schemaItem={article}
+    faqs={faqs}
     noindex={!article || !!errorMessage}
 >
 
