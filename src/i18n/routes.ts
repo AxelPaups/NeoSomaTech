@@ -6,6 +6,7 @@ const segments = {
 	product: { fr: 'produits', en: 'products' },
 	articles: { fr: 'articles', en: 'articles' },
 	compare: { fr: 'comparateur', en: 'compare' },
+	advisor: { fr: 'conseiller', en: 'advisor' },
 	about: { fr: 'a-propos', en: 'about' },
 	contact: { fr: 'contact', en: 'contact' },
 	author: { fr: 'auteur', en: 'author' },
