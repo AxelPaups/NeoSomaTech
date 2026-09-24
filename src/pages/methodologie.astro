@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { path, pathInAllLocales } from '../i18n';
+import '../styles/editorial.css';
+---
+
+<Layout
+	alternates={pathInAllLocales('methodology')}
+	title="Méthodologie et transparence éditoriale | NeoSomaTech"
+	description="Comment NeoSomaTech collecte ses prix et fiches techniques, sélectionne les produits, traite les sujets de santé et gère les liens commerciaux et les avis."
+>
+	<div class="p-page ed-about">
+		<div class="p-crumb"><a href="/">Accueil</a><span>/</span><span>Méthodologie</span></div>
+		<h1 class="p-display p-title">Notre <em>méthodologie</em></h1>
+
+		<div class="content p-prose">
+			<section>
+				<p class="lead">Un guide d'achat n'a de valeur que si l'on sait d'où viennent ses informations. Cette page explique comment nous travaillons, ce que nos analyses sont, et ce qu'elles ne sont pas.</p>
+			</section>
+
+			<section>
+				<h2>1. Ce que sont nos analyses</h2>
+				<p>Nos articles et fiches produits sont des <strong>analyses éditoriales</strong> fondées sur les fiches techniques publiées par les fabricants, les informations de leurs sites officiels, et, quand elles existent, des retours d'utilisateurs. Sauf mention explicite dans un article, ce ne sont <strong>pas des tests en laboratoire</strong> ni des mesures que nous aurions réalisées nous-mêmes.</p>
+			</section>
+
+			<section>
+				<h2>2. D'où viennent les prix et les caractéristiques</h2>
+				<ul>
+					<li><strong>Caractéristiques</strong> (poids, autonomie, niveau d'assistance, garantie, certifications) : reprises des données publiées par le fabricant. Ce sont des valeurs annoncées, mesurées dans les conditions d'essai de la marque ; elles varient selon le terrain, votre poids et l'usage.</li>
+					<li><strong>Prix</strong> : relevés sur les pages officielles des marques, dans la devise d'origine (euros ou dollars US). Nous ne convertissons pas de manière cachée : deux prix en devises différentes ne sont pas directement comparables.</li>
+					<li><strong>Fraîcheur</strong> : les prix changent. Vérifiez toujours le prix en vigueur chez le vendeur avant d'acheter. Les articles modifiés portent la mention « Mis à jour le ».</li>
+					<li><strong>Unités différentes</strong> : quand deux marques n'expriment pas une caractéristique de la même façon (pourcentage d'assistance ou puissance en chevaux, par exemple), nous le signalons plutôt que de comparer ce qui ne l'est pas.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>3. Comment un produit entre dans notre catalogue</h2>
+				<p>Un produit est présenté lorsque nous disposons d'une fiche technique publiée, d'une marque identifiable et d'un point d'achat officiel (fabricant ou revendeur). Nous indiquons les certifications et la garantie annoncées par le fabricant, sans les vérifier de manière indépendante.</p>
+			</section>
+
+			<section>
+				<h2>4. Santé et sécurité</h2>
+				<p>Nos contenus ne constituent <strong>pas un avis médical</strong>. En cas de douleur, de pathologie (arthrose, chirurgie récente, hernie...) ou de doute sur l'adéquation d'un produit, demandez l'avis d'un médecin, d'un kinésithérapeute ou, pour le travail, du médecin du travail. Les affirmations chiffrées sur la santé sont, dans la mesure du possible, rattachées à leur source.</p>
+			</section>
+
+			<section>
+				<h2>5. Liens commerciaux et indépendance</h2>
+				<p>Les boutons d'achat renvoient vers le site du fabricant ou d'un revendeur. Ces liens sont balisés comme <strong>liens commerciaux</strong> (attribut <code>rel="sponsored"</code>), conformément aux consignes de Google. Le contenu de nos analyses n'est pas rédigé à la demande des marques.</p>
+			</section>
+
+			<section>
+				<h2>6. Avis d'utilisateurs</h2>
+				<p>Les avis déposés sur les fiches produits sont <strong>modérés avant publication</strong>. Nous ne modifions ni les notes ni le texte, et l'adresse email demandée n'est jamais affichée. Un avis peut être refusé s'il est hors sujet, injurieux ou manifestement faux.</p>
+			</section>
+
+			<section>
+				<h2>7. Corrections</h2>
+				<p>Une erreur, un prix périmé, une caractéristique inexacte ? <a href={path('fr', 'contact')}>Écrivez-nous</a> : nous corrigeons et mettons à jour la date de l'article concerné.</p>
+			</section>
+
+			<section>
+				<h2>8. Qui écrit</h2>
+				<p>Les articles sont rédigés et relus par <a href={path('fr', 'author', 'axel-paupier')} rel="author">Axel Paupier</a>. Pour la mission et les valeurs du site, voir notre <a href={path('fr', 'about')}>manifeste</a>.</p>
+			</section>
+		</div>
+	</div>
+</Layout>

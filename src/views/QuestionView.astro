@@ -1,0 +1,149 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { useTranslations, localeMeta, path, type Locale } from '../i18n';
+import { truncate, addHeadingIds } from '../lib/questionUtils';
+import '../styles/questions.css';
+
+interface Props {
+	locale: Locale;
+	question: any;
+	related: { question: string; slug: string; reponse_courte: string | null }[];
+	article: { titre: string; slug: string } | null;
+	product: { name: string; slug: string } | null;
+	errorMessage: string | null;
+	alternates: Partial<Record<Locale, string>>;
+}
+
+const { locale, question, related, article, product, errorMessage, alternates } = Astro.props;
+const t = useTranslations(locale);
+const q = t.questions;
+const intl = localeMeta[locale].intl;
+
+const formatDate = (date: string) => {
+	const d = new Date(date);
+	return isNaN(d.getTime()) ? date : new Intl.DateTimeFormat(intl, { year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+};
+
+const description = question ? truncate(question.reponse_courte ?? '', 155) : q.seoDescription;
+const schemaItem = question
+	? {
+			titre: question.question,
+			description_seo: question.reponse_courte,
+			meta_description: description,
+			date_publication: question.date_publication,
+			date_updated: question.date_updated,
+			auteur: question.auteur,
+			image_principale: null,
+		}
+	: undefined;
+const categoryLabel = question?.categorie ? (q.categories as Record<string, string>)[question.categorie] : null;
+const body = question?.reponse ? addHeadingIds(question.reponse) : { html: '', toc: [] };
+const viewProduct = t.articles.viewProduct.replace(/[\s:]+$/, '');
+const hasNext = !!article || !!product;
+---
+
+<Layout
+	locale={locale}
+	alternates={alternates}
+	title={question ? `${question.question} | NeoSomaTech` : q.notFoundTitle}
+	description={description}
+	type="article"
+	schemaItem={schemaItem}
+	faqs={question ? [{ question: question.question, reponse: question.reponse_courte ?? '' }] : []}
+	noindex={!question || !!errorMessage}
+>
+	{errorMessage || !question ? (
+		<div class="p-page q-page">
+			<h1 class="p-display p-title">{errorMessage ? q.loadError : q.notFoundTitle}</h1>
+			<p><a class="btn btn-outline" href={path(locale, 'questions')}>&larr; {q.backToAll}</a></p>
+		</div>
+	) : (
+		<div class="p-page q-page">
+			<nav class="p-crumb">
+				<a href={path(locale, 'home')}>{t.nav.home}</a><span>/</span>
+				<a href={path(locale, 'questions')}>{t.nav.questions}</a><span>/</span>
+				<span>{question.question}</span>
+			</nav>
+
+			<div class="p-label q-meta">
+				{categoryLabel && <a class="q-tag" href={`${path(locale, 'questions')}#cat-${question.categorie}`}>{categoryLabel}</a>}
+				{question.date_updated && question.date_updated !== question.date_publication
+					? <span>{t.articles.updatedOn} <time datetime={question.date_updated}>{formatDate(question.date_updated)}</time></span>
+					: question.date_publication && <time datetime={question.date_publication}>{formatDate(question.date_publication)}</time>}
+				{question.auteur && (
+					<span>{t.articles.byPrefix} {question.auteur === 'Axel Paupier'
+						? <a href={path(locale, 'author', 'axel-paupier')} rel="author">{question.auteur}</a>
+						: question.auteur}</span>
+				)}
+				<a href={path(locale, 'methodology')}>{t.footer.methodology}</a>
+			</div>
+
+			<h1 class="p-display p-title q-title">{question.question}</h1>
+
+			{question.reponse_courte && (
+				<aside class="q-short" aria-label={q.shortAnswer}>
+					<span class="p-label q-short-label">{q.shortAnswer}</span>
+					<p>{question.reponse_courte}</p>
+				</aside>
+			)}
+
+			{body.toc.length > 1 && (
+				<nav class="q-toc" aria-label={q.tocTitle}>
+					<span class="p-label">{q.tocTitle}</span>
+					<ol>
+						{body.toc.map((s) => <li><a href={`#${s.id}`}>{s.title}</a></li>)}
+					</ol>
+				</nav>
+			)}
+
+			{body.html && <div class="p-prose q-body" set:html={body.html} />}
+
+			<footer class="q-foot">
+				{hasNext && (
+					<section>
+						<h2 class="p-label q-foot-title">{q.relatedArticle}</h2>
+						<ul class={`q-grid q-next ${article && product ? 'q-next--two' : ''}`}>
+							{article && (
+								<li class="q-card">
+									<span class="q-badge q-badge--article">{t.nav.articles}</span>
+									<h3 class="q-card-title"><a href={path(locale, 'articles', article.slug)}>{article.titre}</a></h3>
+									<span class="q-card-more">{t.articles.read} &rarr;</span>
+								</li>
+							)}
+							{product && (
+								<li class="q-card">
+									<span class="q-badge q-badge--article">{q.relatedProduct}</span>
+									<h3 class="q-card-title"><a href={path(locale, 'product', product.slug)}>{product.name}</a></h3>
+									<span class="q-card-more">{viewProduct} &rarr;</span>
+								</li>
+							)}
+						</ul>
+					</section>
+				)}
+
+				{related.length > 0 && (
+					<section>
+						<h2 class="p-label q-foot-title">{q.relatedQuestions}</h2>
+						<ul class="q-grid">
+							{related.map((r) => (
+								<li class="q-card">
+									<h3 class="q-card-title"><a href={path(locale, 'questions', r.slug)}>{r.question}</a></h3>
+									{r.reponse_courte && <p class="q-card-excerpt">{r.reponse_courte}</p>}
+									<span class="q-card-more">{q.readAnswer} &rarr;</span>
+								</li>
+							))}
+						</ul>
+					</section>
+				)}
+
+				<section class="q-ask">
+					<div>
+						<h2>{q.askTitle}</h2>
+						<p>{q.askText}</p>
+					</div>
+					<a class="btn" href={`${path(locale, 'questions')}#qsearch`}>{q.askCta}</a>
+				</section>
+			</footer>
+		</div>
+	)}
+</Layout>

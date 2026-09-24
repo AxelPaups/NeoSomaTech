@@ -41,7 +41,7 @@ export async function loadProductPage(locale: Locale, slug: string | undefined) 
 			// Avis : rattachés au slug français de la fiche, communs à toutes les langues
 			try {
 				const avisData = await fetchDirectus(
-					`/items/Avis?filter[produit_slug][_eq]=${encodeURIComponent(produit.slugs.fr)}&fields=prenom,note,avis_texte,date_created&limit=50`,
+					`/items/Avis?filter[produit_slug][_eq]=${encodeURIComponent(produit.slugs.fr)}&filter[statut][_eq]=publie&fields=prenom,note,avis_texte,date_created&limit=50`,
 				);
 				avis = Array.isArray(avisData) ? avisData : [];
 			} catch {

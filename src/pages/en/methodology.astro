@@ -1,0 +1,68 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { path, pathInAllLocales } from '../../i18n';
+import '../../styles/editorial.css';
+---
+
+<Layout
+	locale="en"
+	alternates={pathInAllLocales('methodology')}
+	title="Methodology and editorial transparency | NeoSomaTech"
+	description="How NeoSomaTech gathers prices and specifications, selects products, handles health topics, and manages commercial links and user reviews."
+>
+	<div class="p-page ed-about">
+		<div class="p-crumb"><a href={path('en', 'home')}>Home</a><span>/</span><span>Methodology</span></div>
+		<h1 class="p-display p-title">Our <em>methodology</em></h1>
+
+		<div class="content p-prose">
+			<section>
+				<p class="lead">A buying guide is only worth what its sources are worth. This page explains how we work, what our analyses are, and what they are not.</p>
+			</section>
+
+			<section>
+				<h2>1. What our analyses are</h2>
+				<p>Our articles and product pages are <strong>editorial analyses</strong> based on the specifications published by manufacturers, information from their official websites and, where available, user feedback. Unless an article says otherwise, they are <strong>not laboratory tests</strong> or measurements we carried out ourselves.</p>
+			</section>
+
+			<section>
+				<h2>2. Where prices and specifications come from</h2>
+				<ul>
+					<li><strong>Specifications</strong> (weight, battery range, assistance level, warranty, certifications): taken from data published by the manufacturer. These are stated values, measured under the brand's test conditions; they vary with terrain, your weight and use.</li>
+					<li><strong>Prices</strong>: taken from brands' official pages, in their original currency (euros or US dollars). We don't silently convert: two prices in different currencies aren't directly comparable.</li>
+					<li><strong>Freshness</strong>: prices change. Always check the current price with the seller before buying. Articles that have been edited carry an "Updated on" date.</li>
+					<li><strong>Different units</strong>: when two brands express a specification differently (assistance as a percentage or as horsepower, for example), we say so rather than compare things that can't be compared.</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2>3. How a product enters our catalog</h2>
+				<p>A product is featured when we have a published spec sheet, an identifiable brand and an official place to buy it (manufacturer or reseller). We list the certifications and warranty the manufacturer states, without independently verifying them.</p>
+			</section>
+
+			<section>
+				<h2>4. Health and safety</h2>
+				<p>Our content is <strong>not medical advice</strong>. If you have pain, a condition (arthritis, recent surgery, disc herniation...) or any doubt about whether a product suits you, ask a doctor, a physiotherapist or, for work, your occupational health physician. Where possible, health-related figures are tied to their source.</p>
+			</section>
+
+			<section>
+				<h2>5. Commercial links and independence</h2>
+				<p>Buy buttons lead to the manufacturer's site or a reseller. These links are tagged as <strong>commercial links</strong> (<code>rel="sponsored"</code> attribute), in line with Google's guidelines. The content of our analyses is not written at the request of brands.</p>
+			</section>
+
+			<section>
+				<h2>6. User reviews</h2>
+				<p>Reviews left on product pages are <strong>moderated before publication</strong>. We don't edit ratings or text, and the email address requested is never displayed. A review may be rejected if it is off-topic, abusive or clearly false.</p>
+			</section>
+
+			<section>
+				<h2>7. Corrections</h2>
+				<p>A mistake, an outdated price, an inaccurate specification? <a href={path('en', 'contact')}>Write to us</a>: we correct it and update the date of the article concerned.</p>
+			</section>
+
+			<section>
+				<h2>8. Who writes</h2>
+				<p>Articles are written and reviewed by <a href={path('en', 'author', 'axel-paupier')} rel="author">Axel Paupier</a>. For the site's mission and values, see our <a href={path('en', 'about')}>manifesto</a>.</p>
+			</section>
+		</div>
+	</div>
+</Layout>

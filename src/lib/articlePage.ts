@@ -12,7 +12,7 @@ const SLUG_REDIRECTS: Record<string, string> = {
 };
 
 const ARTICLE_FIELDS =
-	'id,titre,slug,description_seo,meta_description,contenu,date_publication,auteur,image_principale';
+	'id,titre,slug,description_seo,meta_description,contenu,date_publication,date_updated,auteur,image_principale';
 
 export async function loadArticlePage(locale: Locale, slug: string | undefined) {
 	const decoded = slug ? decodeURIComponent(slug) : '';

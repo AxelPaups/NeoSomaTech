@@ -1,5 +1,5 @@
 import { slugifyBrand } from '../lib/directus';
-import { listArticles, listProducts } from '../lib/content';
+import { listArticles, listProducts, listQuestions } from '../lib/content';
 import { defaultLocale, locales, path, type Locale, type RouteName } from '../i18n';
 
 const baseUrl = 'https://neosomatech.com';
@@ -16,6 +16,8 @@ const staticPages: { route: RouteName; freq: Freq; rest?: string[] }[] = [
 	{ route: 'articles', freq: { changefreq: 'daily', priority: '0.8' } },
 	{ route: 'compare', freq: { changefreq: 'weekly', priority: '0.8' } },
 	{ route: 'about', freq: { changefreq: 'monthly', priority: '0.5' } },
+	{ route: 'methodology', freq: { changefreq: 'monthly', priority: '0.6' } },
+	{ route: 'questions', freq: { changefreq: 'weekly', priority: '0.7' } },
 	{ route: 'author', rest: ['axel-paupier'], freq: { changefreq: 'monthly', priority: '0.5' } },
 	{ route: 'contact', freq: { changefreq: 'yearly', priority: '0.3' } },
 ];
@@ -62,17 +64,19 @@ const staticGroup = (route: RouteName, freq: Freq, lastmod: string | null, prese
 
 export async function GET() {
 	try {
-		const [articles, produits] = await Promise.all([
-			listArticles('fr', 'slug,date_publication'),
+		const [articles, produits, questions] = await Promise.all([
+			listArticles('fr', 'slug,date_publication,date_updated'),
 			listProducts('fr', 'slug,marque,date_analyse'),
+			listQuestions('fr', 'slug,date_publication,date_updated').catch(() => []),
 		]);
 
-		const newestArticle = latest(articles.map((a: any) => toIso(a.date_publication)));
+		const newestArticle = latest(articles.map((a: any) => toIso(a.date_updated || a.date_publication)));
 		const newestProduct = latest(produits.map((p: any) => toIso(p.date_analyse)));
 		const lastmodOf: Partial<Record<RouteName, string | null>> = {
 			home: latest([newestArticle, newestProduct]),
 			articles: newestArticle,
 			shop: newestProduct,
+			questions: latest(questions.map((q: any) => toIso(q.date_updated || q.date_publication))),
 		};
 
 		// Les listes (boutique, articles, comparateur) n'existent dans une langue que si elle a du contenu traduit.
@@ -81,6 +85,8 @@ export async function GET() {
 			shop: locales.filter((l) => has(produits, l)),
 			compare: locales.filter((l) => has(produits, l)),
 			articles: locales.filter((l) => has(articles, l)),
+			// Le hub n'existe dans une langue que si elle a au moins une question traduite (aucune, aucune entrée).
+			questions: locales.filter((l) => questions.some((q: any) => q.slugs?.[l])),
 		};
 
 		const groups: Group[] = [];
@@ -93,9 +99,20 @@ export async function GET() {
 			groups.push({
 				changefreq: 'monthly',
 				priority: '0.7',
-				lastmod: toIso(article.date_publication),
+				lastmod: toIso(article.date_updated || article.date_publication),
 				urls: Object.fromEntries(
 					locales.filter((l) => article.slugs?.[l]).map((l) => [l, path(l, 'articles', article.slugs[l])]),
+				),
+			});
+		}
+
+		for (const question of questions) {
+			groups.push({
+				changefreq: 'monthly',
+				priority: '0.6',
+				lastmod: toIso(question.date_updated || question.date_publication),
+				urls: Object.fromEntries(
+					locales.filter((l) => question.slugs?.[l]).map((l) => [l, path(l, 'questions', question.slugs[l])]),
 				),
 			});
 		}

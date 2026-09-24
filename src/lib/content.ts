@@ -119,4 +119,37 @@ export async function listBrands(locale: Locale): Promise<string[]> {
 	return [...new Set(products.map((p: any) => p.marque).filter(Boolean))].sort() as string[];
 }
 
+// --- Questions / réponses : uniquement les questions publiées (le jeton est Admin, Directus ne filtre pas) ---
+export const QUESTION_TEXT_FIELDS = ['question', 'slug', 'reponse_courte', 'reponse', 'mots_cles'] as const;
+export const localizeQuestion = (q: any, locale: Locale) => localizeItem(q, locale, QUESTION_TEXT_FIELDS);
+
+const QUESTION_LIST_FIELDS = 'id,question,slug,reponse_courte,mots_cles,categorie,article_lie,produit_lie,date_publication,date_updated,auteur';
+const QUESTION_FULL_FIELDS = `${QUESTION_LIST_FIELDS},reponse`;
+
+export async function listQuestions(locale: Locale, fields: string = QUESTION_LIST_FIELDS) {
+	// « question » est toujours demandé : sans titre, une question n'est affichable nulle part (index, hub, sitemap).
+	const wanted = fields.split(',').includes('question') ? fields : `${fields},question`;
+	const q = [`fields=${wanted}${TR}`, 'limit=-1', 'filter[statut][_eq]=publie', 'sort=-date_publication'];
+	if (locale !== 'fr') q.push(`filter[translations][languages_code][_eq]=${locale}`);
+	const data = await fetchDirectus(`/items/Questions?${q.join('&')}`);
+	return (data ?? []).map((x: any) => localizeQuestion(x, locale)).filter((x: any) => x && x.slug && x.question);
+}
+
+/** Une question publiée par son adresse dans la langue demandée (null si absente, brouillon ou non traduite). */
+export async function getQuestion(locale: Locale, slug: string) {
+	let filter = `filter[slug][_eq]=${encodeURIComponent(slug)}`;
+	if (locale !== 'fr') {
+		const hit = await fetchDirectus(
+			`/items/Questions_translations?filter[slug][_eq]=${encodeURIComponent(slug)}&filter[languages_code][_eq]=${locale}&fields=Questions_id&limit=1`,
+		);
+		const id = hit?.[0]?.Questions_id;
+		if (!id) return null;
+		filter = `filter[id][_eq]=${id}`;
+	}
+	const data = await fetchDirectus(`/items/Questions?${filter}&filter[statut][_eq]=publie&fields=${QUESTION_FULL_FIELDS}${TR}&limit=1`);
+	const item = Array.isArray(data) ? data[0] : data;
+	const q = item ? localizeQuestion(item, locale) : null;
+	return q && q.slug && q.question ? q : null;
+}
+
 export { slugifyBrand };

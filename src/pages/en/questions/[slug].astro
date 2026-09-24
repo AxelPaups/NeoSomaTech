@@ -1,0 +1,10 @@
+---
+import QuestionView from '../../../views/QuestionView.astro';
+import { loadQuestionPage } from '../../../lib/questionPage';
+
+const page = await loadQuestionPage('en', Astro.params.slug);
+// Vrai 404 sur l'URL demandée (pas de redirection) : brouillon, non traduite ou inconnue.
+if (!page.question || page.errorMessage) Astro.response.status = 404;
+---
+
+<QuestionView locale="en" question={page.question} related={page.related} article={page.article} product={page.product} errorMessage={page.errorMessage} alternates={page.alternates} />

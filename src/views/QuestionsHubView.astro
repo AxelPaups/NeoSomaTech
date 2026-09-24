@@ -1,0 +1,118 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { listQuestions } from '../lib/content';
+import { groupByCategory } from '../lib/questionUtils';
+import { useTranslations, locales, path, fmt, type Locale } from '../i18n';
+import '../styles/questions.css';
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const q = t.questions;
+
+let questions: any[] = [];
+let errorMessage: string | null = null;
+try {
+	questions = await listQuestions(locale);
+} catch (error: any) {
+	console.error('Erreur Questions:', error);
+	errorMessage = error.message;
+}
+const groups = groupByCategory(questions);
+const label = (c: string) => (c === 'autre' ? q.other : (q.categories as Record<string, string>)[c]);
+const count = (n: number) => (n === 1 ? q.countOne : fmt(q.countMany, { n }));
+const num = (i: number) => String(i + 1).padStart(2, '0');
+
+// Le hub d'une autre langue n'est déclaré que s'il contient au moins une question traduite.
+const others = locales.filter((l) => l !== locale);
+const presence = await Promise.all(others.map(async (l) => (await listQuestions(l, 'id,slug').catch(() => [])).length > 0));
+const alternates: Partial<Record<Locale, string>> = {
+	[locale]: path(locale, 'questions'),
+	...Object.fromEntries(others.filter((_, i) => presence[i]).map((l) => [l, path(l, 'questions')])),
+};
+
+const strings = {
+	resultsCount: q.resultsCount, badgeAnswer: q.badgeAnswer, badgeArticle: q.badgeArticle, readAnswer: q.readAnswer,
+	noResultsTitle: q.noResultsTitle, noResultsText: q.noResultsText,
+	suggestThanks: q.suggestThanks, suggestError: q.suggestError, searchError: q.searchError,
+};
+---
+
+<Layout locale={locale} alternates={alternates} title={q.seoTitle} description={q.seoDescription} noindex={questions.length === 0}>
+	<div class="p-page q-hub">
+		<nav class="p-crumb"><a href={path(locale, 'home')}>{t.nav.home}</a><span>/</span><span>{t.nav.questions}</span></nav>
+		<h1 class="p-display p-title" set:html={q.title} />
+		<p class="q-lede">{q.lede}</p>
+
+		<section id="qsearch" class="q-search" data-index-url={`${path(locale, 'questions')}/index.json`} data-locale={locale} data-strings={JSON.stringify(strings)}>
+			<form id="qsearch-form" class="q-search-form" role="search" novalidate>
+				<label class="p-label" for="qsearch-input">{q.searchLabel}</label>
+				<div class="q-search-row">
+					<input id="qsearch-input" type="search" autocomplete="off" maxlength="200" placeholder={q.searchPlaceholder} />
+					<button type="submit" class="btn">{q.searchButton}</button>
+				</div>
+				<p class="q-examples">
+					<span class="p-label">{q.tryLabel}</span>
+					{q.examples.map((ex) => <button type="button" class="q-chip" data-example={ex}>{ex}</button>)}
+				</p>
+			</form>
+			<p id="qsearch-status" class="p-label q-status" aria-live="polite"></p>
+			<ul id="qsearch-results" class="q-grid q-results"></ul>
+
+			<div id="qsuggest-box" class="q-suggest" hidden>
+				<h2>{q.noResultsTitle}</h2>
+				<p>{q.noResultsText}</p>
+				<form id="qsuggest-form" novalidate>
+					<label class="p-label" for="qsuggest-text">{q.suggestLabel}</label>
+					<textarea id="qsuggest-text" rows="3" maxlength="300" placeholder={q.suggestPlaceholder} required></textarea>
+					<label class="p-label" for="qsuggest-email">{q.suggestEmailLabel}</label>
+					<input id="qsuggest-email" type="email" maxlength="254" autocomplete="email" />
+					<input id="qsuggest-website" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="q-trap" />
+					<button type="submit" class="btn">{q.suggestSubmit}</button>
+					<p id="qsuggest-msg" aria-live="polite"></p>
+				</form>
+			</div>
+		</section>
+
+		{errorMessage && <div class="p-notice p-notice--error">{q.loadError}</div>}
+
+		<div id="qcatalog">
+			{groups.length === 0 ? (
+				<p class="q-empty">{q.emptyHub}</p>
+			) : (
+				<>
+					<nav class="q-cats" aria-label={q.browseLabel}>
+						<span class="p-label">{q.browseLabel}</span>
+						{groups.map((g) => (
+							<a class="q-chip" href={`#cat-${g.categorie}`}>{label(g.categorie)} <b>{g.items.length}</b></a>
+						))}
+					</nav>
+
+					{groups.map((g, i) => (
+						<section class="q-planche" id={`cat-${g.categorie}`}>
+							<header class="q-planche-head">
+								<span class="q-planche-no">{num(i)}</span>
+								<h2>{label(g.categorie)}</h2>
+								<span class="p-label">{count(g.items.length)}</span>
+							</header>
+							<ul class="q-grid">
+								{g.items.map((item: any) => (
+									<li class="q-card">
+										<h3 class="q-card-title"><a href={path(locale, 'questions', item.slug)}>{item.question}</a></h3>
+										{item.reponse_courte && <p class="q-card-excerpt">{item.reponse_courte}</p>}
+										<span class="q-card-more">{q.readAnswer} &rarr;</span>
+									</li>
+								))}
+							</ul>
+						</section>
+					))}
+				</>
+			)}
+		</div>
+	</div>
+</Layout>
+
+<script src="../scripts/question-search.client.ts"></script>

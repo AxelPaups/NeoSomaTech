@@ -7,6 +7,8 @@ const segments = {
 	articles: { fr: 'articles', en: 'articles' },
 	compare: { fr: 'comparateur', en: 'compare' },
 	about: { fr: 'a-propos', en: 'about' },
+	methodology: { fr: 'methodologie', en: 'methodology' },
+	questions: { fr: 'questions', en: 'questions' },
 	contact: { fr: 'contact', en: 'contact' },
 	author: { fr: 'auteur', en: 'author' },
 } as const;

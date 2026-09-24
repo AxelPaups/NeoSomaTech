@@ -77,6 +77,9 @@ const formatDate = (date: string) => {
                             {formatDate(article.date_publication)}
                         </time>
                     )}
+                    {article.date_updated && article.date_updated !== article.date_publication && (
+                        <span>{a.updatedOn} <time datetime={article.date_updated}>{formatDate(article.date_updated)}</time></span>
+                    )}
                     {article.auteur && (
                         <span>{a.byPrefix} {article.auteur === 'Axel Paupier'
                             ? <a href={path(locale, 'author', 'axel-paupier')} rel="author" class="author-link">{article.auteur}</a>

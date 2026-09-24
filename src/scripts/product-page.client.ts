@@ -475,7 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
 			if (noteInput) noteInput.value = '';
 			if (successMsg) {
 				(successMsg as HTMLElement).style.display = 'block';
-				setTimeout(() => window.location.reload(), 2000);
 			}
 		} catch (err: unknown) {
 			console.error('Avis:', err);
