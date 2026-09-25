@@ -175,9 +175,18 @@ const switchLinks = locales
     .mobile-nav-link:last-child { border-bottom: none; }
     .mobile-nav-link:hover { color: #fff; }
 
-    @media (max-width: 700px) {
+    /* La navigation complète déborde sous ~1080 px (tablettes) : menu burger dès cette largeur. */
+    @media (max-width: 1180px) {
         .nav { display: none; }
         .menu-toggle { display: flex; }
+    }
+
+    @media (max-width: 400px) {
+        .header-inner { gap: 0.5rem; padding: 0.75rem 0.75rem; }
+        .header-tools { gap: 0.4rem; }
+        :global(body[data-theme="planche"]) .logo { font-size: 1.3rem; gap: 0.35rem; min-width: 0; }
+        :global(body[data-theme="planche"]) .logo-img { width: 26px; height: 26px; }
+        .lang-switch { padding: 0.42rem 0.4rem; }
     }
 
     /* ── Thème "planche" ── */
@@ -300,6 +309,9 @@ const switchLinks = locales
     }
     :global(body[data-theme="planche"]) .mobile-nav-link:hover {
         color: var(--vermilion);
+    }
+    @media (max-width: 1500px) {
+        :global(body[data-theme="planche"]) .header-meta { display: none; }
     }
     @media (max-width: 1100px) {
         :global(body[data-theme="planche"]) .header-meta { display: none; }
