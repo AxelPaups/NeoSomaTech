@@ -15,7 +15,9 @@ import ProductPrice from '../components/product/ProductPrice.astro';
 import { normalizeCurrency, moneyHtml } from '../lib/money';
 import { getMoneyCtx } from '../lib/moneyCtx';
 import { useTranslations, localeMeta, path, fmt, type Locale } from '../i18n';
+import type { LinkedQuestion } from '../lib/questionLinks';
 import '../styles/product-page.css';
+import '../styles/questions.css';
 
 interface Props {
 	locale: Locale;
@@ -23,11 +25,12 @@ interface Props {
 	produitsSimilaires: Record<string, any>[];
 	avis: Record<string, any>[];
 	articlesLies: Record<string, any>[];
+	linkedQuestions?: LinkedQuestion[];
 	errorMessage: string | null;
 	alternates: Partial<Record<Locale, string>>;
 }
 
-const { locale, produit, produitsSimilaires, avis, articlesLies, errorMessage, alternates } = Astro.props;
+const { locale, produit, produitsSimilaires, avis, articlesLies, linkedQuestions = [], errorMessage, alternates } = Astro.props;
 const t = useTranslations(locale);
 const p = t.product;
 const intl = localeMeta[locale].intl;
@@ -706,10 +709,28 @@ const heroPriceHtml = renderPriceHtml(
 								</section>
 							)}
 
-							{produitsSimilaires.length > 0 && (
+							{linkedQuestions.length > 0 && (
 								<section class="pp-block reveal">
 									<div class="pp-block-header">
 										<span class="pp-block-num">{articlesLies.length > 0 ? '05' : '04'}</span>
+										<h2 class="pp-block-title">{t.questions.relatedQuestions}</h2>
+									</div>
+									<ul class="q-grid">
+										{linkedQuestions.map((r) => (
+											<li class="q-card">
+												<h3 class="q-card-title"><a href={path(locale, 'questions', r.slug)}>{r.question}</a></h3>
+												{r.reponse_courte && <p class="q-card-excerpt">{r.reponse_courte}</p>}
+												<span class="q-card-more">{t.questions.readAnswer} &rarr;</span>
+											</li>
+										))}
+									</ul>
+								</section>
+							)}
+
+							{produitsSimilaires.length > 0 && (
+								<section class="pp-block reveal">
+									<div class="pp-block-header">
+										<span class="pp-block-num">{String(4 + (articlesLies.length > 0 ? 1 : 0) + (linkedQuestions.length > 0 ? 1 : 0)).padStart(2, '0')}</span>
 										<h2 class="pp-block-title">{p.alsoLike}</h2>
 									</div>
 									<div class="pp-similar-scroll">

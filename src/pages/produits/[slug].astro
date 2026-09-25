@@ -15,6 +15,7 @@ if (!page.produit || page.errorMessage) Astro.response.status = 404;
 	produitsSimilaires={page.produitsSimilaires ?? []}
 	avis={page.avis ?? []}
 	articlesLies={page.articlesLies ?? []}
+	linkedQuestions={page.linkedQuestions ?? []}
 	errorMessage={page.errorMessage ?? null}
 	alternates={page.alternates ?? {}}
 />

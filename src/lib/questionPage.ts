@@ -14,11 +14,11 @@ export async function loadQuestionPage(locale: Locale, slug: string | undefined)
 		question = await getQuestion(locale, slug ?? '');
 		if (question) {
 			const [all, rawArticle, rawProduct] = await Promise.all([
-				listQuestions(locale, 'id,question,slug,reponse_courte,categorie,date_publication'),
+				listQuestions(locale, 'id,question,slug,reponse_courte,categorie,article_lie,produit_lie,date_publication'),
 				question.article_lie ? fetchDirectus(`/items/Articles/${question.article_lie}?fields=id,titre,slug,translations.*`) : null,
 				question.produit_lie ? fetchDirectus(`/items/Produits/${question.produit_lie}?fields=id,Nom_du_produit,nom_court,slug,translations.*`) : null,
 			]);
-			related = relatedQuestions(all, question, 3).map((r: any) => ({ question: r.question, slug: r.slug, reponse_courte: r.reponse_courte ?? null }));
+			related = relatedQuestions(all, question, 4).map((r: any) => ({ question: r.question, slug: r.slug, reponse_courte: r.reponse_courte ?? null }));
 
 			// Pas de lien vers une page qui n'existe pas dans cette langue.
 			const a = rawArticle ? localizeArticle(rawArticle, locale) : null;

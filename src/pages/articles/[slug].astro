@@ -9,4 +9,4 @@ if (page.notFound) return Astro.redirect('/404');
 if (!page.article || page.errorMessage) Astro.response.status = 404;
 ---
 
-<ArticleView locale="fr" article={page.article} productsForLinking={page.productsForLinking ?? []} faqs={page.faqs ?? []} errorMessage={page.errorMessage ?? null} alternates={page.alternates ?? {}} />
+<ArticleView locale="fr" article={page.article} productsForLinking={page.productsForLinking ?? []} faqs={page.faqs ?? []} linkedQuestions={page.linkedQuestions ?? []} errorMessage={page.errorMessage ?? null} alternates={page.alternates ?? {}} />

@@ -3,17 +3,20 @@ import Layout from '../layouts/Layout.astro';
 import { directusUrl } from '../lib/directus';
 import { linkifyProducts } from '../lib/linkifyProducts';
 import { useTranslations, localeMeta, path, type Locale } from '../i18n';
+import type { LinkedQuestion } from '../lib/questionLinks';
+import '../styles/questions.css';
 
 interface Props {
     locale: Locale;
     article: any;
     productsForLinking: { name: string; slug: string }[];
     faqs?: { question: string; reponse: string }[];
+    linkedQuestions?: LinkedQuestion[];
     errorMessage: string | null;
     alternates: Partial<Record<Locale, string>>;
 }
 
-const { locale, article, productsForLinking, faqs = [], errorMessage, alternates } = Astro.props;
+const { locale, article, productsForLinking, faqs = [], linkedQuestions = [], errorMessage, alternates } = Astro.props;
 const t = useTranslations(locale);
 const a = t.articles;
 const intl = localeMeta[locale].intl;
@@ -100,6 +103,21 @@ const formatDate = (date: string) => {
                     <div class="article-content p-prose" set:html={linkifiedContent} />
                 )}
 
+                {linkedQuestions.length > 0 && (
+                    <section class="article-questions">
+                        <h2 class="p-label q-foot-title">{t.questions.relatedQuestions}</h2>
+                        <ul class="q-grid">
+                            {linkedQuestions.map((r) => (
+                                <li class="q-card">
+                                    <h3 class="q-card-title"><a href={path(locale, 'questions', r.slug)}>{r.question}</a></h3>
+                                    {r.reponse_courte && <p class="q-card-excerpt">{r.reponse_courte}</p>}
+                                    <span class="q-card-more">{t.questions.readAnswer} &rarr;</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
+
                 <!-- FOOTER ARTICLE -->
                 <div class="article-footer">
                     <a href={path(locale, 'articles')} class="btn btn-outline">&larr; {a.back}</a>
@@ -154,6 +172,11 @@ const formatDate = (date: string) => {
     }
     .article-content { font-size: 1.1rem; }
 
+    .article-questions {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--ink);
+    }
     .article-footer {
         margin-top: 4rem;
         padding-top: 2rem;

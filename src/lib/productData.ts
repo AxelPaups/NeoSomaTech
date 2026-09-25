@@ -1,6 +1,7 @@
 import { fetchDirectus } from './directus';
 import { PRODUCT_FIELDS } from './productPage';
 import { getProduct, listProducts } from './content';
+import { loadLinkedQuestions, type LinkedQuestion } from './questionLinks';
 import { path, type Locale } from '../i18n';
 
 // Redirections 301 d'anciens slugs produits supprimés ou renommés, vers la page de marque
@@ -22,10 +23,12 @@ export async function loadProductPage(locale: Locale, slug: string | undefined) 
 	let produitsSimilaires: any[] = [];
 	let avis: any[] = [];
 	let articlesLies: any[] = [];
+	let linkedQuestions: LinkedQuestion[] = [];
 	let errorMessage: string | null = null;
 
 	try {
 		produit = await getProduct(locale, slug ?? '', PRODUCT_FIELDS);
+		if (produit) linkedQuestions = await loadLinkedQuestions(locale, 'produit_lie', produit.id);
 
 		// Les variantes de taille contiennent des textes non traduits : réservées au français pour l'instant.
 		if (produit && locale !== 'fr') produit.variantes = [];
@@ -101,5 +104,5 @@ export async function loadProductPage(locale: Locale, slug: string | undefined) 
 		for (const [l, s] of Object.entries(produit.slugs)) alternates[l as Locale] = path(l as Locale, 'product', s as string);
 	}
 
-	return { produit, produitsSimilaires, avis, articlesLies, errorMessage, alternates, notFound: !produit && !errorMessage };
+	return { produit, produitsSimilaires, avis, articlesLies, linkedQuestions, errorMessage, alternates, notFound: !produit && !errorMessage };
 }

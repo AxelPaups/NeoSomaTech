@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { stripHtml, wordCount, truncate, groupByCategory, relatedQuestions, addHeadingIds } from '../src/lib/questionUtils.ts';
+import { stripHtml, wordCount, truncate, groupByCategory, relatedQuestions, questionsLinkedTo, addHeadingIds } from '../src/lib/questionUtils.ts';
 
 test('stripHtml retire les balises et les espaces insécables', () => {
 	assert.equal(stripHtml('<h2>Titre</h2><p>Un&nbsp;texte <strong>fort</strong></p>'), 'Titre Un texte fort');
@@ -57,4 +57,26 @@ test('addHeadingIds : ancres section-N sur les H2 et sommaire décodé', () => {
 test('addHeadingIds : sans titre H2, rien à faire', () => {
 	assert.deepEqual(addHeadingIds('<p>texte</p>'), { html: '<p>texte</p>', toc: [] });
 	assert.deepEqual(addHeadingIds(''), { html: '', toc: [] });
+});
+
+test('relatedQuestions : même article lié d\'abord, puis même produit, puis même catégorie', () => {
+	const all = [
+		{ slug: 'cat', categorie: 'ski', article_lie: 9, produit_lie: null, date_publication: '2026-06-01' },
+		{ slug: 'prod', categorie: 'genou', article_lie: 8, produit_lie: 5, date_publication: '2026-02-01' },
+		{ slug: 'art', categorie: 'genou', article_lie: 7, produit_lie: null, date_publication: '2026-01-01' },
+		{ slug: 'cur', categorie: 'ski', article_lie: 7, produit_lie: 5, date_publication: '2026-07-01' },
+	];
+	const r = relatedQuestions(all, { slug: 'cur', categorie: 'ski', article_lie: 7, produit_lie: 5 }, 3);
+	assert.deepEqual(r.map((x) => x.slug), ['art', 'prod', 'cat']);
+});
+
+test('questionsLinkedTo : ne garde que les questions liées à la cible, récentes d\'abord, limitées', () => {
+	const all = [
+		{ slug: 'a', article_lie: 7, produit_lie: null, date_publication: '2026-01-01' },
+		{ slug: 'b', article_lie: 7, produit_lie: 3, date_publication: '2026-03-01' },
+		{ slug: 'c', article_lie: 8, produit_lie: 3, date_publication: '2026-05-01' },
+	];
+	assert.deepEqual(questionsLinkedTo(all, 'article_lie', 7).map((x) => x.slug), ['b', 'a']);
+	assert.deepEqual(questionsLinkedTo(all, 'produit_lie', 3, 1).map((x) => x.slug), ['c']);
+	assert.deepEqual(questionsLinkedTo(all, 'article_lie', 99), []);
 });

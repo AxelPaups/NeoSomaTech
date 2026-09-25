@@ -1,5 +1,6 @@
 import { getArticle, listProducts } from './content';
 import { extractFaqFromHtml } from './articleFaq';
+import { loadLinkedQuestions, type LinkedQuestion } from './questionLinks';
 import { path, type Locale } from '../i18n';
 
 // Redirections 301 d'anciens slugs (majuscules/accents) vers leur version propre.
@@ -23,10 +24,12 @@ export async function loadArticlePage(locale: Locale, slug: string | undefined) 
 	let errorMessage: string | null = null;
 	let productsForLinking: { name: string; slug: string }[] = [];
 	let faqs: { question: string; reponse: string }[] = [];
+	let linkedQuestions: LinkedQuestion[] = [];
 
 	try {
 		article = await getArticle(locale, slug ?? '', ARTICLE_FIELDS);
 		if (article) faqs = extractFaqFromHtml(article.contenu);
+		if (article) linkedQuestions = await loadLinkedQuestions(locale, 'article_lie', article.id);
 
 		// Tous les produits de la langue, pour les liens automatiques dans le texte
 		if (article) {
@@ -57,5 +60,5 @@ export async function loadArticlePage(locale: Locale, slug: string | undefined) 
 		for (const [l, s] of Object.entries(article.slugs)) alternates[l as Locale] = path(l as Locale, 'articles', s as string);
 	}
 
-	return { article, productsForLinking, faqs, errorMessage, alternates, notFound: !article && !errorMessage };
+	return { article, productsForLinking, faqs, linkedQuestions, errorMessage, alternates, notFound: !article && !errorMessage };
 }

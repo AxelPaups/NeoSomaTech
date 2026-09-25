@@ -31,17 +31,36 @@ export function groupByCategory<T extends { categorie?: string | null }>(items: 
 	return [...known, 'autre'].filter((c) => map.has(c)).map((c) => ({ categorie: c, items: map.get(c)! }));
 }
 
-/** Questions voisines : même catégorie d'abord, puis les autres ; les plus récentes en premier. */
-export function relatedQuestions<T extends { slug: string; categorie?: string | null; date_publication?: string | null }>(
+type Linkable = {
+	slug: string;
+	categorie?: string | null;
+	article_lie?: number | null;
+	produit_lie?: number | null;
+	date_publication?: string | null;
+};
+const pubTime = (q: { date_publication?: string | null }) => (q.date_publication ? new Date(q.date_publication).getTime() : 0);
+
+/** Questions voisines : même article lié, puis même produit, puis même catégorie, puis les autres ; récentes d'abord dans chaque groupe. */
+export function relatedQuestions<T extends Linkable>(
 	all: T[],
-	current: { slug: string; categorie?: string | null },
+	current: { slug: string; categorie?: string | null; article_lie?: number | null; produit_lie?: number | null },
 	n = 3,
 ): T[] {
-	const time = (q: T) => (q.date_publication ? new Date(q.date_publication).getTime() : 0);
-	const others = all.filter((q) => q.slug !== current.slug).sort((a, b) => time(b) - time(a));
-	const same = others.filter((q) => current.categorie && q.categorie === current.categorie);
-	const rest = others.filter((q) => !same.includes(q));
-	return [...same, ...rest].slice(0, n);
+	const others = all.filter((q) => q.slug !== current.slug).sort((a, b) => pubTime(b) - pubTime(a));
+	const groups: ((q: T) => boolean)[] = [
+		(q) => current.article_lie != null && q.article_lie === current.article_lie,
+		(q) => current.produit_lie != null && q.produit_lie === current.produit_lie,
+		(q) => !!current.categorie && q.categorie === current.categorie,
+	];
+	const picked: T[] = [];
+	for (const match of groups) for (const q of others) if (!picked.includes(q) && match(q)) picked.push(q);
+	for (const q of others) if (!picked.includes(q)) picked.push(q);
+	return picked.slice(0, n);
+}
+
+/** Questions rattachées à un article (article_lie) ou à un produit (produit_lie), récentes d'abord. */
+export function questionsLinkedTo<T extends Linkable>(all: T[], field: 'article_lie' | 'produit_lie', id: number, n = 6): T[] {
+	return all.filter((q) => q[field] === id).sort((a, b) => pubTime(b) - pubTime(a)).slice(0, n);
 }
 
 const decodeBasic = (s: string) =>
